@@ -15,7 +15,7 @@ Tech Stack
 
 Frontend + Backend Framework
 
-Next.js 16 (App Router)
+Next.js 16.4.3 (App Router; Turbopack for development, Webpack available with `pnpm dev --webpack`)
 React 19
 TypeScript
 next-intl for English and Vietnamese, with a cookie-backed locale
@@ -100,6 +100,22 @@ Animations should feel fluid and calm, not flashy.
 Backend (Next.js Server)
 
 Backend logic runs inside the Next.js server layer.
+
+Internal CMS API logic lives in the root `handlers/` folder, with its server-only
+page wrapper in `components/ProtectedPage`. CMS page components and reusable UI
+follow the existing `components/` and `components/shared/` structure, with
+colocated `index.scss` styles. Permission/route/schema/query definitions live in
+`services/`, CMS domain requests in `services/cms/accounts/` and
+`services/cms/roles/`, transport/common types in `services/shared/`, and session state in
+`store/cmsStore.ts`. See `contexts/cms.md` for the complete ownership map.
+
+CMS authentication uses the database-backed HttpOnly session cookie. The server
+passes plain user information and scopes into the CMS store; APIs authorize the
+live session and permissions directly, without JWTs or a token refresh flow.
+
+The accounts, roles, future-message, submissions and locale service modules use
+`index.ts` for request functions and `types.ts` for module-owned types. Consumers
+import runtime services and type-only definitions separately.
 
 Responsibilities:
 
@@ -246,7 +262,7 @@ In-memory, per-process rolling-window rate limiting by the first x-forwarded-for
 
 Zod validation for create/update payloads and viewport bounds, plus the description length limit.
 
-Author UUID comparison for update/delete. Identity remains a browser-local UUID; there are no accounts or authenticated sessions.
+Author UUID comparison for public update/delete. Public identity remains a browser-local UUID. Internal CMS accounts and database-backed sessions are isolated under `/cms` and `/api/cms`; see `contexts/cms.md` for the CMS contracts.
 
 Public submission GET routes explicitly select safe fields. Create/update responses return the saved row to the caller.
 

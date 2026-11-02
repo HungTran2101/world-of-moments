@@ -1,0 +1,139 @@
+.Cms-shell {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.Cms-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 24px 16px 18px;
+  overflow-y: auto;
+  border-right: 1px solid #dde1e7;
+  background: #fff;
+}
+
+.Cms-sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.Cms-sidebar details {
+  margin-top: 22px;
+}
+
+.Cms-sidebar summary {
+  margin: 0 10px 7px;
+  color: #7a808b;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.Cms-sidebar li a {
+  display: block;
+  margin: 3px 0;
+  padding: 9px 11px;
+  border-radius: 5px;
+  color: #555e6c;
+  text-decoration: none;
+}
+
+.Cms-sidebar a[aria-current="page"] {
+  color: #20354d;
+  background: #edf1f6;
+  font-weight: 600;
+}
+
+.Cms-sidebar li a:hover {
+  background: #f4f6f8;
+}
+
+.Cms-sidebarFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.Cms-sidebarFooter > label {
+  margin-bottom: -8px;
+  color: #717986;
+  font-size: 12px;
+}
+
+.Cms-identity {
+  margin-bottom: 4px !important;
+  overflow-wrap: anywhere;
+}
+
+.Cms-identity small {
+  color: #7a808b;
+  font-size: 12px;
+}
+
+.Cms-main {
+  min-width: 0;
+  height: 100dvh;
+  padding-bottom: 32px;
+  overflow: auto;
+}
+
+.Cms-menuToggle {
+  display: none !important;
+}
+
+.Cms-skip {
+  position: fixed;
+  z-index: 100;
+  top: -80px;
+  left: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.Cms-skip:focus {
+  top: 12px;
+}
+
+@media (width <= 760px) {
+.Cms-shell {
+    display: flex;
+    flex-direction: column;
+  }
+
+.Cms .Cms-menuToggle {
+    display: block !important;
+    min-height: 48px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+  }
+
+.Cms-sidebar {
+    display: none;
+    flex-shrink: 0;
+    max-height: 55dvh;
+    padding: 16px;
+    border-bottom: 1px solid #dde1e7;
+  }
+
+.Cms-sidebar[data-open="true"] {
+    display: flex;
+  }
+
+.Cms-sidebar .Cms-brand {
+    padding-bottom: 12px;
+  }
+
+.Cms-sidebarFooter {
+    padding-top: 18px;
+  }
+
+.Cms-main {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}

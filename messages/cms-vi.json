@@ -1,0 +1,122 @@
+{
+  "common": {
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm…",
+    "create": "Tạo mới",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "delete": "Xóa",
+    "detail": "Chi tiết",
+    "back": "Quay lại",
+    "cancel": "Hủy",
+    "retry": "Thử lại",
+    "loading": "Đang tải…",
+    "empty": "Không tìm thấy dữ liệu.",
+    "actions": "Thao tác",
+    "bulkAction": "Thao tác hàng loạt",
+    "execute": "Thực thi",
+    "executing": "Đang thực thi…",
+    "selected": "Đã chọn {count}",
+    "selectAll": "Chọn tất cả dòng cho phép",
+    "selectRow": "Chọn dòng {key}",
+    "table": "Danh sách dữ liệu",
+    "pagination": "Phân trang",
+    "previous": "Trang trước",
+    "next": "Trang sau",
+    "page": "{page} / {total}",
+    "pageSize": "Số dòng mỗi trang",
+    "total": "{count} bản ghi",
+    "breadcrumbs": "Đường dẫn điều hướng",
+    "language": "Ngôn ngữ",
+    "confirmDelete": "Xóa {count} bản ghi? Thao tác này không thể hoàn tác."
+  },
+  "nav": {
+    "home": "Tổng quan",
+    "management": "Quản lý",
+    "accounts": "Tài khoản",
+    "roles": "Vai trò",
+    "changePassword": "Đổi mật khẩu",
+    "logout": "Đăng xuất",
+    "navigation": "Điều hướng CMS",
+    "skip": "Đến nội dung",
+    "menu": "Menu"
+  },
+  "login": {
+    "title": "Đăng nhập",
+    "description": "Quản trị World of Moments.",
+    "submit": "Đăng nhập",
+    "signingIn": "Đang đăng nhập…"
+  },
+  "home": {
+    "welcome": "Xin chào, {name}.",
+    "description": "Quản lý tài khoản CMS và phân quyền cho các vai trò."
+  },
+  "account": {
+    "username": "Tên đăng nhập",
+    "name": "Tên hiển thị",
+    "password": "Mật khẩu",
+    "roles": "Vai trò",
+    "status": "Trạng thái",
+    "active": "Hoạt động",
+    "inactive": "Ngừng hoạt động",
+    "createTitle": "Tạo tài khoản",
+    "editTitle": "Chi tiết tài khoản",
+    "resetPassword": "Đặt lại mật khẩu",
+    "resetDescription": "Đặt mật khẩu mới cho tài khoản. Các phiên đăng nhập hiện tại sẽ kết thúc.",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "passwordChanged": "Đã đổi mật khẩu. Các phiên đăng nhập khác đã kết thúc.",
+    "noRoles": "Hãy tạo vai trò trước khi thêm tài khoản."
+  },
+  "role": {
+    "name": "Tên vai trò",
+    "permissions": "Phân quyền",
+    "fullAccess": "Toàn quyền",
+    "type": "Loại",
+    "system": "Hệ thống",
+    "custom": "Tùy chỉnh",
+    "createTitle": "Tạo vai trò",
+    "editTitle": "Chi tiết vai trò",
+    "module": "Phân hệ",
+    "show": "Xem",
+    "create": "Tạo mới",
+    "update": "Cập nhật",
+    "delete": "Xóa",
+    "extra": "Quyền bổ sung",
+    "protected": "Vai trò hệ thống này chỉ được xem."
+  },
+  "modules": {
+    "account": "Tài khoản",
+    "role": "Vai trò"
+  },
+  "permissionNames": {
+    "account": {
+      "resetPasswordPermission": "Đặt lại mật khẩu tài khoản"
+    }
+  },
+  "validation": {
+    "required": "Vui lòng nhập trường này.",
+    "passwordMin": "Sử dụng ít nhất 8 ký tự.",
+    "passwordMax": "Sử dụng tối đa 128 ký tự.",
+    "username": "Dùng 3–40 chữ thường, số, dấu chấm, gạch dưới hoặc gạch ngang.",
+    "maxLength": "Sử dụng tối đa 100 ký tự.",
+    "rolesRequired": "Vui lòng chọn ít nhất một vai trò.",
+    "invalidRoles": "Vui lòng chọn vai trò hợp lệ, không phải vai trò hệ thống.",
+    "differentPassword": "Vui lòng chọn mật khẩu khác mật khẩu hiện tại."
+  },
+  "errors": {
+    "unauthorized": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+    "forbidden": "Bạn không có quyền truy cập trang hoặc thực hiện thao tác này.",
+    "credentials": "Tên đăng nhập hoặc mật khẩu không đúng.",
+    "validation": "Vui lòng kiểm tra các trường và thử lại.",
+    "invalidJson": "Dữ liệu yêu cầu không hợp lệ.",
+    "duplicate": "Tên đăng nhập hoặc tên vai trò đã tồn tại.",
+    "notFound": "Không tìm thấy bản ghi được yêu cầu.",
+    "roleInUse": "Vai trò đang được gán cho tài khoản nên không thể xóa.",
+    "protectedRole": "Không thể sửa hoặc xóa vai trò quản trị hệ thống.",
+    "conflict": "Dữ liệu đã thay đổi trong lúc xử lý. Vui lòng tải lại và thử lại.",
+    "currentPassword": "Mật khẩu hiện tại không đúng.",
+    "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
+    "server": "Không thể hoàn tất yêu cầu. Vui lòng thử lại."
+  }
+}

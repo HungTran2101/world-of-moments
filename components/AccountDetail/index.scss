@@ -1,0 +1,39 @@
+.Cms-accountForm {
+  max-width: 640px;
+}
+
+.Cms-checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.Cms-formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.Cms-dialogOverlay {
+  background: rgb(20 28 40 / 30%);
+}
+
+.Cms.Cms-dialog {
+  width: min(480px, calc(100vw - 32px));
+  min-height: 0;
+  max-height: calc(100dvh - 48px);
+  padding: 26px;
+  overflow-y: auto;
+  border: 1px solid #dde1e7;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.Cms-dialog h2 {
+  margin-bottom: 10px;
+}
+
+.Cms-dialog p {
+  color: #717986;
+}

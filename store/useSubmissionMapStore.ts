@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { SubmissionPin } from "@/services/submissions";
+import type { SubmissionPin } from "@/services/submissions/types";
 
 export interface ScreenPoint {
   x: number;

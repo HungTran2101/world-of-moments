@@ -1,0 +1,19 @@
+@use "../shared/Table/base";
+
+.Cms-form-wide {
+  max-width: 1100px;
+}
+
+.Cms-permissions {
+  min-width: 780px !important;
+}
+
+.Cms-permissions th:not(:first-child),
+.Cms-permissions td:not(:last-child) {
+  text-align: center;
+}
+
+.Cms-permissions select {
+  width: 100%;
+  min-width: 220px;
+}

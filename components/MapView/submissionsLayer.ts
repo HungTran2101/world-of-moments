@@ -1,7 +1,8 @@
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import clusterBubbleImg from "@/public/assets/cluster-notes.webp";
 import { normalizeSubmissionBounds } from "@/lib/submissionBounds";
-import { getSubmissions, type SubmissionPin } from "@/services/submissions";
+import { getSubmissions } from "@/services/submissions";
+import type { SubmissionPin } from "@/services/submissions/types";
 import { Marker, type ExpressionSpecification, type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
 import { addEntryAnimations, CLUSTER_WIDTH_STOPS } from "./entryAnimations";
 import { FLAT_MAP_ZOOM, GLOBE_MARKER_MIN_OPACITY, GLOBE_MARKER_SCALE, GLOBE_ZOOM, SPACE_FADE_START_ZOOM } from "./spaceStyle";

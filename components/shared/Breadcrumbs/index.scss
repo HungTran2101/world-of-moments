@@ -1,0 +1,26 @@
+.Cms-breadcrumbs {
+  padding: 19px 32px;
+  color: #717986;
+  font-size: 13px;
+}
+
+.Cms-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.Cms-breadcrumbs li + li::before {
+  margin-right: 10px;
+  color: #a2a8b1;
+  content: "/";
+}
+
+@media (width <= 760px) {
+.Cms-breadcrumbs {
+    padding: 16px;
+  }
+}

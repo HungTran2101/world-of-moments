@@ -2,7 +2,8 @@
 
 import { useAuthorUUID } from "@/hooks/useAuthorUUID";
 import { useError } from "@/components/shared/ErrorProvider";
-import { getSubmissionHistory, submissionHistoryKey, type SubmissionPin } from "@/services/submissions";
+import { getSubmissionHistory, submissionHistoryKey } from "@/services/submissions";
+import type { SubmissionPin } from "@/services/submissions/types";
 import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, History, MapPin, Search, X } from "lucide-react";

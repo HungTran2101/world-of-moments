@@ -50,7 +50,7 @@ Implementation boundaries
 
 Identity Model
 
-There is no authentication system.
+The public map has no authentication system. Internal CMS authentication is separate and documented in `contexts/cms.md`.
 
 Users are identified by a locally stored UUID in LocalStorage.
 

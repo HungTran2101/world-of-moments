@@ -1,0 +1,34 @@
+.Cms-login {
+  display: grid;
+  min-height: 100dvh;
+  padding: 24px;
+  place-items: center;
+}
+
+.Cms-loginCard {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  border: 1px solid #dde1e7;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.Cms-loginCard h1 {
+  margin-bottom: 8px;
+}
+
+.Cms-loginCard .Cms-brand {
+  padding-bottom: 32px;
+}
+
+.Cms .Cms-loginSubmit {
+  width: 100%;
+  color: #fff;
+  background: #283b51;
+}
+
+.Cms-loginCard > select {
+  width: 100%;
+  margin-top: 24px;
+}

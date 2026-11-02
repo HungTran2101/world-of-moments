@@ -1,0 +1,48 @@
+.Cms-form {
+  padding: 26px;
+  border: 1px solid #dde1e7;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.Cms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.Cms-field > label {
+  font-weight: 500;
+}
+
+.Cms-fieldError {
+  color: #b42332;
+  font-size: 12px;
+}
+
+.Cms-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 13px 16px;
+  border: 1px solid #d7e2dc;
+  border-radius: 5px;
+  color: #315c43;
+  background: #f2f7f4;
+}
+
+.Cms-notice-error {
+  border-color: #edcdd0;
+  color: #a32f3b;
+  background: #fff6f6;
+}
+
+@media (width <= 760px) {
+.Cms-form {
+    padding: 18px;
+  }
+}

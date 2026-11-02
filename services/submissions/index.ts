@@ -1,37 +1,15 @@
-import { ApiRequestOptions, apiRequest } from "@/services/shared/api";
+import { apiRequest, type ApiRequestOptions } from "@/services/shared/api";
 import type { SubmissionBounds } from "@/lib/submissionBounds";
-import type { PaginatedResponse } from "@/services/shared/pagination";
-
-export interface SubmissionPin {
-  id: string;
-  lat: number;
-  lng: number;
-}
-
-export interface Submission extends SubmissionPin {
-  description: string;
-  weather_summary: string | null;
-  weather_code?: string | number | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface CreateSubmissionPayload {
-  description: string;
-  lat: number;
-  lng: number;
-  author_uuid: string;
-}
-
-export interface UpdateSubmissionPayload {
-  description?: string;
-  author_uuid: string;
-}
+import type {
+  CreateSubmissionPayload,
+  Submission,
+  SubmissionHistoryPage,
+  SubmissionPin,
+  UpdateSubmissionPayload,
+} from "./types";
 
 // Tách cache của DTO mới khỏi các trang còn giữ metadata phẳng khi cập nhật ứng dụng.
 export const submissionHistoryKey = ["submission-history", "metadata"] as const;
-
-export type SubmissionHistoryPage = PaginatedResponse<Submission>;
 
 export function getSubmissionHistory(
   authorUuid: string,

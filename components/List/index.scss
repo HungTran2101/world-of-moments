@@ -1,0 +1,15 @@
+.Cms-rowActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.Cms button.Cms-dangerLink {
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  color: #a62d39;
+  background: transparent;
+  font-weight: 400;
+}

@@ -9,9 +9,9 @@ activity or popularity.
 
 ## Always-on product rules
 
-- Preserve the anonymous identity model. Identity is only a UUID stored in browser
-  LocalStorage; do not introduce accounts, NextAuth, JWT sessions, or similar
-  authentication systems.
+- Preserve the public anonymous identity model. Public visitors use only a UUID
+  stored in browser LocalStorage. CMS-only accounts and database-backed sessions
+  are isolated under `/cms` and `/api/cms`; never apply them to the public map.
 - Do not introduce social mechanics such as likes, comments, followers, feeds,
   rankings, popularity metrics, or intrusive notifications.
 - Never expose author identities or exact timestamps in public responses. Exact
@@ -61,6 +61,20 @@ Read only the documents relevant to the task:
 - System structure and technical boundaries: `contexts/architecture.md`
 - Planned phases and feature priority: `contexts/roadmap.md`
 - General repository overview and setup: `README.md`
+- CMS architecture, contracts, setup, and implementation status: `contexts/cms.md`
+
+For every future CMS change, read `contexts/cms.md` and update its affected
+contracts, behavior, or status in the same task.
 
 When documentation and implementation differ, do not silently choose one. Verify
 whether the difference is an intentional product decision before changing behavior.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

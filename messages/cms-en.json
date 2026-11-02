@@ -1,0 +1,122 @@
+{
+  "common": {
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "create": "Create",
+    "save": "Save",
+    "saving": "Saving…",
+    "delete": "Delete",
+    "detail": "Details",
+    "back": "Back",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "empty": "No records found.",
+    "actions": "Actions",
+    "bulkAction": "Bulk action",
+    "execute": "Do it",
+    "executing": "Executing…",
+    "selected": "{count} selected",
+    "selectAll": "Select all eligible rows",
+    "selectRow": "Select row {key}",
+    "table": "Records",
+    "pagination": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page",
+    "page": "{page} / {total}",
+    "pageSize": "Rows per page",
+    "total": "{count} records",
+    "breadcrumbs": "Breadcrumbs",
+    "language": "Language",
+    "confirmDelete": "Delete {count} record(s)? This cannot be undone."
+  },
+  "nav": {
+    "home": "Overview",
+    "management": "Management",
+    "accounts": "Accounts",
+    "roles": "Roles",
+    "changePassword": "Change password",
+    "logout": "Sign out",
+    "navigation": "CMS navigation",
+    "skip": "Skip to content",
+    "menu": "Menu"
+  },
+  "login": {
+    "title": "Sign in",
+    "description": "Manage World of Moments.",
+    "submit": "Sign in",
+    "signingIn": "Signing in…"
+  },
+  "home": {
+    "welcome": "Hello, {name}.",
+    "description": "Manage CMS accounts and the permissions assigned to their roles."
+  },
+  "account": {
+    "username": "Username",
+    "name": "Display name",
+    "password": "Password",
+    "roles": "Roles",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "createTitle": "Create account",
+    "editTitle": "Account details",
+    "resetPassword": "Reset password",
+    "resetDescription": "Set a new password for this account. Existing sessions will be signed out.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "passwordChanged": "Your password has been changed. Other sessions have been signed out.",
+    "noRoles": "Create a role before adding an account."
+  },
+  "role": {
+    "name": "Role name",
+    "permissions": "Permissions",
+    "fullAccess": "Full access",
+    "type": "Type",
+    "system": "System",
+    "custom": "Custom",
+    "createTitle": "Create role",
+    "editTitle": "Role details",
+    "module": "Module",
+    "show": "Show",
+    "create": "Create",
+    "update": "Update",
+    "delete": "Delete",
+    "extra": "Extra permissions",
+    "protected": "This system role is read-only."
+  },
+  "modules": {
+    "account": "Accounts",
+    "role": "Roles"
+  },
+  "permissionNames": {
+    "account": {
+      "resetPasswordPermission": "Reset account passwords"
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "passwordMin": "Use at least 8 characters.",
+    "passwordMax": "Use at most 128 characters.",
+    "username": "Use 3–40 lowercase letters, numbers, dots, underscores, or hyphens.",
+    "maxLength": "Use at most 100 characters.",
+    "rolesRequired": "Select at least one role.",
+    "invalidRoles": "Select valid, non-system roles.",
+    "differentPassword": "Choose a password different from your current password."
+  },
+  "errors": {
+    "unauthorized": "Your session has expired. Please sign in again.",
+    "forbidden": "You do not have permission to access this page or perform this action.",
+    "credentials": "The username or password is incorrect.",
+    "validation": "Check the form fields and try again.",
+    "invalidJson": "The request body is invalid.",
+    "duplicate": "That username or role name already exists.",
+    "notFound": "The requested record was not found.",
+    "roleInUse": "This role is assigned to accounts and cannot be deleted.",
+    "protectedRole": "The system administrator role cannot be changed or deleted.",
+    "conflict": "The records changed during this request. Refresh and try again.",
+    "currentPassword": "Your current password is incorrect.",
+    "rateLimited": "Too many sign-in attempts. Please try again later.",
+    "server": "Unable to complete the request. Please try again."
+  }
+}
