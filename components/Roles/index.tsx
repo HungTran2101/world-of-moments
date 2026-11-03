@@ -33,6 +33,7 @@ export function RolesPage({ permission }: CmsPageProps) {
   // Chỉ giữ lựa chọn trong cùng URL để không thao tác nhầm bản ghi sau khi đổi trang/bộ lọc.
   const [selection, setSelection] = useState({ context, keys: [] as string[] });
   const [error, setError] = useState<unknown>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const crud = useCRUDPage({
     queryKey: ["cms", "roles"],
     services: roleServices,
@@ -44,12 +45,16 @@ export function RolesPage({ permission }: CmsPageProps) {
     return `/cms/roles/detail${query.size ? `?${query}` : ""}`;
   };
   const deleteRow = async (id: string) => {
+    if (crud.deleteLoading || crud.fetching) return;
     if (!window.confirm(t("common.confirmDelete", { count: 1 }))) return;
     setError(null);
+    setDeletingId(id);
     try {
       await crud.onDelete([id]);
     } catch (error) {
       setError(error);
+    } finally {
+      setDeletingId(null);
     }
   };
   const columns: Column<CmsRoleRecord>[] = [
@@ -97,6 +102,7 @@ export function RolesPage({ permission }: CmsPageProps) {
                     size="icon"
                     type="button"
                     aria-label={t("common.delete")}
+                    loading={deletingId === record.id}
                     disabled={record.isSystem || crud.deleteLoading || crud.fetching}
                     onClick={() => void deleteRow(record.id)}
                   >

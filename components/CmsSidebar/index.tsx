@@ -25,7 +25,8 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const user = useCmsStore((state) => state.user);
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"locale" | "logout" | null>(null);
+  const busy = pendingAction !== null;
   const [error, setError] = useState<unknown>(null);
   const renderItem = (item: SidebarItem): ReactNode => {
     if (item.showRole && !checkPermission(user?.scopes ?? [], item.showRole))
@@ -55,7 +56,8 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    setBusy(true);
+    if (busy) return;
+    setPendingAction("logout");
     try {
       await logoutCms();
       const channel = new BroadcastChannel("wom-cms-session");
@@ -64,7 +66,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
       expireCmsSession();
     } catch (error) {
       setError(error);
-      setBusy(false);
+      setPendingAction(null);
     }
   };
 
@@ -112,12 +114,12 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
             disabled={busy}
             onValueChange={(value) => {
               const next = locales.find((item) => item === value);
-              if (!next) return;
-              setBusy(true);
+              if (!next || busy) return;
+              setPendingAction("locale");
               void setLocale(next)
                 .then(() => router.refresh())
                 .catch(setError)
-                .finally(() => setBusy(false));
+                .finally(() => setPendingAction(null));
             }}
             options={[
               { value: "vi", label: "Tiếng Việt" },
@@ -132,7 +134,14 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
           >
             {t("nav.changePassword")}
           </Link>
-          <Button variant="secondary" className="h-10" type="button" disabled={busy} onClick={() => void logout()}>
+          <Button
+            variant="secondary"
+            className="h-10"
+            type="button"
+            disabled={busy}
+            loading={pendingAction === "logout"}
+            onClick={() => void logout()}
+          >
             {t("nav.logout")}
           </Button>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -79,9 +80,11 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
             className="h-10"
             type="submit"
             form="cms-role-form"
-            disabled={!canSave || isSubmitting || Boolean(id && !query.data)}
+            aria-label={t(isSubmitting ? "common.saving" : "common.save")}
+            loading={isSubmitting}
+            disabled={!canSave || Boolean(id && !query.data)}
           >
-            {t(isSubmitting ? "common.saving" : "common.save")}
+            {t("common.save")}
           </Button>
         }
       />
@@ -97,12 +100,15 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
         {(error || query.error) && (
           <ErrorNotice
             error={error || query.error}
+            retryLoading={query.isFetching}
             onRetry={() => void query.refetch()}
           />
         )}
         {isSystem && <p className="cms-notice">{t("role.protected")}</p>}
         {id && query.isPending ? (
-          <p role="status">{t("common.loading")}</p>
+          <p role="status" aria-label={t("common.loading")}>
+            <LoadingDots />
+          </p>
         ) : (
           (!id || query.data) && (
             <form

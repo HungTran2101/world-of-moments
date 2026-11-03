@@ -30,7 +30,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   controlled selection and Table composition, with page-specific row-action styles.
   They call `useCRUDPage` directly for query state, loading and deletion. There is
   no shared CRUD page wrapper.
-- Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Providers,
+- Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Pagination,Providers,
   Route,SearchInput,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
@@ -240,11 +240,39 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Empty results have one empty page. Server clamps out-of-range pages; the hook
   synchronizes the URL after deletion. Pagination metadata stays inside `metadata`.
 
+CMS loading states use the shared `LoadingDots` component for session hydration,
+list/detail data, role options, sign-in, saving (including password reset) and bulk
+actions. Visible progress text is replaced with dots; localized accessible labels,
+busy states and disabled controls remain available. CMS buttons pass
+`loading={isSubmitting}` or `loading={executing}` to the shared `Button`; it owns
+the dots, inherited text color, busy state and loading-time disabling. The original
+button content remains available to screen readers, and callers may supply a
+localized progress `aria-label`. The optional boolean `loading` prop defaults to
+false and preserves `asChild` composition. Row-delete buttons track the initiating
+record until deletion and list invalidation finish; other row controls retain their
+disabled guards. Search and list-retry buttons track the
+initiating action against the list query fetching state and clear that action when
+the request settles or a URL change uses fresh cached data. Search debounce stays
+active while results load. Detail-retry buttons use the detail/options query
+fetching states. Sign-out loading is separate from locale changes, and failed
+requests release their loading state.
+
 ## Table contract
 
 `Table<T>` receives `datasource: T[]`, `columns`, string `rowKey`, pagination
 metadata, search, `onSearch`, `onChangePage`, `onChangePageSize`, initial/background
 loading, error/retry, and a navigation key for search synchronization.
+
+`components/shared/Pagination` exports the controlled `Pagination` component and
+`PaginationProps`. It receives `pagination: PaginationMetadata`,
+`onChangePage(page)` and `onChangePageSize(pageSize)`, plus optional `disabled`,
+`pageSizes` (default 10/20/50/100) and `className`. It owns the total, previous/next
+controls, current/total page display, page-size selector and colocated styles.
+It uses the existing CMS translation provider and can render without `Table`.
+Pagination has no loading indicators or request state; `disabled` blocks its
+controls. `Table` delegates to it with `disabled={fetching}` and keeps its public
+pagination props unchanged. Callers own fetching, URL updates and resetting to
+page 1 after a page-size change.
 
 - Basic Antd-style columns: `key`, `title`, optional `dataIndex`, `render(value,
   record, index)`, `width`, `align: "left" | "center" | "right"`, and
@@ -511,3 +539,17 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   open/close with focus restoration. A temporary client-mounted global-fallback
   harness verifies keyboard retry even with stylesheets disabled. Temporary
   account/role records, the harness route and extra browser tabs are removed.
+
+- API-button loading audit: scoped ESLint fixes, typecheck and diff checks pass.
+  Temporary component checks with mocked HTTP responses cover account/role row
+  deletion failures, successful deletion through list invalidation, search, stale
+  and fresh-cache pagination, retry recovery, and sign-out failure recovery. No CMS
+  data or sessions were changed by these checks. Live search HTTP requests succeed;
+  transient loading visuals and real mutation flows were not fully browser-verified.
+
+- Reusable pagination: the shared controlled component owns its styles and
+  exposes page/page-size callbacks. Table uses it without pagination loading dots.
+  Scoped ESLint/Stylelint fixes, typecheck, Sass compilation and diff checks pass.
+  Temporary component checks cover standalone callbacks, page-size changes, empty
+  and boundary pages, disabled controls, custom sizes/classes, EN/VI labels and
+  Table composition while fetching. Desktop Accounts rendering is checked.

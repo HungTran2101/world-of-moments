@@ -14,10 +14,12 @@ export function SearchInput({
   value,
   onSearch,
   navigationKey,
+  loading = false,
 }: {
   value: string;
   onSearch: (value: string) => void;
   navigationKey: string;
+  loading?: boolean;
 }) {
   const t = useTranslations();
   const id = useId();
@@ -39,6 +41,7 @@ export function SearchInput({
   }, [value, navigationKey, reset]);
 
   const submit = () => {
+    if (loading) return;
     clearTimeout(timer.current);
     void handleSubmit(({ search }) => onSearchRef.current(search))();
   };
@@ -69,7 +72,9 @@ export function SearchInput({
           }, 350);
         }}
       />
-      <Button variant="primary" className="h-10" type="submit">{t("common.search")}</Button>
+      <Button variant="primary" className="h-10" type="submit" loading={loading}>
+        {t("common.search")}
+      </Button>
     </form>
   );
 }

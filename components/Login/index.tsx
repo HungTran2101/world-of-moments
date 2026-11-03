@@ -106,8 +106,10 @@ export function LoginPage() {
             </Field>
             <Button
               className="cms-loginSubmit" type="submit"
+              aria-label={t(isSubmitting ? "login.signingIn" : "login.submit")}
+              loading={isSubmitting}
             >
-              {t(isSubmitting ? "login.signingIn" : "login.submit")}
+              {t("login.submit")}
             </Button>
           </fieldset>
         </form>

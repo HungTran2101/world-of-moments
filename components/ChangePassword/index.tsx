@@ -34,8 +34,15 @@ export function ChangePasswordPage() {
       <Header
         title={t("nav.changePassword")}
         actions={
-          <Button variant="primary" className="h-10" type="submit" form="cms-password-form" disabled={isSubmitting}>
-            {t(isSubmitting ? "common.saving" : "common.save")}
+          <Button
+            variant="primary"
+            className="h-10"
+            type="submit"
+            form="cms-password-form"
+            aria-label={t(isSubmitting ? "common.saving" : "common.save")}
+            loading={isSubmitting}
+          >
+            {t("common.save")}
           </Button>
         }
       />

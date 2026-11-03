@@ -6,6 +6,7 @@ import { useCmsStore } from "@/store/cmsStore";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   NextIntlClientProvider,
+  useTranslations,
   type AbstractIntlMessages
 } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
@@ -61,6 +62,7 @@ export function CmsSession({
   user: CmsUser;
   children: ReactNode;
 }) {
+  const t = useTranslations();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     useCmsStore.getState().setUser(user);
@@ -68,7 +70,11 @@ export function CmsSession({
   }, [user]);
   if (!ready)
     return (
-      <div className="cms-sessionLoading" role="status">
+      <div
+        className="cms-sessionLoading"
+        role="status"
+        aria-label={t("common.loading")}
+      >
         <LoadingDots />
       </div>
     );

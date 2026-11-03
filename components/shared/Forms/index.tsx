@@ -28,9 +28,11 @@ export function applyFormError<T extends FieldValues>(
 export function ErrorNotice({
   error,
   onRetry,
+  retryLoading = false,
 }: {
   error: unknown;
   onRetry?: () => void;
+  retryLoading?: boolean;
 }) {
   const t = useTranslations();
   const message = error instanceof Error ? error.message : "errors.server";
@@ -38,7 +40,13 @@ export function ErrorNotice({
     <div className="cms-notice cms-notice-error" role="alert">
       <span>{t.has(message) ? t(message) : t("errors.server")}</span>
       {onRetry && (
-        <Button variant="outline" className="h-10" type="button" onClick={onRetry}>
+        <Button
+          variant="outline"
+          className="h-10"
+          type="button"
+          onClick={onRetry}
+          loading={retryLoading}
+        >
           {t("common.retry")}
         </Button>
       )}

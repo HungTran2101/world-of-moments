@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -95,7 +96,13 @@ function ResetPassword({
               <Dialog.Close asChild>
                 <Button variant="outline" className="h-10" type="button">{t("common.cancel")}</Button>
               </Dialog.Close>
-              <Button variant="primary" className="h-10" type="submit" disabled={isSubmitting}>
+              <Button
+                variant="primary"
+                className="h-10"
+                type="submit"
+                aria-label={t(isSubmitting ? "common.saving" : "common.save")}
+                loading={isSubmitting}
+              >
                 {t("common.save")}
               </Button>
             </div>
@@ -180,14 +187,15 @@ function AccountEditor({
               className="h-10"
               type="submit"
               form="cms-account-form"
+              aria-label={t(isSubmitting ? "common.saving" : "common.save")}
+              loading={isSubmitting}
               disabled={
                 !canSave ||
-                isSubmitting ||
                 Boolean(id && !query.data) ||
                 options.isPending
               }
             >
-              {t(isSubmitting ? "common.saving" : "common.save")}
+              {t("common.save")}
             </Button>
           </>
         }
@@ -204,6 +212,7 @@ function AccountEditor({
         {(error || query.error || options.error) && (
           <ErrorNotice
             error={error || query.error || options.error}
+            retryLoading={query.isFetching || options.isFetching}
             onRetry={() => {
               void query.refetch();
               void options.refetch();
@@ -211,7 +220,9 @@ function AccountEditor({
           />
         )}
         {id && query.isPending ? (
-          <p role="status">{t("common.loading")}</p>
+          <p role="status" aria-label={t("common.loading")}>
+            <LoadingDots />
+          </p>
         ) : (
           (!id || query.data) && (
             <form
@@ -290,35 +301,45 @@ function AccountEditor({
                     name="roleIds"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        popupClassName="cms-popup"
-                        multiple={{ allowClear: true }}
-                        labels={{
-                          empty: t("common.noOptions"),
-                          toggle: t("common.toggleOptions"),
-                          clear: t("common.clearSelection"),
-                          remove: (label) => t("common.removeSelection", { label }),
-                        }}
-                        id="cms-roles"
-                        ref={field.ref}
-                        onBlur={field.onBlur}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        options={(options.data ?? []).map((role) => ({
-                          value: role.id,
-                          label: role.name,
-                        }))}
-                        disabled={
-                          !canSave || isSubmitting || options.isPending || Boolean(options.error)
-                        }
-                        placeholder={t(
-                          options.isPending ? "common.loading" : "common.selectPlaceholder",
+                      <div className="relative">
+                        <Select
+                          popupClassName="cms-popup"
+                          multiple={{ allowClear: true }}
+                          labels={{
+                            empty: t("common.noOptions"),
+                            toggle: t("common.toggleOptions"),
+                            clear: t("common.clearSelection"),
+                            remove: (label) => t("common.removeSelection", { label }),
+                          }}
+                          id="cms-roles"
+                          ref={field.ref}
+                          onBlur={field.onBlur}
+                          value={options.isPending ? [] : field.value}
+                          onValueChange={field.onChange}
+                          options={(options.data ?? []).map((role) => ({
+                            value: role.id,
+                            label: role.name,
+                          }))}
+                          disabled={
+                            !canSave || isSubmitting || options.isPending || Boolean(options.error)
+                          }
+                          placeholder={options.isPending ? "" : t("common.selectPlaceholder")}
+                          aria-busy={options.isPending}
+                          aria-invalid={Boolean(errors.roleIds)}
+                          aria-describedby={
+                            errors.roleIds ? "cms-roles-error" : undefined
+                          }
+                        />
+                        {options.isPending && (
+                          <span
+                            className="pointer-events-none absolute inset-y-0 left-3 flex items-center"
+                            role="status"
+                            aria-label={t("common.loading")}
+                          >
+                            <LoadingDots />
+                          </span>
                         )}
-                        aria-invalid={Boolean(errors.roleIds)}
-                        aria-describedby={
-                          errors.roleIds ? "cms-roles-error" : undefined
-                        }
-                      />
+                      </div>
                     )}
                   />
                 </Field>

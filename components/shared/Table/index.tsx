@@ -1,14 +1,15 @@
 "use client";
 
+import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { PaginationMetadata } from "@/services/shared/pagination";
-import { PAGE_SIZES } from "@/services/query-state";
+import { Pagination } from "@/components/shared/Pagination";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { ErrorNotice } from "@/components/shared/Forms";
 
@@ -97,6 +98,12 @@ export function Table<T extends object>({
   const [action, setAction] = useState("");
   const [executing, setExecuting] = useState(false);
   const [bulkError, setBulkError] = useState<unknown>(null);
+  const [listAction, setListAction] = useState<"search" | "retry" | null>(null);
+
+  useEffect(() => {
+    // Bỏ thao tác khi tải xong hoặc chuyển sang URL đã có dữ liệu mới trong cache.
+    if (!fetching) setListAction(null);
+  }, [fetching, navigationKey]);
   const keyOf = (record: T) => String(record[rowKey]);
   const eligible = datasource.filter(
     (row) => !selection?.getCheckboxProp?.(row).disabled,
@@ -152,7 +159,11 @@ export function Table<T extends object>({
       <div className="cms-tableToolbar">
         <SearchInput
           value={search}
-          onSearch={onSearch}
+          onSearch={(value) => {
+            setListAction("search");
+            onSearch(value);
+          }}
+          loading={fetching && listAction === "search"}
           navigationKey={navigationKey}
         />
         {selection && (
@@ -177,10 +188,12 @@ export function Table<T extends object>({
               variant="primary"
               className="h-10"
               type="button"
-              disabled={!canExecute || executing || fetching}
+              disabled={!canExecute || fetching}
               onClick={() => void execute()}
+              aria-label={t(executing ? "common.executing" : "common.execute")}
+              loading={executing}
             >
-              {t(executing ? "common.executing" : "common.execute")}
+              {t("common.execute")}
             </Button>
             <span className="cms-muted" role="status">
               {t("common.selected", { count: selectedKeys.length })}
@@ -189,7 +202,18 @@ export function Table<T extends object>({
         )}
       </div>
       {(Boolean(error) || Boolean(bulkError)) && (
-        <ErrorNotice error={bulkError || error} onRetry={onRetry} />
+        <ErrorNotice
+          error={bulkError || error}
+          onRetry={
+            onRetry
+              ? () => {
+                setListAction("retry");
+                onRetry();
+              }
+              : undefined
+          }
+          retryLoading={fetching && listAction === "retry"}
+        />
       )}
       <div
         className="cms-tableScroll"
@@ -244,8 +268,9 @@ export function Table<T extends object>({
                   colSpan={columns.length + (selection ? 1 : 0)}
                   className="cms-tableEmpty"
                   role="status"
+                  aria-label={t("common.loading")}
                 >
-                  {t("common.loading")}
+                  <LoadingDots />
                 </td>
               </tr>
             ) : datasource.length === 0 ? (
@@ -315,52 +340,12 @@ export function Table<T extends object>({
           </tbody>
         </table>
       </div>
-      <nav className="cms-pagination" aria-label={t("common.pagination")}>
-        <span className="cms-muted">
-          {t("common.total", { count: pagination.total })}
-        </span>
-        <div className="cms-paginationPages">
-          <Button
-            variant="outline"
-            className="h-10"
-            type="button"
-            aria-label={t("common.previous")}
-            disabled={pagination.page <= 1 || fetching}
-            onClick={() => onChangePage(pagination.page - 1)}
-          >
-            ‹
-          </Button>
-          <span aria-live="polite">
-            {t("common.page", {
-              page: pagination.page,
-              total: pagination.totalPages,
-            })}
-          </span>
-          <Button
-            variant="outline"
-            className="h-10"
-            type="button"
-            aria-label={t("common.next")}
-            disabled={pagination.page >= pagination.totalPages || fetching}
-            onClick={() => onChangePage(pagination.page + 1)}
-          >
-            ›
-          </Button>
-        </div>
-        <label className="cms-pageSize" htmlFor={`${id}-size`}>
-          {t("common.pageSize")}
-          <Select
-            popupClassName="cms-popup"
-            id={`${id}-size`}
-            value={String(pagination.pageSize)}
-            onValueChange={(value) => onChangePageSize(Number(value))}
-            options={PAGE_SIZES.map((size) => ({
-              value: String(size),
-              label: String(size),
-            }))}
-          />
-        </label>
-      </nav>
+      <Pagination
+        pagination={pagination}
+        onChangePage={onChangePage}
+        onChangePageSize={onChangePageSize}
+        disabled={fetching}
+      />
     </section>
   );
 }

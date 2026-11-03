@@ -40,37 +40,3 @@
   color: #7a808b;
   text-align: center;
 }
-
-.cms-pagination {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 16px 18px;
-  border-top: 1px solid #e9ecf0;
-}
-
-.cms-paginationPages {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.cms-paginationPages button {
-  min-width: 36px;
-}
-
-.cms-pageSize {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #717986;
-  font-size: 12px;
-}
-
-@media (width <= 760px) {
-.cms-pagination {
-    justify-content: center;
-  }
-}
