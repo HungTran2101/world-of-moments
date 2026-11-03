@@ -1,15 +1,15 @@
 "use client";
 
+import QueryProvider from "@/components/shared/QueryProvider";
+import type { CmsUser } from "@/services/shared/types";
+import { useCmsStore } from "@/store/cmsStore";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   NextIntlClientProvider,
-  useTranslations,
-  type AbstractIntlMessages,
+  type AbstractIntlMessages
 } from "next-intl";
-import QueryProvider from "@/components/shared/QueryProvider";
-import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
-import { useCmsStore } from "@/store/cmsStore";
-import type { CmsUser } from "@/services/shared/types";
+import { LoadingDots } from "../LoadingDots";
 
 function SessionEvents() {
   const client = useQueryClient();
@@ -61,7 +61,6 @@ export function CmsSession({
   user: CmsUser;
   children: ReactNode;
 }) {
-  const t = useTranslations();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     useCmsStore.getState().setUser(user);
@@ -70,7 +69,7 @@ export function CmsSession({
   if (!ready)
     return (
       <div className="Cms-sessionLoading" role="status">
-        {t("common.loading")}
+        <LoadingDots />
       </div>
     );
   return children;
