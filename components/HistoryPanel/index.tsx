@@ -67,9 +67,9 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
 
   return (
     <>
-      <header className="HistoryPanel-header">
-        <div className="HistoryPanel-titleRow">
-          <Dialog.Title className="HistoryPanel-heading">
+      <header className="historyPanel-header">
+        <div className="historyPanel-titleRow">
+          <Dialog.Title className="historyPanel-heading">
             <History size={18} aria-hidden="true" />
             {t("title")}
           </Dialog.Title>
@@ -79,7 +79,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
             </GlassButton>
           </Dialog.Close>
         </div>
-        <div className="HistoryPanel-search">
+        <div className="historyPanel-search">
           <Search size={16} aria-hidden="true" />
           <label htmlFor="history-search" className="visually-hidden">{t("search")}</label>
           <input
@@ -97,37 +97,37 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
       </header>
       <div
         key={`${authorUuid}:${debouncedSearch}:${page}`}
-        className="HistoryPanel-scroll"
+        className="historyPanel-scroll"
         role="region"
         aria-label={t("title")}
         aria-busy={loading || isFetching}
         tabIndex={0}
       >
-        <div className="HistoryPanel-status" role="status">
+        <div className="historyPanel-status" role="status">
           {!authorUuid
-            ? <p className="HistoryPanel-muted">{t("sharePrompt")}</p>
+            ? <p className="historyPanel-muted">{t("sharePrompt")}</p>
             : loading
               ? <><LoadingDots /><span className="visually-hidden">{t("loading")}</span></>
               : !isError && items.length === 0
-                ? <p className="HistoryPanel-muted">{t(debouncedSearch ? "noResults" : "sharePrompt")}</p>
+                ? <p className="historyPanel-muted">{t(debouncedSearch ? "noResults" : "sharePrompt")}</p>
                 : null}
         </div>
-        <ul id="history-list" className="HistoryPanel-list">
+        <ul id="history-list" className="historyPanel-list">
           {authorUuid && !loading && items.map((item) => {
             const code = item.weather_code == null ? "" : String(item.weather_code);
             const atmosphere = code && weather.has(code) ? weather(code) : item.weather_summary;
             const createdAt = item.created_at ? new Date(item.created_at) : null;
             return (
-              <li key={item.id} className="HistoryPanel-item">
-                <p className="HistoryPanel-itemThought">{item.description}</p>
-                {atmosphere && <p className="HistoryPanel-itemWeather">{atmosphere}</p>}
+              <li key={item.id} className="historyPanel-item">
+                <p className="historyPanel-itemThought">{item.description}</p>
+                {atmosphere && <p className="historyPanel-itemWeather">{atmosphere}</p>}
                 {createdAt && !Number.isNaN(createdAt.getTime()) && (
-                  <time className="HistoryPanel-itemDate" dateTime={item.created_at}>
+                  <time className="historyPanel-itemDate" dateTime={item.created_at}>
                     {dateFormatter.format(createdAt)}
                   </time>
                 )}
                 <GlassButton
-                  className="HistoryPanel-visit"
+                  className="historyPanel-visit"
                   primaryColor="darkBlue"
                   disabled={!map || isSubmitting}
                   onClick={() => onVisit(item)}
@@ -140,7 +140,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
           })}
         </ul>
         {authorUuid && !searching && isError && (
-          <div className="HistoryPanel-feedback" role="alert">
+          <div className="historyPanel-feedback" role="alert">
             <p>{t("loadError")}</p>
             <GlassButton onClick={() => void refetch()}>
               {t("retry")}
@@ -149,7 +149,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
         )}
       </div>
       {authorUuid && data && data.metadata.totalPages > 1 && (
-        <nav className="HistoryPanel-pagination" aria-label={t("pagination")}>
+        <nav className="historyPanel-pagination" aria-label={t("pagination")}>
           <GlassButton
             size="icon-sm"
             primaryColor="darkBlue"
@@ -160,7 +160,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
           >
             <ChevronLeft size={18} aria-hidden="true" />
           </GlassButton>
-          <span className="HistoryPanel-pageIndicator" role="status">
+          <span className="historyPanel-pageIndicator" role="status">
             {data
               ? t("pageIndicator", { page: currentPage, totalPages: data.metadata.totalPages })
               : t("pageNumber", { page: currentPage })}
@@ -177,7 +177,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
           </GlassButton>
         </nav>
       )}
-      <div className="HistoryPanel-attribution">
+      <div className="historyPanel-attribution">
         <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
           {weather("attribution")}
         </a>
@@ -205,7 +205,7 @@ export default function HistoryPanel({ open, onOpenChange, onReturnFocus }: Hist
         <RefractiveGlass blur={3} bezelWidth={24}>
           <Dialog.Content
             id="history-panel"
-            className="HistoryPanel"
+            className="historyPanel"
             aria-describedby={undefined}
             onInteractOutside={(event) => event.preventDefault()}
             onCloseAutoFocus={(event) => {

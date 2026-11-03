@@ -68,7 +68,7 @@ export function CmsSession({
   }, [user]);
   if (!ready)
     return (
-      <div className="Cms-sessionLoading" role="status">
+      <div className="cms-sessionLoading" role="status">
         <LoadingDots />
       </div>
     );

@@ -77,7 +77,7 @@ export function RolesPage({ permission }: CmsPageProps) {
       fixed: "right",
       width: ACTION_COLUMN_WIDTH_PX,
       render: (_, record) => (
-        <div className="Roles-rowActions">
+        <div className="roles-rowActions">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button asChild variant="outline" size="icon">

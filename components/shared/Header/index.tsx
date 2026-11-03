@@ -20,13 +20,13 @@ export function Header({
 
   return (
     <header
-      className="Cms-header"
+      className="cms-header"
       style={style}
     >
-      <div className="Cms-headerTitle">
+      <div className="cms-headerTitle">
         {onBack && (
           <Button
-            className="Cms-headerBack"
+            className="cms-headerBack"
             type="button"
             variant="ghost"
             size="icon"
@@ -38,7 +38,7 @@ export function Header({
         )}
         <h1>{title}</h1>
       </div>
-      <div className="Cms-headerActions">{actions}</div>
+      <div className="cms-headerActions">{actions}</div>
     </header>
   );
 }

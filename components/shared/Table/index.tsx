@@ -146,22 +146,22 @@ export function Table<T extends object>({
 
   return (
     <section
-      className="Cms-tableSection"
+      className="cms-tableSection"
       aria-busy={loading || fetching || executing}
     >
-      <div className="Cms-tableToolbar">
+      <div className="cms-tableToolbar">
         <SearchInput
           value={search}
           onSearch={onSearch}
           navigationKey={navigationKey}
         />
         {selection && (
-          <div className="Cms-bulk">
+          <div className="cms-bulk">
             <label className="visually-hidden" htmlFor={`${id}-action`}>
               {t("common.bulkAction")}
             </label>
             <Select
-              popupClassName="Cms-popup"
+              popupClassName="cms-popup"
               id={`${id}-action`}
               value={action}
               disabled={executing}
@@ -182,7 +182,7 @@ export function Table<T extends object>({
             >
               {t(executing ? "common.executing" : "common.execute")}
             </Button>
-            <span className="Cms-muted" role="status">
+            <span className="cms-muted" role="status">
               {t("common.selected", { count: selectedKeys.length })}
             </span>
           </div>
@@ -192,7 +192,7 @@ export function Table<T extends object>({
         <ErrorNotice error={bulkError || error} onRetry={onRetry} />
       )}
       <div
-        className="Cms-tableScroll"
+        className="cms-tableScroll"
         tabIndex={0}
         role="region"
         aria-label={t("common.table")}
@@ -201,7 +201,7 @@ export function Table<T extends object>({
           <thead>
             <tr>
               {selection && (
-                <th className="Cms-selection">
+                <th className="cms-selection">
                   <SelectAll
                     label={t("common.selectAll")}
                     checked={
@@ -229,7 +229,7 @@ export function Table<T extends object>({
                   key={column.key}
                   style={{ width: column.width, textAlign: column.align }}
                   className={
-                    column.fixed === "right" ? "Cms-fixedRight" : undefined
+                    column.fixed === "right" ? "cms-fixedRight" : undefined
                   }
                 >
                   {column.title}
@@ -242,7 +242,7 @@ export function Table<T extends object>({
               <tr>
                 <td
                   colSpan={columns.length + (selection ? 1 : 0)}
-                  className="Cms-tableEmpty"
+                  className="cms-tableEmpty"
                   role="status"
                 >
                   {t("common.loading")}
@@ -252,7 +252,7 @@ export function Table<T extends object>({
               <tr>
                 <td
                   colSpan={columns.length + (selection ? 1 : 0)}
-                  className="Cms-tableEmpty"
+                  className="cms-tableEmpty"
                 >
                   {t(error ? "errors.server" : "common.empty")}
                 </td>
@@ -261,7 +261,7 @@ export function Table<T extends object>({
               datasource.map((row, index) => (
                 <tr key={keyOf(row)}>
                   {selection && (
-                    <td className="Cms-selection">
+                    <td className="cms-selection">
                       <Checkbox
                         aria-label={t("common.selectRow", { key: keyOf(row) })}
                         checked={selection.selectedRowKeys.includes(keyOf(row))}
@@ -297,7 +297,7 @@ export function Table<T extends object>({
                         style={{ textAlign: column.align }}
                         className={
                           column.fixed === "right"
-                            ? "Cms-fixedRight"
+                            ? "cms-fixedRight"
                             : undefined
                         }
                       >
@@ -315,11 +315,11 @@ export function Table<T extends object>({
           </tbody>
         </table>
       </div>
-      <nav className="Cms-pagination" aria-label={t("common.pagination")}>
-        <span className="Cms-muted">
+      <nav className="cms-pagination" aria-label={t("common.pagination")}>
+        <span className="cms-muted">
           {t("common.total", { count: pagination.total })}
         </span>
-        <div className="Cms-paginationPages">
+        <div className="cms-paginationPages">
           <Button
             variant="outline"
             className="h-10"
@@ -347,10 +347,10 @@ export function Table<T extends object>({
             ›
           </Button>
         </div>
-        <label className="Cms-pageSize" htmlFor={`${id}-size`}>
+        <label className="cms-pageSize" htmlFor={`${id}-size`}>
           {t("common.pageSize")}
           <Select
-            popupClassName="Cms-popup"
+            popupClassName="cms-popup"
             id={`${id}-size`}
             value={String(pagination.pageSize)}
             onValueChange={(value) => onChangePageSize(Number(value))}

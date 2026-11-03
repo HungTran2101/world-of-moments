@@ -40,9 +40,9 @@ export function LoginPage() {
     defaultValues: { username: "", password: "" },
   });
   return (
-    <main className="Cms-login">
-      <section className="Cms-loginCard">
-        <div className="Cms-brand">
+    <main className="cms-login">
+      <section className="cms-loginCard">
+        <div className="cms-brand">
           <Image
             src="/favicon/android-chrome-192x192.png"
             width={38}
@@ -54,7 +54,7 @@ export function LoginPage() {
           </span>
         </div>
         <h1>{t("login.title")}</h1>
-        <p className="Cms-muted">{t("login.description")}</p>
+        <p className="cms-muted">{t("login.description")}</p>
         <form
           onSubmit={handleSubmit(async (values) => {
             setError(null);
@@ -105,7 +105,7 @@ export function LoginPage() {
               />
             </Field>
             <Button
-              className="Cms-loginSubmit" type="submit"
+              className="cms-loginSubmit" type="submit"
             >
               {t(isSubmitting ? "login.signingIn" : "login.submit")}
             </Button>
@@ -115,7 +115,7 @@ export function LoginPage() {
           {t("common.language")}
         </label>
         <Select
-          popupClassName="Cms-popup"
+          popupClassName="cms-popup"
           className="w-full"
           id="cms-login-locale"
           disabled={isSubmitting}

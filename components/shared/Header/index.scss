@@ -1,4 +1,4 @@
-.Cms-header {
+.cms-header {
   position: sticky;
   z-index: 10;
   top: 0;
@@ -13,14 +13,14 @@
   background: #fff;
 }
 
-.Cms-headerTitle {
+.cms-headerTitle {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
-.Cms-headerBack {
+.cms-headerBack {
   border: 0;
   color: var(--color-text-muted);
   transition-property: color, background-color, box-shadow;
@@ -36,7 +36,7 @@
   }
 }
 
-.Cms-headerActions {
+.cms-headerActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -45,16 +45,16 @@
 }
 
 @media (width <=760px) {
-  .Cms-header {
+  .cms-header {
     min-height: 76px;
     padding: 16px var(--cms-content-padding-inline);
   }
 
-  .Cms-header h1 {
+  .cms-header h1 {
     font-size: 18px;
   }
 
-  .Cms-headerActions {
+  .cms-headerActions {
     gap: 8px;
   }
 }

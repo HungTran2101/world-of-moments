@@ -131,11 +131,11 @@ const MapLoading = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div
-      className={cn("MapView-loader", mapReady && "is-exiting")}
+      className={cn("mapView-loader", mapReady && "is-exiting")}
       aria-hidden={mapReady}
     >
       {children ? <div className="relative z-10">{children}</div> : null}
-      <div className="MapView-loaderSky" />
+      <div className="mapView-loaderSky" />
       {clouds.map((cloud, index) => {
         const cloudStyle = {
           top: cloud.top,
@@ -155,7 +155,7 @@ const MapLoading = ({ children }: { children?: React.ReactNode }) => {
             aria-hidden="true"
             width={500}
             height={500}
-            className={`MapView-loaderCloud MapView-loaderCloud--${cloud.depth}`}
+            className={`mapView-loaderCloud mapView-loaderCloud--${cloud.depth}`}
             style={cloudStyle}
             loading="eager"
           />

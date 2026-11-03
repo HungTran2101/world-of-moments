@@ -8,10 +8,10 @@ interface LoadingDotsProps {
 
 export function LoadingDots({ color, className }: LoadingDotsProps) {
   return (
-    <span className={cn("LoadingDots", className)} style={{ color }} aria-hidden="true">
-      <span className="LoadingDots-dot" />
-      <span className="LoadingDots-dot" />
-      <span className="LoadingDots-dot" />
+    <span className={cn("loadingDots", className)} style={{ color }} aria-hidden="true">
+      <span className="loadingDots-dot" />
+      <span className="loadingDots-dot" />
+      <span className="loadingDots-dot" />
     </span>
   );
 }

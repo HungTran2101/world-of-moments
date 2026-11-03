@@ -17,7 +17,7 @@ export default async function CmsLayout({
   const locale = await getLocale();
   const messages = (await import(`@/messages/cms-${locale}.json`)).default;
   return (
-    <div className="Cms">
+    <div className="cms">
       <CmsProviders locale={locale} messages={messages}>
         {children}
       </CmsProviders>

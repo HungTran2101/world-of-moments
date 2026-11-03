@@ -3,7 +3,7 @@ const FADE_DURATION_MS = 500;
 const NIGHT_POSITION = -100;
 
 export function createSunRay(ray: HTMLDivElement) {
-  const light = ray.querySelector<HTMLDivElement>(".MapView-sunRayLight")!;
+  const light = ray.querySelector<HTMLDivElement>(".mapView-sunRayLight")!;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let position = 100;
   let opacity = 0;

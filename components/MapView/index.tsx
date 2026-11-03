@@ -469,21 +469,21 @@ export default function MapView() {
   }, [mapReady]);
 
   return (
-    <div className="MapView-wrapper">
-      <canvas ref={spaceRef} className="MapView-space" aria-hidden="true" />
+    <div className="mapView-wrapper">
+      <canvas ref={spaceRef} className="mapView-space" aria-hidden="true" />
       <div
         ref={containerRef}
-        className={cn("MapView-map", mapReady && "is-ready")}
+        className={cn("mapView-map", mapReady && "is-ready")}
       />
-      <div ref={sunRayRef} className="MapView-sunRay" aria-hidden="true">
-        <div className="MapView-sunRayLight">
-          <div className="MapView-sunRayGlow" />
+      <div ref={sunRayRef} className="mapView-sunRay" aria-hidden="true">
+        <div className="mapView-sunRayLight">
+          <div className="mapView-sunRayGlow" />
         </div>
       </div>
       <Attribution />
       {submissionsError && (
         <RefractiveGlass>
-          <div className="MapView-submissionsError" role="status">
+          <div className="mapView-submissionsError" role="status">
             <p>{t("submissionsLoadError")}</p>
             <Button type="button" onClick={() => setSubmissionsRetry((value) => value + 1)}>
               {t("retry")}

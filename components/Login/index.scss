@@ -1,11 +1,11 @@
-.Cms-login {
+.cms-login {
   display: grid;
   min-height: 100dvh;
   padding: 24px;
   place-items: center;
 }
 
-.Cms-loginCard {
+.cms-loginCard {
   width: 100%;
   max-width: 400px;
   padding: 32px;
@@ -14,21 +14,21 @@
   background: #fff;
 }
 
-.Cms-loginCard h1 {
+.cms-loginCard h1 {
   margin-bottom: 8px;
 }
 
-.Cms-loginCard .Cms-brand {
+.cms-loginCard .cms-brand {
   padding-bottom: 32px;
 }
 
-.Cms .Cms-loginSubmit {
+.cms .cms-loginSubmit {
   width: 100%;
   color: #fff;
   background: #283b51;
 }
 
-.Cms-loginCard > [data-slot="select-trigger"] {
+.cms-loginCard > [data-slot="select-trigger"] {
   width: 100%;
   margin-top: 24px;
 }

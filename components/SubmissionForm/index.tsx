@@ -199,16 +199,16 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
   }
 
   return (
-    <form className="SubmissionForm" onSubmit={handleSubmit} aria-busy={isSubmitting}>
-      <label className="SubmissionForm-label">
+    <form className="submissionForm" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+      <label className="submissionForm-label">
         <span id="description-label">{t("descriptionLabel")}</span>
         <span
-          className={`SubmissionForm-textarea-wrapper${isDescriptionFlashing ? " SubmissionForm-textarea--flash-error" : ""}`}
+          className={`submissionForm-textarea-wrapper${isDescriptionFlashing ? " submissionForm-textarea--flash-error" : ""}`}
           onAnimationEnd={() => setIsDescriptionFlashing(false)}
         >
           <textarea
             ref={descriptionRef}
-            className="SubmissionForm-textarea"
+            className="submissionForm-textarea"
             value={description}
             onChange={(e) => {
               const nextDescription = e.target.value;
@@ -223,12 +223,12 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
             aria-invalid={hasDescriptionError}
             aria-describedby={`description-count${hasDescriptionError ? " description-error" : ""}`}
           />
-          <span id="description-count" className="SubmissionForm-character-count">
+          <span id="description-count" className="submissionForm-character-count">
             {description.length} / {constants.MAX_DESCRIPTION_LENGTH}
           </span>
         </span>
         {hasDescriptionError && (
-          <div id="description-error" className="SubmissionForm-validation-error" role="alert">
+          <div id="description-error" className="submissionForm-validation-error" role="alert">
             {t("descriptionRequired")}
           </div>
         )}
@@ -245,7 +245,7 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
               primaryColor="purple"
               className="w-full"
               suffix={
-                <span ref={suffixRef} className="SubmissionForm-suffix" style={{ visibility: isSubmitting ? "hidden" : "visible" }}>
+                <span ref={suffixRef} className="submissionForm-suffix" style={{ visibility: isSubmitting ? "hidden" : "visible" }}>
                   <Image
                     src={thoughtBubbleImg}
                     alt=""

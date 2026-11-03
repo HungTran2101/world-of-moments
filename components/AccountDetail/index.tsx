@@ -56,8 +56,8 @@ function ResetPassword({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="Cms-dialogOverlay" />
-        <Dialog.Content className="Cms Cms-dialog">
+        <Dialog.Overlay className="cms-dialogOverlay" />
+        <Dialog.Content className="cms cms-dialog">
           <Dialog.Title>{t("account.resetPassword")}</Dialog.Title>
           <Dialog.Description>
             {t("account.resetDescription")}
@@ -91,7 +91,7 @@ function ResetPassword({
                 {...register("newPassword")}
               />
             </Field>
-            <div className="Cms-formActions">
+            <div className="cms-formActions">
               <Dialog.Close asChild>
                 <Button variant="outline" className="h-10" type="button">{t("common.cancel")}</Button>
               </Dialog.Close>
@@ -216,7 +216,7 @@ function AccountEditor({
           (!id || query.data) && (
             <form
               id="cms-account-form"
-              className="Cms-form"
+              className="cms-form"
               onSubmit={handleSubmit(async (values) => {
                 if (!canSave) return;
                 setError(null);
@@ -291,7 +291,7 @@ function AccountEditor({
                     control={control}
                     render={({ field }) => (
                       <Select
-                        popupClassName="Cms-popup"
+                        popupClassName="cms-popup"
                         multiple={{ allowClear: true }}
                         labels={{
                           empty: t("common.noOptions"),
@@ -323,9 +323,9 @@ function AccountEditor({
                   />
                 </Field>
                 {options.data?.length === 0 && (
-                  <p className="Cms-muted">{t("account.noRoles")}</p>
+                  <p className="cms-muted">{t("account.noRoles")}</p>
                 )}
-                <label className="Cms-checkboxLabel">
+                <label className="cms-checkboxLabel">
                   <Controller
                     name="isActive"
                     control={control}

@@ -12,7 +12,7 @@ export default function CmsError({
 }) {
   const t = useTranslations();
   return (
-    <div className="Cms-sessionLoading" role="alert">
+    <div className="cms-sessionLoading" role="alert">
       <p>{t("errors.server")}</p>
       <Button variant="outline" className="h-10" type="button" onClick={reset}>
         {t("common.retry")}

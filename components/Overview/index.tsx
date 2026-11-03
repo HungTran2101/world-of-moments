@@ -19,10 +19,10 @@ export function OverviewPage() {
           label={t("common.breadcrumbs")}
           items={[{ label: t("nav.home") }]}
         />
-        <section className="Cms-welcome">
+        <section className="cms-welcome">
           <h2>{t("home.welcome", { name: user?.name ?? "" })}</h2>
           <p>{t("home.description")}</p>
-          <div className="Cms-homeLinks">
+          <div className="cms-homeLinks">
             {checkPermission(user?.scopes ?? [], permissions.ACCOUNT_SHOW) && (
               <Link href="/cms/accounts">{t("nav.accounts")} →</Link>
             )}

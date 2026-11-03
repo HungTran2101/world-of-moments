@@ -1,4 +1,4 @@
-.SubmissionForm {
+.submissionForm {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -110,7 +110,7 @@
   }
 }
 
-.SubmissionFlight {
+.submissionFlight {
   position: fixed;
   z-index: 50;
   top: 0;
@@ -210,12 +210,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .SubmissionForm-textarea--flash-error {
+  .submissionForm-textarea--flash-error {
     animation-duration: 0.01ms;
   }
 
-  .SubmissionFlight-bubble.is-waiting,
-  .SubmissionFlight-dots span {
+  .submissionFlight-bubble.is-waiting,
+  .submissionFlight-dots span {
     animation: none;
   }
 }

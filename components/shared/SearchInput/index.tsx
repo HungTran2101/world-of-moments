@@ -45,7 +45,7 @@ export function SearchInput({
   const searchField = register("search");
   return (
     <form
-      className="Cms-search"
+      className="cms-search"
       role="search"
       onSubmit={(event) => {
         event.preventDefault();

@@ -8,7 +8,7 @@ export function Breadcrumbs({
   label: string;
 }) {
   return (
-    <nav className="Cms-breadcrumbs" aria-label={label}>
+    <nav className="cms-breadcrumbs" aria-label={label}>
       <ol>
         {items.map((item, index) => (
           <li key={`${index}-${item.label}`}>

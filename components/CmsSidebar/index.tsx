@@ -69,13 +69,13 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="Cms-shell">
-      <a className="Cms-skip" href="#cms-main">
+    <div className="cms-shell">
+      <a className="cms-skip" href="#cms-main">
         {t("nav.skip")}
       </a>
       <Button
         variant="outline"
-        className="Cms-menuToggle"
+        className="cms-menuToggle"
         type="button"
         aria-expanded={open}
         aria-controls="cms-sidebar"
@@ -83,8 +83,8 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
       >
         {t("nav.menu")}
       </Button>
-      <aside id="cms-sidebar" className="Cms-sidebar" data-open={open}>
-        <Link href="/cms" className="Cms-brand">
+      <aside id="cms-sidebar" className="cms-sidebar" data-open={open}>
+        <Link href="/cms" className="cms-brand">
           <Image
             src="/favicon/android-chrome-192x192.png"
             width={34}
@@ -98,14 +98,14 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
         <nav aria-label={t("nav.navigation")}>
           <ul>{sidebarItems.map(renderItem)}</ul>
         </nav>
-        <div className="Cms-sidebarFooter">
-          <p className="Cms-identity">
+        <div className="cms-sidebarFooter">
+          <p className="cms-identity">
             {user?.name}
             <small>@{user?.username}</small>
           </p>
           <label htmlFor="cms-locale">{t("common.language")}</label>
           <Select
-            popupClassName="Cms-popup"
+            popupClassName="cms-popup"
             className="w-full"
             id="cms-locale"
             value={locale}
@@ -137,7 +137,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main id="cms-main" className="Cms-main" tabIndex={-1}>
+      <main id="cms-main" className="cms-main" tabIndex={-1}>
         {Boolean(error) && <ErrorNotice error={error} />}
         {children}
       </main>

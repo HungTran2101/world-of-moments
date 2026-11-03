@@ -145,6 +145,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 ## Layout, forms, and localization
 
+- SCSS class names start with a lowercase word (for example, `cms-shell`,
+  `cms-sidebarFooter` and `mapView-wrapper`); JSX and imperative selectors use
+  the same names.
+
 - Persistent sidebar with logo, nested navigation, locale switch, password change
   and logout. Mobile navigation is collapsible. Sidebar and sticky page Header use
   solid white surfaces, full borders and 12px corners. The viewport shell has 12px
@@ -177,7 +181,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Global/CMS link styles exclude Button links so their variant controls appearance.
   Other actions use outline/link/destructive variants and explicit form submit types/IDs.
   Menu, retry, bulk/pagination and logout controls
-  also use `Button`; `.Cms-button` styling is retained only for navigation links.
+  also use `Button`; `.cms-button` styling is retained only for navigation links.
   Native button markup is confined to the shared primitive implementations.
 - Each page owns its sticky Header: title left, action controls supplied through
   the optional `actions?: ReactNode` prop on the right (not JSX children). Its optional
@@ -192,7 +196,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   or child-margin resets. Breadcrumbs own the margin before the page body.
   Page bodies do not add outer padding; form/table surfaces retain their internal
   control inset. Account/role detail and password-change forms fill the available
-  content width through shared `.Cms-form` styling, without page-specific width caps.
+  content width through shared `.cms-form` styling, without page-specific width caps.
   Breadcrumbs accept `{ label, href? }[]`.
 - Navigation uses Next.js Links, except the Header back callback button, which
   uses client routing. Submissions/mutations are buttons.
@@ -472,7 +476,7 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 - Shared page content: `CmsPageContent` wraps breadcrumbs and page bodies across
   overview, CRUD lists, account/role details, password change and the 403 view.
   Outer padding/gaps/bottom spacing belong to this component; Header reads the
-  same responsive inline-padding token. Old `.Cms-content`, breadcrumb padding,
+  same responsive inline-padding token. Old `.cms-content`, breadcrumb padding,
   overview top padding and main bottom padding are removed. Scoped ESLint/Stylelint
   fixes, typecheck, repository lint and the Webpack production build pass.
   Browser geometry verifies matching Header/content padding (32px desktop, 16px

@@ -1,4 +1,4 @@
-.HistoryPanel.Modal-content {
+.historyPanel.modal-content {
   position: fixed;
   z-index: 9;
   top: 0.5rem;
@@ -30,7 +30,7 @@
   }
 }
 
-.HistoryPanel {
+.historyPanel {
   &-header {
     flex: none;
     display: grid;

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
-@custom-variant dark (&:where(.dark, .dark *):not(:where(.Cms, .Cms *, .Cms-popup, .Cms-popup *)));
-@variant data-open (&[data-state="open"]);
-@variant data-closed (&[data-state="closed"]);
+@custom-variant dark (&:where(.dark, .dark *):not(:where(.cms, .cms *, .cms-popup, .cms-popup *)));
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
 
 @theme {
   --color-background: var(--color-surface);

@@ -1,10 +1,10 @@
-.Cms-breadcrumbs {
+.cms-breadcrumbs {
   margin-bottom: 20px;
   color: #717986;
   font-size: 13px;
 }
 
-.Cms-breadcrumbs ol {
+.cms-breadcrumbs ol {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -13,14 +13,14 @@
   list-style: none;
 }
 
-.Cms-breadcrumbs li + li::before {
+.cms-breadcrumbs li + li::before {
   margin-right: 10px;
   color: #a2a8b1;
   content: "/";
 }
 
 @media (width <= 760px) {
-  .Cms-breadcrumbs {
+  .cms-breadcrumbs {
     margin-bottom: 16px;
   }
 }

@@ -1,20 +1,20 @@
-.Cms-search {
+.cms-search {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.Cms-search input {
+.cms-search input {
   width: 240px;
 }
 
 @media (width <= 760px) {
-.Cms-search {
+.cms-search {
     width: 100%;
   }
 
-.Cms-search input {
+.cms-search input {
     flex: 1;
     min-width: 0;
     width: auto;

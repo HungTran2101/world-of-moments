@@ -69,7 +69,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
       title: t("account.status"),
       render: (_, row) => (
         <span
-          className={`Cms-status ${row.isActive ? "Cms-status-active" : ""}`}
+          className={`cms-status ${row.isActive ? "cms-status-active" : ""}`}
         >
           {t(row.isActive ? "account.active" : "account.inactive")}
         </span>
@@ -92,7 +92,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
       fixed: "right",
       width: ACTION_COLUMN_WIDTH_PX,
       render: (_, record) => (
-        <div className="Accounts-rowActions">
+        <div className="accounts-rowActions">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button asChild variant="outline" size="icon">

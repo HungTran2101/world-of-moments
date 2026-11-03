@@ -49,7 +49,7 @@ export function ChangePasswordPage() {
         />
         <form
           id="cms-password-form"
-          className="Cms-form"
+          className="cms-form"
           onSubmit={handleSubmit(async (values) => {
             setError(null);
             setSuccess(false);
@@ -65,7 +65,7 @@ export function ChangePasswordPage() {
         >
           {Boolean(error) && <ErrorNotice error={error} />}
           {success && (
-            <p className="Cms-notice" role="status">
+            <p className="cms-notice" role="status">
               {t("account.passwordChanged")}
             </p>
           )}

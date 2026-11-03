@@ -35,7 +35,7 @@ export function ErrorNotice({
   const t = useTranslations();
   const message = error instanceof Error ? error.message : "errors.server";
   return (
-    <div className="Cms-notice Cms-notice-error" role="alert">
+    <div className="cms-notice cms-notice-error" role="alert">
       <span>{t.has(message) ? t(message) : t("errors.server")}</span>
       {onRetry && (
         <Button variant="outline" className="h-10" type="button" onClick={onRetry}>
@@ -59,11 +59,11 @@ export function Field({
 }) {
   const text = useCmsText();
   return (
-    <div className="Cms-field">
+    <div className="cms-field">
       <label htmlFor={id}>{label}</label>
       {children}
       {error && (
-        <span id={`${id}-error`} className="Cms-fieldError" role="alert">
+        <span id={`${id}-error`} className="cms-fieldError" role="alert">
           {text(error)}
         </span>
       )}

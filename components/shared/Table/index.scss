@@ -1,13 +1,13 @@
 @use "./base";
 
-.Cms-tableSection {
+.cms-tableSection {
   overflow: hidden;
   border: 1px solid #dde1e7;
   border-radius: var(--cms-panel-radius);
   background: #fff;
 }
 
-.Cms-tableToolbar {
+.cms-tableToolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -16,32 +16,32 @@
   padding: 18px;
 }
 
-.Cms-bulk {
+.cms-bulk {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.Cms .Cms-fixedRight {
+.cms .cms-fixedRight {
   position: sticky;
   z-index: 1;
   right: 0;
   box-shadow: -1px 0 #e9ecf0;
 }
 
-.Cms .Cms-selection {
+.cms .cms-selection {
   width: 44px;
   padding-right: 8px;
 }
 
-.Cms-tableEmpty {
+.cms-tableEmpty {
   padding: 48px 18px !important;
   color: #7a808b;
   text-align: center;
 }
 
-.Cms-pagination {
+.cms-pagination {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -51,17 +51,17 @@
   border-top: 1px solid #e9ecf0;
 }
 
-.Cms-paginationPages {
+.cms-paginationPages {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.Cms-paginationPages button {
+.cms-paginationPages button {
   min-width: 36px;
 }
 
-.Cms-pageSize {
+.cms-pageSize {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -70,7 +70,7 @@
 }
 
 @media (width <= 760px) {
-.Cms-pagination {
+.cms-pagination {
     justify-content: center;
   }
 }

@@ -100,14 +100,14 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
             onRetry={() => void query.refetch()}
           />
         )}
-        {isSystem && <p className="Cms-notice">{t("role.protected")}</p>}
+        {isSystem && <p className="cms-notice">{t("role.protected")}</p>}
         {id && query.isPending ? (
           <p role="status">{t("common.loading")}</p>
         ) : (
           (!id || query.data) && (
             <form
               id="cms-role-form"
-              className="Cms-form"
+              className="cms-form"
               onSubmit={handleSubmit(async (values) => {
                 if (!canSave) return;
                 setError(null);
@@ -140,7 +140,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                 </Field>
                 <h2 id="cms-permissions-label">{t("role.permissions")}</h2>
                 {errors.permissions?.message && (
-                  <p id="cms-permissions-error" className="Cms-fieldError" role="alert">
+                  <p id="cms-permissions-error" className="cms-fieldError" role="alert">
                     {text(errors.permissions.message)}
                   </p>
                 )}
@@ -149,12 +149,12 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                   control={control}
                   render={({ field }) => (
                     <div
-                      className="Cms-tableScroll"
+                      className="cms-tableScroll"
                       role="group"
                       aria-labelledby="cms-permissions-label"
                       aria-describedby={errors.permissions ? "cms-permissions-error" : undefined}
                     >
-                      <table className="Cms-permissions">
+                      <table className="cms-permissions">
                         <thead>
                           <tr>
                             {[
@@ -198,7 +198,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                               <td>
                                 {module.custom.length > 0 ? (
                                   <Select
-                                    popupClassName="Cms-popup"
+                                    popupClassName="cms-popup"
                                     multiple
                                     placeholder={t("common.selectPlaceholder")}
                                     labels={{
@@ -232,7 +232,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                                     }}
                                   />
                                 ) : (
-                                  <span className="Cms-muted">—</span>
+                                  <span className="cms-muted">—</span>
                                 )}
                               </td>
                             </tr>

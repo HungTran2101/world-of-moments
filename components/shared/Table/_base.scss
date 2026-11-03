@@ -1,32 +1,32 @@
-.Cms-tableScroll {
+.cms-tableScroll {
   overflow: auto;
 }
 
-.Cms table {
+.cms table {
   width: 100%;
   min-width: 640px;
   border-spacing: 0;
   text-align: left;
 }
 
-.Cms th {
+.cms th {
   color: #596272;
   background: #f8f9fb;
   font-size: 12px;
   font-weight: 600;
 }
 
-.Cms th,
-.Cms td {
+.cms th,
+.cms td {
   padding: 14px 18px;
   border-bottom: 1px solid #e9ecf0;
   vertical-align: middle;
 }
 
-.Cms tbody tr:last-child td {
+.cms tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.Cms td {
+.cms td {
   background: #fff;
 }

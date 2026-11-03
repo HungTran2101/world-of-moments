@@ -1,4 +1,4 @@
-.Cms-shell {
+.cms-shell {
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr);
   height: 100dvh;
@@ -6,7 +6,7 @@
   padding: var(--cms-shell-gap);
 }
 
-.Cms-sidebar {
+.cms-sidebar {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -17,24 +17,24 @@
   background: #fff;
 }
 
-.Cms-sidebar ul {
+.cms-sidebar ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.Cms-sidebar details {
+.cms-sidebar details {
   margin-top: 22px;
 }
 
-.Cms-sidebar summary {
+.cms-sidebar summary {
   margin: 0 10px 7px;
   color: #7a808b;
   font-size: 12px;
   cursor: pointer;
 }
 
-.Cms-sidebar li a {
+.cms-sidebar li a {
   display: block;
   margin: 3px 0;
   padding: 9px 11px;
@@ -43,17 +43,17 @@
   text-decoration: none;
 }
 
-.Cms-sidebar a[aria-current="page"] {
+.cms-sidebar a[aria-current="page"] {
   color: #20354d;
   background: #edf1f6;
   font-weight: 600;
 }
 
-.Cms-sidebar li a:hover {
+.cms-sidebar li a:hover {
   background: #f4f6f8;
 }
 
-.Cms-sidebarFooter {
+.cms-sidebarFooter {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -61,33 +61,33 @@
   padding-top: 32px;
 }
 
-.Cms-sidebarFooter > label {
+.cms-sidebarFooter > label {
   margin-bottom: -8px;
   color: #717986;
   font-size: 12px;
 }
 
-.Cms-identity {
+.cms-identity {
   margin-bottom: 4px !important;
   overflow-wrap: anywhere;
 }
 
-.Cms-identity small {
+.cms-identity small {
   color: #7a808b;
   font-size: 12px;
 }
 
-.Cms-main {
+.cms-main {
   min-width: 0;
   height: 100%;
   overflow: auto;
 }
 
-.Cms-menuToggle {
+.cms-menuToggle {
   display: none !important;
 }
 
-.Cms-skip {
+.cms-skip {
   position: fixed;
   z-index: 100;
   top: -80px;
@@ -96,17 +96,17 @@
   background: #fff;
 }
 
-.Cms-skip:focus {
+.cms-skip:focus {
   top: 12px;
 }
 
 @media (width <= 760px) {
-.Cms-shell {
+.cms-shell {
     display: flex;
     flex-direction: column;
   }
 
-.Cms button.Cms-menuToggle {
+.cms button.cms-menuToggle {
     display: block !important;
     min-height: 48px;
     flex-shrink: 0;
@@ -114,7 +114,7 @@
     border-radius: var(--cms-panel-radius);
   }
 
-.Cms-sidebar {
+.cms-sidebar {
     display: none;
     flex-shrink: 0;
     max-height: 55dvh;
@@ -122,19 +122,19 @@
     border: 1px solid var(--color-border);
   }
 
-.Cms-sidebar[data-open="true"] {
+.cms-sidebar[data-open="true"] {
     display: flex;
   }
 
-.Cms-sidebar .Cms-brand {
+.cms-sidebar .cms-brand {
     padding-bottom: 12px;
   }
 
-.Cms-sidebarFooter {
+.cms-sidebarFooter {
     padding-top: 18px;
   }
 
-.Cms-main {
+.cms-main {
     flex: 1;
     min-height: 0;
     height: auto;

@@ -54,7 +54,7 @@ export default function Toolbar() {
         bezelWidth={10}
       >
         <ToolbarPrimitive.Root
-          className="Toolbar"
+          className="toolbar"
           orientation="vertical"
           aria-label={t("label")}
           data-sidebar-open={sidebarOpen}
@@ -65,7 +65,7 @@ export default function Toolbar() {
               <TooltipTrigger asChild>
                 {/* ID cố định cho menu duy nhất để giữ liên kết ARIA ổn định khi hydrate. */}
                 <DropdownMenuTrigger asChild id="languages-menu-trigger" aria-controls="languages-menu-content">
-                  <ToolbarPrimitive.Button className="Toolbar-action" aria-label={t("language")}>
+                  <ToolbarPrimitive.Button className="toolbar-action" aria-label={t("language")}>
                     <Languages aria-hidden="true" />
                   </ToolbarPrimitive.Button>
                 </DropdownMenuTrigger>
@@ -76,7 +76,7 @@ export default function Toolbar() {
               <DropdownMenuContent
                 id="languages-menu-content"
                 aria-labelledby="languages-menu-trigger"
-                className="Toolbar-menu"
+                className="toolbar-menu"
                 side="left"
                 align="start"
                 sideOffset={10}
@@ -103,7 +103,7 @@ export default function Toolbar() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild id="time-menu-trigger" aria-controls="time-menu-content">
-                    <ToolbarPrimitive.Button className="Toolbar-action" aria-label={t("time")}>
+                    <ToolbarPrimitive.Button className="toolbar-action" aria-label={t("time")}>
                       <SelectedTimeIcon aria-hidden="true" />
                     </ToolbarPrimitive.Button>
                   </DropdownMenuTrigger>
@@ -114,7 +114,7 @@ export default function Toolbar() {
                 <DropdownMenuContent
                   id="time-menu-content"
                   aria-labelledby="time-menu-trigger"
-                  className="Toolbar-menu"
+                  className="toolbar-menu"
                   side="left"
                   align="start"
                   sideOffset={10}
@@ -142,7 +142,7 @@ export default function Toolbar() {
               <ToolbarPrimitive.Button
                 ref={historyTriggerRef}
                 id="history-panel-trigger"
-                className="Toolbar-action"
+                className="toolbar-action"
                 aria-label={nav("myHistory")}
                 aria-haspopup="dialog"
                 aria-expanded={historyOpen}

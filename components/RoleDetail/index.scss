@@ -1,15 +1,15 @@
 @use "../shared/Table/base";
 
-.Cms-permissions {
+.cms-permissions {
   min-width: 780px !important;
 }
 
-.Cms-permissions th:not(:first-child),
-.Cms-permissions td:not(:last-child) {
+.cms-permissions th:not(:first-child),
+.cms-permissions td:not(:last-child) {
   text-align: center;
 }
 
-.Cms-permissions [data-slot="combobox-chips"] {
+.cms-permissions [data-slot="combobox-chips"] {
   width: 100%;
   min-width: 220px;
 
