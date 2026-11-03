@@ -6,31 +6,36 @@ import { loginSchema, changePasswordSchema } from "@/services/schemas";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { createHash } from "node:crypto";
+import { constants } from "@/app/api/constant";
 
 // Giới hạn đăng nhập theo IP và tên đăng nhập, dùng DB để chia sẻ giữa các server.
 async function limitLogin(request: Request, username: string) {
   const now = Date.now();
-  const windowId = Math.floor(now / 900_000);
+  const windowId = Math.floor(now / constants.CMS_LOGIN_RATE_LIMIT_WINDOW_MS);
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const keys = [`ip:${ip}`, `user:${username}`].map(
-    (value) =>
-      `${windowId}:${createHash("sha256").update(value).digest("hex")}`,
-  );
+  const limits = [
+    { identifier: `ip:${ip}`, maxAttempts: constants.CMS_LOGIN_MAX_ATTEMPTS_PER_IP },
+    {
+      identifier: `user:${username}`,
+      maxAttempts: constants.CMS_LOGIN_MAX_ATTEMPTS_PER_USERNAME,
+    },
+  ];
   await prisma.cmsLoginLimit.deleteMany({
     where: { expiresAt: { lt: new Date(now) } },
   });
-  for (const [index, key] of keys.entries()) {
+  for (const { identifier, maxAttempts } of limits) {
+    const key = `${windowId}:${createHash("sha256").update(identifier).digest("hex")}`;
     const entry = await prisma.cmsLoginLimit.upsert({
       where: { key },
       create: {
         key,
         attempts: 1,
-        expiresAt: new Date((windowId + 1) * 900_000),
+        expiresAt: new Date((windowId + 1) * constants.CMS_LOGIN_RATE_LIMIT_WINDOW_MS),
       },
       update: { attempts: { increment: 1 } },
     });
-    if (entry.attempts > (index === 0 ? 30 : 8))
+    if (entry.attempts > maxAttempts)
       throw new CmsHttpError(429, "errors.rateLimited");
   }
 }

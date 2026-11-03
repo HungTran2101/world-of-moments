@@ -77,7 +77,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Deactivation/deletion/password reset revoke sessions. Self-service password
   changes require the current password and revoke other sessions.
 - Login limits are shared in PostgreSQL: 30/IP and 8/username per 15-minute fixed
-  window. Expired limiter rows are cleaned up. Configure trusted proxy headers.
+  window. Configure them in `app/api/constant.ts` using
+  `CMS_LOGIN_RATE_LIMIT_WINDOW_MS`, `CMS_LOGIN_MAX_ATTEMPTS_PER_IP` and
+  `CMS_LOGIN_MAX_ATTEMPTS_PER_USERNAME`. Expired limiter rows are cleaned up.
+  Configure trusted proxy headers.
 - State-changing requests require the configured same-origin `Origin`; no blanket
   Better Auth HTTP handler is exposed, so registration/admin endpoints are absent.
 
