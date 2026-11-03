@@ -1,6 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { ValidationError, type AnyObjectSchema, type InferType } from "yup";
 import { Prisma } from "@prisma/client";
 
@@ -32,6 +33,22 @@ export function assertTrustedOrigin(request: Request) {
     request.headers.get("sec-fetch-site") === "cross-site"
   ) {
     throw new CmsHttpError(403, "errors.forbidden");
+  }
+}
+
+export async function withCmsRequest(
+  request: Request,
+  action: () => Promise<Response>,
+): Promise<Response> {
+  try {
+    // HEAD dùng chung GET; chỉ kiểm tra Origin trước các thao tác thay đổi dữ liệu.
+    if (request.method === "POST" || request.method === "PATCH")
+      assertTrustedOrigin(request);
+    return await action();
+  } catch (error) {
+    // Để Next.js xử lý các tín hiệu điều hướng thay vì chuyển thành lỗi JSON 500.
+    unstable_rethrow(error);
+    return cmsError(error);
   }
 }
 

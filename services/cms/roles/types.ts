@@ -4,3 +4,8 @@ export interface CmsRoleRecord {
   permissions: string[];
   isSystem: boolean;
 }
+
+export interface CmsRoleOption {
+  id: string;
+  name: string;
+}

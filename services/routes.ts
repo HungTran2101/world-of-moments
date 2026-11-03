@@ -17,7 +17,9 @@ interface CmsRouteDefinition {
 export const routes: CmsRouteDefinition[] = [
   { key: "/cms", component: OverviewPage },
   {
-    key: "/cms/accounts", component: AccountsPage, roles: {
+    key: "/cms/accounts",
+    component: AccountsPage,
+    roles: {
       show: permissions.ACCOUNT_SHOW,
       create: permissions.ACCOUNT_CREATE,
       update: permissions.ACCOUNT_UPDATE,
@@ -29,10 +31,11 @@ export const routes: CmsRouteDefinition[] = [
     key: "/cms/accounts/detail",
     component: AccountDetailPage,
     roles: {
-      show: permissions.ROLE_SHOW,
-      create: permissions.ROLE_CREATE,
-      update: permissions.ROLE_UPDATE,
-      delete: permissions.ROLE_DELETE,
+      show: permissions.ACCOUNT_SHOW,
+      create: permissions.ACCOUNT_CREATE,
+      update: permissions.ACCOUNT_UPDATE,
+      delete: permissions.ACCOUNT_DELETE,
+      custom: [permissions.ACCOUNT_RESET_PASSWORD],
     },
   },
   {

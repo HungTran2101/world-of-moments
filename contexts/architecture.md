@@ -101,19 +101,24 @@ Backend (Next.js Server)
 
 Backend logic runs inside the Next.js server layer.
 
-Internal CMS API logic lives in the root `handlers/` folder, with its server-only
-page wrapper in `components/ProtectedPage`. CMS page components and reusable UI
+Internal CMS API logic lives in native endpoint files under `app/api/cms`, with
+shared auth/HTTP utilities in `handlers/` and its server-only page wrapper in
+`components/ProtectedPage`. CMS page components and reusable UI
 follow the existing `components/` and `components/shared/` structure, with
 colocated `index.scss` styles. Permission/route/schema/query definitions live in
-`services/`, CMS domain requests in `services/cms/accounts/` and
-`services/cms/roles/`, transport/common types in `services/shared/`, and session state in
+`services/`, CMS domain requests in `services/cms/{accounts,roles,auth}/`,
+transport/common types in `services/shared/`, and session state in
 `store/cmsStore.ts`. See `contexts/cms.md` for the complete ownership map.
 
 CMS authentication uses the database-backed HttpOnly session cookie. The server
 passes plain user information and scopes into the CMS store; APIs authorize the
 live session and permissions directly, without JWTs or a token refresh flow.
 
-The accounts, roles, future-message, submissions and locale service modules use
+CMS UI calls named service functions; endpoint URLs, methods and request encoding
+belong to services. Role options use the session-only
+`/api/cms/nopermission/options/roles` endpoint through the roles service.
+
+The accounts, roles, auth, future-message, submissions and locale service modules use
 `index.ts` for request functions and `types.ts` for module-owned types. Consumers
 import runtime services and type-only definitions separately.
 

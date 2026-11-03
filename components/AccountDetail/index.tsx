@@ -16,8 +16,13 @@ import {
   type AccountEditorValues,
   type ResetPasswordValues,
 } from "@/services/schemas";
-import { cmsRequest } from "@/services/shared/cms-api";
-import type { CmsAccountRecord } from "@/services/cms/accounts/types";
+import {
+  createCmsAccount,
+  getCmsAccount,
+  resetCmsAccountPassword,
+  updateCmsAccount,
+} from "@/services/cms/accounts";
+import { getCmsRoleOptions } from "@/services/cms/roles";
 import type { CmsPageProps } from "@/services/shared/types";
 import { permissions } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
@@ -57,10 +62,7 @@ function ResetPassword({
             onSubmit={handleSubmit(async (values) => {
               setError(null);
               try {
-                await cmsRequest(
-                  `/accounts/${encodeURIComponent(id)}/reset-password`,
-                  { method: "POST", body: values },
-                );
+                await resetCmsAccountPassword(id, values);
                 onOpenChange(false);
               } catch (error) {
                 setError(error);
@@ -113,18 +115,12 @@ function AccountEditor({
   const hydrated = useRef(false);
   const query = useQuery({
     queryKey: ["cms", "account", id],
-    queryFn: ({ signal }) =>
-      cmsRequest<CmsAccountRecord>(`/accounts/${encodeURIComponent(id!)}`, {
-        signal,
-      }),
+    queryFn: ({ signal }) => getCmsAccount(id!, { signal }),
     enabled: Boolean(id),
   });
   const options = useQuery({
     queryKey: ["cms", "account-role-options"],
-    queryFn: ({ signal }) =>
-      cmsRequest<{ id: string; name: string }[]>("/accounts/options", {
-        signal,
-      }),
+    queryFn: ({ signal }) => getCmsRoleOptions({ signal }),
   });
   const canSave = id ? permission.update : permission.create;
   const {
@@ -212,13 +208,8 @@ function AccountEditor({
                 setError(null);
                 try {
                   const { password, ...data } = values;
-                  await cmsRequest(
-                    id ? `/accounts/${encodeURIComponent(id)}` : "/accounts",
-                    {
-                      method: id ? "PATCH" : "POST",
-                      body: id ? data : { ...data, password },
-                    },
-                  );
+                  if (id) await updateCmsAccount(id, data);
+                  else await createCmsAccount({ ...data, password });
                   await client.invalidateQueries({ queryKey: ["cms"] });
                   router.push(backHref);
                 } catch (error) {

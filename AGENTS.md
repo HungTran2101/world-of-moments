@@ -37,6 +37,17 @@ activity or popularity.
   Include `.ts` and `.css` files explicitly when needed, since the scripts above
   only target `.tsx` and `.scss` files.
 
+## CMS API services
+
+- CMS UI must import named functions from `services/cms/<module>` instead of
+  calling `cmsRequest`, `apiRequest`, or `fetch` directly for CMS APIs.
+- Keep CMS endpoint URLs, HTTP methods, ID encoding, payloads and response types
+  inside service modules. Accept optional `ApiRequestOptions` for cancellation
+  and existing request options. Keep service functions in `index.ts` and their
+  response types in `types.ts`.
+- Keep UI state, query keys/invalidation, navigation and logout broadcasting in
+  the UI. Shared session-expiry helpers may still be used directly.
+
 ## API pagination
 
 - All paginated list APIs, including future endpoints, return

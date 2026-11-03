@@ -1,12 +1,12 @@
-import "server-only";
-
-import { getAuth, getCmsIdentity, requireCmsSession } from "@/handlers/auth";
-import { assertTrustedOrigin, cmsJson, CmsHttpError, parseBody } from "@/handlers/http";
-import { loginSchema, changePasswordSchema } from "@/services/schemas";
-import { prisma } from "@/lib/prisma";
-import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { createHash } from "node:crypto";
 import { constants } from "@/app/api/constant";
+import { getAuth, getCmsIdentity } from "@/handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { prisma } from "@/lib/prisma";
+import { loginSchema } from "@/services/schemas";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // Giới hạn đăng nhập theo IP và tên đăng nhập, dùng DB để chia sẻ giữa các server.
 async function limitLogin(request: Request, username: string) {
@@ -40,10 +40,10 @@ async function limitLogin(request: Request, username: string) {
   }
 }
 
-export async function handleAuth(request: Request, action: string) {
-  assertTrustedOrigin(request);
-  const auth = getAuth();
-  if (action === "login") {
+// Login not required - Permission: none
+export async function POST(request: Request) {
+  return withCmsRequest(request, async () => {
+    const auth = getAuth();
     const body = await parseBody(request, loginSchema);
     await limitLogin(request, body.username);
     let result;
@@ -69,43 +69,5 @@ export async function handleAuth(request: Request, action: string) {
       });
       throw error;
     }
-  }
-
-  const identity = await requireCmsSession(request.headers);
-  if (action === "logout") {
-    const result = await auth.api.signOut({
-      headers: request.headers,
-      returnHeaders: true,
-    });
-    const response = cmsJson({ ok: true });
-    for (const cookie of result.headers.getSetCookie())
-      response.headers.append("Set-Cookie", cookie);
-    return response;
-  }
-  if (action === "change-password") {
-    const body = await parseBody(request, changePasswordSchema);
-    const account = await prisma.account.findFirst({
-      where: { userId: identity.id, providerId: "credential" },
-    });
-    if (
-      !account?.password ||
-      !(await verifyPassword({
-        hash: account.password,
-        password: body.currentPassword,
-      }))
-    ) {
-      throw new CmsHttpError(422, "errors.validation", {
-        currentPassword: ["errors.currentPassword"],
-      });
-    }
-    const password = await hashPassword(body.newPassword);
-    await prisma.$transaction([
-      prisma.account.update({ where: { id: account.id }, data: { password } }),
-      prisma.session.deleteMany({
-        where: { userId: identity.id, id: { not: identity.sessionId } },
-      }),
-    ]);
-    return cmsJson({ ok: true });
-  }
-  throw new CmsHttpError(404, "errors.notFound");
+  });
 }

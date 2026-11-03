@@ -26,20 +26,29 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   with `Providers`; table primitives are shared with the role permission matrix.
 - Sidebar configuration is `components/shared/Sidebar/sidebar.ts` beside its
   rendering component; the public map sidebar remains `components/Sidebar`.
-- Server-only auth and API handlers live in root `handlers/`: `accounts.ts`,
-  `auth-actions.ts`, `auth.ts`, `http.ts` and `roles.ts`.
+- CMS API operation logic lives directly in native `route.ts` files under
+  `app/api/cms/{auth,accounts,roles,nopermission}`. Shared account selection,
+  serialization and role validation live in `app/api/cms/accounts/_shared.ts`.
+- Server-only session/auth configuration and HTTP utilities remain in
+  `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
+  trusted origins for POST/PATCH and converts application errors to JSON.
 - `components/ProtectedPage/index.tsx` owns the server-side page/session wrapper.
   Route files under `app/cms` compose it with the shared CMS providers and shell.
 - Permission constants, route mappings, query state and validation schemas live
   in `services/{permission,routes,query-state,schemas}.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
-  types: `services/cms/accounts`, `services/cms/roles`, `services/future-message`,
+  types: `services/cms/{accounts,roles,auth}`, `services/future-message`,
   `services/submissions`, and `services/locale`. Types are imported directly from
   the module's `/types` path, separately from runtime functions.
-- Account/role list and batch-delete functions accept optional `ApiRequestOptions`.
+- CMS UI imports named service functions instead of calling `cmsRequest`,
+  `apiRequest` or `fetch` directly. Services own CMS API URLs, methods, ID encoding,
+  payloads and response types; UI keeps forms, query state/invalidation, navigation
+  and logout broadcasting. Login uses `apiRequest` inside its auth service so
+  credential failures remain local form errors; protected operations use `cmsRequest`.
+- All CMS service functions accept optional `ApiRequestOptions`.
   Pages adapt them to the CRUD hook's `listService`/`deleteService` shape. Shared
   list-query serialization lives in `services/query-state.ts`.
-- Shared CMS transport/session refresh lives in `services/shared/cms-api.ts`,
+- Shared CMS transport/session-expiry handling lives in `services/shared/cms-api.ts`,
   cross-module CMS types in `services/shared/types.ts`, and Zustand session state
   in `store/cmsStore.ts`. Account/role record DTOs belong to their module's `types.ts`.
 
@@ -139,7 +148,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Role detail matrix: Module, Show, Create, Update, Delete, Extra permissions /
   Quyền bổ sung. Default cells are checkboxes; extras are multiple selects.
 - The system role is read-only. Assigned roles cannot be deleted.
-- Account role options are available under `account.show`, without `role.show`.
+- Role options require only a valid CMS session, without `account.show` or
+  `role.show`. The account form loads them through `getCmsRoleOptions` from the
+  roles service; the option DTO is `{ id: string, name: string }`.
 - Separate `messages/cms-en.json` and `messages/cms-vi.json`, nested next-intl
   provider, existing locale cookie and endpoint; Vietnamese defaults. Preserve
   the existing no-trailing-newline convention for locale JSON files.
@@ -192,11 +203,28 @@ loading, error/retry, and a navigation key for search synchronization.
 
 ## API contract
 
-- Prefix `/api/cms`, same-origin cookies, private/no-store responses.
+- Prefix `/api/cms`, same-origin cookies, private/no-store application responses.
+- Each endpoint exports only its supported methods with Node.js runtime and
+  force-dynamic execution. Native Next.js routing returns 404 for unmatched URLs
+  (including extra path suffixes) and 405 for unsupported endpoint methods.
+  Static action endpoints take precedence over dynamic IDs. Next.js supplies
+  HEAD from GET, retaining session/permission checks without requiring Origin,
+  and OPTIONS with the endpoint's allowed methods.
+- Each exported CMS HTTP method has an access comment immediately above it:
+  `Login required - Permission: role.create`, using its actual permission key.
+  Session-only methods use `Permission: none`; login uses
+  `Login not required - Permission: none`. Automatic HEAD inherits GET's access
+  requirements; framework-generated OPTIONS requires no session or permission.
 - Auth: POST `/auth/login`, `/auth/logout`, `/auth/change-password`.
-- Accounts: GET/POST `/accounts`, GET/PATCH `/accounts/:id`, GET `/accounts/options`,
+- Accounts: GET/POST `/accounts`, GET/PATCH `/accounts/:id`,
   POST `/accounts/:id/reset-password`.
 - Roles: GET/POST `/roles`, GET/PATCH `/roles/:id`.
+- Options: GET `/nopermission/options/:module`, supporting only `roles` initially.
+  Requires a live CMS session without module permissions; returns non-system
+  roles as `{ id, name }[]`, sorted by name. Unsupported modules return native
+  404 after session validation. Responses are private/no-store. The old
+  `/accounts/options` endpoint is removed without an alias and follows normal
+  account-ID routing.
 - POST `/accounts/bulk-delete` and `/roles/bulk-delete`: `{ ids: string[] }`.
   The same endpoint accepts `[id]` for single deletion. Batch checks/deletion are
   atomic; assigned-role or protected-record conflicts roll back the whole batch.
@@ -206,6 +234,9 @@ loading, error/retry, and a navigation key for search synchronization.
   CMS translation keys. 400 malformed JSON, 401 invalid session, 403 permission
   denial, 404 unavailable record, 409 conflict, 422 validation, 429 login throttle.
   Field errors map into React Hook Form; unexpected failures return a generic 500.
+- Missing or hidden database records retain the JSON 404 envelope above.
+  Framework-generated routing responses are exempt from the application JSON
+  envelope and private/no-store header contract; their bodies may be non-JSON.
 - Existing public API shapes and authentication behavior are unchanged.
 
 ## Setup and maintenance
@@ -317,3 +348,33 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   development DB verify HttpOnly cookies, plain login DTOs, missing/invalid session
   rejection, 403 permissions, 422 validation, live permission changes and revoked
   sessions. Temporary role/account fixtures and the preview server were cleaned up.
+- Native CMS endpoint routing: operation logic is colocated in 11 route files;
+  the catch-all router and three domain dispatcher modules are removed. Scoped
+  ESLint fixes, repository lint, route type generation, typecheck and the Webpack
+  production build pass. Stale generated development route types referencing the
+  removed catch-all were cleared. Turbopack's build was blocked by an internal
+  compiler port-binding restriction in the validation environment.
+  All 168 production-mode HTTP/DB checks pass against the development database,
+  covering native 404/405, HEAD/OPTIONS, static-route precedence, auth/cookies,
+  permissions/origin checks, CRUD, validation, record JSON 404s, pagination,
+  password changes/resets, session revocation, login throttling and atomic batch
+  conflicts. Browser checks pass for login/logout, account and role lists/details,
+  account role options and protected-route redirects, with no console errors or
+  warnings. Temporary records, sessions, limiter rows and the server are removed;
+  production data/deployment are unchanged.
+- CMS services/options: the five CMS UI callers use named account, role and auth
+  services instead of direct transport calls. Module options moved to
+  `/api/cms/nopermission/options/roles` with session-only access; every CMS endpoint
+  documents access immediately above each HTTP method. `AGENTS.md` records
+  the service boundary. Account-detail route permissions now match the documented
+  account permissions and include the password-reset action.
+  Scoped ESLint fixes, repository lint, route type generation, typecheck and the
+  Webpack production build pass. All 94 temporary service/HTTP/DB checks pass,
+  covering request encoding, payloads, cancellation, cookies, login-error/session
+  handling, options access without module scopes, minimal DTOs, native routing
+  errors and HEAD/OPTIONS. Production-mode browser checks cover account/role
+  create/edit, role options, password change/reset and login with the new passwords,
+  local credential errors, logout, revoked-session redirects, and read-only
+  account details without role permissions. The checked successful flows have
+  no console errors or warnings. Temporary fixtures and the server are removed;
+  production data/deployment are unchanged.

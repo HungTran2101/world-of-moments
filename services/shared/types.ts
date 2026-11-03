@@ -14,6 +14,9 @@ export interface CmsErrorBody {
   error: string;
   fieldErrors?: Record<string, string[]>;
 }
+export interface CmsSuccessResponse {
+  ok: true;
+}
 export interface CrudListParams {
   page: number;
   pageSize: number;

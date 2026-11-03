@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { changePasswordSchema, type ChangePasswordValues } from "@/services/schemas";
-import { cmsRequest } from "@/services/shared/cms-api";
+import { changeCmsPassword } from "@/services/cms/auth";
 import { Header } from "@/components/shared/Header";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
@@ -48,10 +48,7 @@ export function ChangePasswordPage() {
             setError(null);
             setSuccess(false);
             try {
-              await cmsRequest("/auth/change-password", {
-                method: "POST",
-                body: values,
-              });
+              await changeCmsPassword(values);
               reset();
               setSuccess(true);
             } catch (error) {

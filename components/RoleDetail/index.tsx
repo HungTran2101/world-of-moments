@@ -10,8 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { roleSchema, type RoleValues } from "@/services/schemas";
-import { cmsRequest } from "@/services/shared/cms-api";
-import type { CmsRoleRecord } from "@/services/cms/roles/types";
+import { createCmsRole, getCmsRole, updateCmsRole } from "@/services/cms/roles";
 import type { CmsPageProps } from "@/services/shared/types";
 import { permissionModules } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
@@ -33,10 +32,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
   const [error, setError] = useState<unknown>(null);
   const query = useQuery({
     queryKey: ["cms", "role", id],
-    queryFn: ({ signal }) =>
-      cmsRequest<CmsRoleRecord>(`/roles/${encodeURIComponent(id!)}`, {
-        signal,
-      }),
+    queryFn: ({ signal }) => getCmsRole(id!, { signal }),
     enabled: Boolean(id),
   });
   const isSystem = Boolean(query.data?.isSystem);
@@ -107,10 +103,8 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                 if (!canSave) return;
                 setError(null);
                 try {
-                  await cmsRequest(
-                    id ? `/roles/${encodeURIComponent(id)}` : "/roles",
-                    { method: id ? "PATCH" : "POST", body: values },
-                  );
+                  if (id) await updateCmsRole(id, values);
+                  else await createCmsRole(values);
                   await client.invalidateQueries({ queryKey: ["cms"] });
                   router.push(backHref);
                 } catch (error) {

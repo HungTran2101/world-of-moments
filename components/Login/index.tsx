@@ -9,12 +9,11 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/services/shared/api";
+import { loginCms } from "@/services/cms/auth";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
 import { loginSchema, type LoginValues } from "@/services/schemas";
 import { useCmsStore } from "@/store/cmsStore";
-import type { CmsUser } from "@/services/shared/types";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 
 export function LoginPage() {
@@ -57,10 +56,7 @@ export function LoginPage() {
           onSubmit={handleSubmit(async (values) => {
             setError(null);
             try {
-              const { user } = await apiRequest<{ user: CmsUser }>(
-                "/api/cms/auth/login",
-                { method: "POST", body: values, credentials: "same-origin" },
-              );
+              const { user } = await loginCms(values);
               useCmsStore.getState().setUser(user);
               router.replace("/cms");
               router.refresh();
