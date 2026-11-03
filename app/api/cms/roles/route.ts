@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { requireCmsSession } from "@/handlers/auth";
 import { cmsJson, parseBody, withCmsRequest } from "@/handlers/http";
 import { permissions } from "@/services/permission";
@@ -17,9 +18,12 @@ export async function GET(request: Request) {
       Object.fromEntries(new URL(request.url).searchParams),
       { abortEarly: false, stripUnknown: true },
     );
-    const where = params.search
-      ? { name: { contains: params.search, mode: "insensitive" as const } }
-      : {};
+    const where: Prisma.CmsRoleWhereInput = {
+      isSystem: false,
+      ...(params.search
+        ? { name: { contains: params.search, mode: "insensitive" } }
+        : {}),
+    };
     const result = await prisma.$transaction(
       async (tx) => {
         const total = await tx.cmsRole.count({ where });

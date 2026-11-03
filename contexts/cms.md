@@ -71,7 +71,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   account options. Ordinary detail, update, reset and batch-delete endpoints also
   reject this account with 404. It can change its own password while signed in.
 - The protected system role grants `["*"]`. It cannot be edited, deleted, assigned
-  to other accounts, or removed from the seeded account.
+  to other accounts, or removed from the seeded account. System roles are excluded
+  from role lists, search results and pagination totals.
 - The database session is the authority. APIs check the live session, expiry,
   account status and current role permissions.
 - Better Auth session cookie: HttpOnly, SameSite=Lax, Secure in production,
