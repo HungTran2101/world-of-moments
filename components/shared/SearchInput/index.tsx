@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-import "./index.scss";
-
 import { Input } from "@/components/ui/input";
 
 import { useEffect, useId, useRef } from "react";

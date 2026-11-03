@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-import "./index.scss";
-
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";

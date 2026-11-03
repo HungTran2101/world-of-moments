@@ -1,6 +1,7 @@
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { CmsProviders } from "@/components/shared/Providers";
+import "@/styles/cms-import.scss";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {

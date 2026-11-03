@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import { ChevronLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";

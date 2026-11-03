@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import { useTranslations } from "next-intl";
 import { deleteCmsAccounts, getCmsAccounts } from "@/services/cms/accounts";
 import type { CmsAccountRecord } from "@/services/cms/accounts/types";

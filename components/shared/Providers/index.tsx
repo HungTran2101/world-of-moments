@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import {
   NextIntlClientProvider,
   useTranslations,

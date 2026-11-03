@@ -19,7 +19,13 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/Login`, `components/Overview`,
   `components/RoleDetail` and `components/Roles`. Styles are colocated in
-  `index.scss` where needed; password change reuses shared Forms styles.
+  `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
+  from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
+  entry, `styles/import.scss`, so public routes do not download CMS component CSS.
+  Components do not import SCSS directly. Both entries list each stylesheet with
+  standard Sass `@use` statements and use Next.js's built-in Sass support. Add
+  new component styles to the appropriate entry file.
+  Password change reuses shared Forms styles.
   `components/List` contains the shared CRUD page and its styles.
 - Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Providers,
   Route,SearchInput,Sidebar,Table}`. Styles are colocated as `index.scss` with

@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-import "./index.scss";
-
 import { Select } from "@/components/ui/select";
 
 import Image from "next/image";

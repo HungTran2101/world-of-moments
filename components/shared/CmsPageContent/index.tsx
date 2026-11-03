@@ -1,5 +1,3 @@
-import "./index.scss";
-
 import type { ReactNode } from "react";
 
 export function CmsPageContent({ children }: { children: ReactNode }) {

@@ -5,17 +5,17 @@
 @use "./custom";
 
 // Components
-@use "../components/MapView";
-@use "../components/SubmissionForm";
 @use "../components/HistoryPanel";
+@use "../components/MapView";
+@use "../components/Paragraph";
 @use "../components/Sidebar";
+@use "../components/SubmissionForm";
+@use "../components/ThoughtGuidelines";
+@use "../components/ThoughtModal";
 @use "../components/Title";
 @use "../components/Toolbar";
-@use "../components/Paragraph";
-@use "../components/ThoughtModal";
-@use "../components/ThoughtGuidelines";
 @use "../components/shared/ErrorModal";
-@use "../components/shared/Skeleton";
 @use "../components/shared/LoadingDots";
-@use "../components/ui/refractive-glass";
+@use "../components/shared/Skeleton";
 @use "../components/ui/dialog";
+@use "../components/ui/refractive-glass";

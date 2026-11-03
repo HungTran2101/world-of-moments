@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import { useTranslations } from "next-intl";
 import { deleteCmsRoles, getCmsRoles } from "@/services/cms/roles";
 import type { CmsRoleRecord } from "@/services/cms/roles/types";

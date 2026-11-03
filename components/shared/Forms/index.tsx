@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-import "./index.scss";
-
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/services/shared/errors";
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";

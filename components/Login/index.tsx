@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import { Select } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";

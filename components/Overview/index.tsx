@@ -1,7 +1,5 @@
 "use client";
 
-import "./index.scss";
-
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCmsStore } from "@/store/cmsStore";
