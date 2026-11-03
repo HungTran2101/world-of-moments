@@ -12,13 +12,13 @@ import { useState, type ReactNode } from "react";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
 import { checkPermission } from "@/services/permission";
-import { sidebarItems, type SidebarItem } from "@/components/shared/Sidebar/sidebar";
+import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
 import { useCmsStore } from "@/store/cmsStore";
 import { logoutCms } from "@/services/cms/auth";
 import { expireCmsSession } from "@/services/shared/cms-api";
 import { ErrorNotice } from "@/components/shared/Forms";
 
-export function CmsShell({ children }: { children: ReactNode }) {
+export function CmsSidebar({ children }: { children: ReactNode }) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();

@@ -1,7 +1,7 @@
 "use client";
 
 import Toolbar from "@/components/Toolbar";
-import Sidebar from "@/components/Sidebar";
+import SubmissionSidebar from "@/components/SubmissionSidebar";
 import Title from "@/components/Title";
 import QueryProvider from "@/components/shared/QueryProvider";
 import dynamic from "next/dynamic";
@@ -18,7 +18,7 @@ export default function HomePageView() {
         <Title />
         <Toolbar />
         {/* Submission sidebar */}
-        <Sidebar />
+        <SubmissionSidebar />
         {/* Map — fills the viewport */}
         <div className="mapArea">
           <MapView />

@@ -11,7 +11,7 @@ import SubmissionForm from "../SubmissionForm"
 import ThoughtGuidelines from "../ThoughtGuidelines"
 import { RefractiveGlass } from "../ui/refractive-glass"
 
-const Sidebar = () => {
+const SubmissionSidebar = () => {
   const t = useTranslations("guidance");
   const sw = useSystemStore((state) => state.sidebarWidth)
   const mapReady = useSystemStore((state) => state.mapReady);
@@ -163,4 +163,4 @@ const Sidebar = () => {
   )
 }
 
-export default Sidebar
+export default SubmissionSidebar

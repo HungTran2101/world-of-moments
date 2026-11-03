@@ -1,6 +1,6 @@
 import { getPageIdentity } from "@/components/ProtectedPage";
 import { CmsSession } from "@/components/shared/Providers";
-import { CmsShell } from "@/components/shared/Sidebar";
+import { CmsSidebar } from "@/components/CmsSidebar";
 
 export default async function ProtectedLayout({
   children,
@@ -10,7 +10,7 @@ export default async function ProtectedLayout({
   const user = await getPageIdentity();
   return (
     <CmsSession user={user}>
-      <CmsShell>{children}</CmsShell>
+      <CmsSidebar>{children}</CmsSidebar>
     </CmsSession>
   );
 }

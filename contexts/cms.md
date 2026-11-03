@@ -31,11 +31,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   They call `useCRUDPage` directly for query state, loading and deletion. There is
   no shared CRUD page wrapper.
 - Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Providers,
-  Route,SearchInput,Sidebar,Table}`. Styles are colocated as `index.scss` with
+  Route,SearchInput,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
-- Sidebar configuration is `components/shared/Sidebar/sidebar.ts` beside its
-  rendering component; the public map sidebar remains `components/Sidebar`.
+- Sidebar configuration is `components/CmsSidebar/sidebar.ts` beside its
+  rendering component, `CmsSidebar`; the public map sidebar is
+  `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
   `app/api/cms/{auth,accounts,roles,nopermission}`. Shared account selection,
   serialization and role validation live in `app/api/cms/accounts/_shared.ts`.
@@ -128,7 +129,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - UI permissions disable unavailable controls; APIs independently authorize each
   action from the database. Account pages require `ACCOUNT_SHOW`, with create,
   update, delete, and reset guarded by their corresponding permissions.
-- Sidebar configuration lives in `components/shared/Sidebar/sidebar.ts`:
+- Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
   `key`, translated `name`, optional `href`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
 
