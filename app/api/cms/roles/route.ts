@@ -36,7 +36,10 @@ export async function GET(request: Request) {
           take: params.pageSize,
         });
         return {
-          items,
+          items: items.map((role) => ({
+            ...role,
+            createdAt: role.createdAt.toISOString(),
+          })),
           metadata: { page, pageSize: params.pageSize, total, totalPages },
         };
       },

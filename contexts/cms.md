@@ -26,7 +26,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   standard Sass `@use` statements and use Next.js's built-in Sass support. Add
   new component styles to the appropriate entry file.
   Password change reuses shared Forms styles.
-  `components/List` contains the shared CRUD page and its styles.
+  Account and role lists each own their Header, breadcrumbs, columns, row actions,
+  controlled selection and Table composition, with page-specific row-action styles.
+  They call `useCRUDPage` directly for query state, loading and deletion. There is
+  no shared CRUD page wrapper.
 - Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Providers,
   Route,SearchInput,Sidebar,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
@@ -167,8 +170,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   escape table clipping. Public-map dark styles do not apply inside CMS surfaces.
 - Shared primitives live in `components/ui`; the Combobox also uses shadcn
   InputGroup/Textarea and the existing Button. Base UI is required for its behavior.
-  CMS action buttons use the shared `Button` with outline/link variants and
-  explicit form submit types/IDs. Menu, retry, bulk/pagination and logout controls
+  CMS Create links, Save buttons (including password reset/change), Search and
+  bulk-action Execute use the shared `Button` with `variant="primary"`; Create
+  composes its Next.js Link through `asChild` and preserves permission guards.
+  Global/CMS link styles exclude Button links so their variant controls appearance.
+  Other actions use outline/link/destructive variants and explicit form submit types/IDs.
+  Menu, retry, bulk/pagination and logout controls
   also use `Button`; `.Cms-button` styling is retained only for navigation links.
   Native button markup is confined to the shared primitive implementations.
 - Each page owns its sticky Header: title left, action controls supplied through
@@ -194,6 +201,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   preserve dirty input during background refetches.
 - Role detail matrix: Module, Show, Create, Update, Delete, Extra permissions /
   Quyền bổ sung. Default cells are checkboxes; extras are multiple selects.
+  Extra-permission selects isolate intrinsic inline sizing so selecting/removing
+  tags keeps column/control widths stable; tags wrap within the available width.
 - The system role is read-only. Assigned roles cannot be deleted.
 - Role options require only a valid CMS session, without `account.show` or
   `role.show`. The account form loads them through `getCmsRoleOptions` from the
@@ -233,7 +242,19 @@ metadata, search, `onSearch`, `onChangePage`, `onChangePageSize`, initial/backgr
 loading, error/retry, and a navigation key for search synchronization.
 
 - Basic Antd-style columns: `key`, `title`, optional `dataIndex`, `render(value,
-  record, index)`, `width`, and `fixed: "right"`. Action columns remain sticky.
+  record, index)`, `width`, `align: "left" | "center" | "right"`, and
+  `fixed: "right"`. Alignment applies to headers and body cells.
+  CRUD Actions columns remain sticky and centered, with Eye (Details link) and
+  Trash (Delete button) icons, localized tooltips and accessible labels. Delete
+  retains its permission visibility, disabled states and confirmation behavior.
+- Account and role pages each define their own localized Created at / Ngày tạo
+  column immediately before Actions, displaying `HH:mm dd/MM/yyyy` (24-hour time,
+  zero-padded day/month) in the browser time zone for every UI locale.
+  Both pages use `formatDateTime` from `lib/utils.ts` for timestamp formatting.
+  The shared Table does not add a creation-date column
+  or require `createdAt` on its generic record type.
+  Future CMS CRUD lists follow the same page-level column convention, as recorded
+  in `AGENTS.md`.
 - Optional controlled `selection: { selectedRowKeys: string[], onChange(keys,
   selectedRows), getCheckboxProp?(record): { disabled? } }`.
 - Optional `bulkAction: { action, label, disabled? }[]` and
@@ -277,6 +298,8 @@ loading, error/retry, and a navigation key for search synchronization.
   atomic; assigned-role or protected-record conflicts roll back the whole batch.
 - Lists return `{ items, metadata: { page, pageSize, total, totalPages } }` using
   shared pagination types, 1-based pages, and stable created-at/ID ordering.
+- Account and role record DTOs include `createdAt` as an ISO timestamp, including
+  list, detail and create/update responses.
 - Errors: `{ error: string, fieldErrors?: Record<string, string[]> }`. Values use
   CMS translation keys. 400 malformed JSON, 401 invalid session, 403 permission
   denial, 404 unavailable record, 409 conflict, 422 validation, 429 login throttle.

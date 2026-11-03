@@ -95,7 +95,7 @@ function ResetPassword({
               <Dialog.Close asChild>
                 <Button variant="outline" className="h-10" type="button">{t("common.cancel")}</Button>
               </Dialog.Close>
-              <Button variant="outline" className="h-10" type="submit" disabled={isSubmitting}>
+              <Button variant="primary" className="h-10" type="submit" disabled={isSubmitting}>
                 {t("common.save")}
               </Button>
             </div>
@@ -176,7 +176,7 @@ function AccountEditor({
                 </Button>
               )}
             <Button
-              variant="outline"
+              variant="primary"
               className="h-10"
               type="submit"
               form="cms-account-form"

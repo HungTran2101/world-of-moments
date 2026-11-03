@@ -1,5 +1,6 @@
 export interface CmsRoleRecord {
   id: string;
+  createdAt: string;
   name: string;
   permissions: string[];
   isSystem: boolean;

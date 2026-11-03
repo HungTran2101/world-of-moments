@@ -1,13 +1,12 @@
 "use client";
 
+import { Header } from "@/components/shared/Header";
+import { resolvePermission } from "@/services/permission";
+import { routes } from "@/services/routes";
+import type { CmsUser } from "@/services/shared/types";
+import { useCmsStore } from "@/store/cmsStore";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
-import { routes } from "@/services/routes";
-import { resolvePermission } from "@/services/permission";
-import { useCmsStore } from "@/store/cmsStore";
-import { Header } from "@/components/shared/Header";
-import { CmsPageContent } from "@/components/shared/CmsPageContent";
-import type { CmsUser } from "@/services/shared/types";
 
 export function CmsRoute({
   routeKey,
@@ -28,12 +27,10 @@ export function CmsRoute({
   );
   if (!permission.show)
     return (
-      <>
-        <Header title="403" />
-        <CmsPageContent>
-          <p>{t("errors.forbidden")}</p>
-        </CmsPageContent>
-      </>
+      <Header
+        title={t("errors.forbidden")}
+        style={{ color: 'orangered' }}
+      />
     );
   const Component = route.component;
   return <Component permission={permission} />;

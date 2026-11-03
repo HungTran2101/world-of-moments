@@ -66,11 +66,11 @@ p {
   line-height: 1.65;
 }
 
-a {
+a:not([data-slot="button"]) {
   color: var(--primary-color);
 }
 
-a:hover {
+a:not([data-slot="button"]):hover {
   text-decoration: underline;
 }
 

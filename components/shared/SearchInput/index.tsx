@@ -69,7 +69,7 @@ export function SearchInput({
           }, 350);
         }}
       />
-      <Button variant="outline" className="h-10" type="submit">{t("common.search")}</Button>
+      <Button variant="primary" className="h-10" type="submit">{t("common.search")}</Button>
     </form>
   );
 }

@@ -12,4 +12,7 @@
 .Cms-permissions [data-slot="combobox-chips"] {
   width: 100%;
   min-width: 220px;
+
+  // Không để nội dung thẻ đã chọn làm bảng tính lại độ rộng cột.
+  contain: inline-size;
 }

@@ -18,6 +18,7 @@ export interface Column<T> {
   dataIndex?: keyof T;
   render?: (value: unknown, record: T, index: number) => ReactNode;
   width?: number | string;
+  align?: "left" | "center" | "right";
   fixed?: "right";
 }
 export interface TableSelection<T> {
@@ -173,7 +174,7 @@ export function Table<T extends object>({
               }))}
             />
             <Button
-              variant="outline"
+              variant="primary"
               className="h-10"
               type="button"
               disabled={!canExecute || executing || fetching}
@@ -226,7 +227,7 @@ export function Table<T extends object>({
                 <th
                   scope="col"
                   key={column.key}
-                  style={{ width: column.width }}
+                  style={{ width: column.width, textAlign: column.align }}
                   className={
                     column.fixed === "right" ? "Cms-fixedRight" : undefined
                   }
@@ -293,6 +294,7 @@ export function Table<T extends object>({
                     return (
                       <td
                         key={column.key}
+                        style={{ textAlign: column.align }}
                         className={
                           column.fixed === "right"
                             ? "Cms-fixedRight"

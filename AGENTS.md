@@ -48,6 +48,23 @@ activity or popularity.
 - Keep UI state, query keys/invalidation, navigation and logout broadcasting in
   the UI. Shared session-expiry helpers may still be used directly.
 
+## CMS CRUD tables
+
+- Each list page owns its Header, breadcrumbs, columns, row actions, selection
+  and Table composition. Reuse `useCRUDPage` for list/query/mutation behavior and
+  shared UI primitives; do not add a generic CRUD page wrapper.
+- Every CMS CRUD list, including future lists, must define a `createdAt` column
+  in its own page-level `columns` array, immediately before the Actions column
+  (second last).
+- Use the localized `common.createdAt` label and display the timestamp as
+  `HH:mm dd/MM/yyyy` (24-hour time, zero-padded day/month) in the browser time zone,
+  regardless of UI locale. CMS record APIs must provide an ISO `createdAt` timestamp.
+- Use `formatDateTime` from `lib/utils.ts` for this display format.
+- Keep this column explicit in each page; do not inject it into the shared
+  `Table` or require `createdAt` on its generic record type.
+- Center the Actions header and cells. Use icon controls with localized tooltips
+  and accessible labels, retaining links for navigation and buttons for mutations.
+
 ## API pagination
 
 - All paginated list APIs, including future endpoints, return

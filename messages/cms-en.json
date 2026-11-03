@@ -12,6 +12,7 @@
     "retry": "Retry",
     "loading": "Loading…",
     "empty": "No records found.",
+    "createdAt": "Created at",
     "actions": "Actions",
     "bulkAction": "Bulk action",
     "execute": "Do it",

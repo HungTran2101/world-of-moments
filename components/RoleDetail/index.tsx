@@ -75,7 +75,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
         onBack={() => router.push(backHref)}
         actions={
           <Button
-            variant="outline"
+            variant="primary"
             className="h-10"
             type="submit"
             form="cms-role-form"

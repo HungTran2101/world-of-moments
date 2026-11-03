@@ -104,7 +104,7 @@
     margin: 0 0 16px;
   }
 
-  a {
+  a:not([data-slot="button"]) {
     color: #304d6b;
   }
 

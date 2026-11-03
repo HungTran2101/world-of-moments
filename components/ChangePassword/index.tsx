@@ -34,7 +34,7 @@ export function ChangePasswordPage() {
       <Header
         title={t("nav.changePassword")}
         actions={
-          <Button variant="outline" className="h-10" type="submit" form="cms-password-form" disabled={isSubmitting}>
+          <Button variant="primary" className="h-10" type="submit" form="cms-password-form" disabled={isSubmitting}>
             {t(isSubmitting ? "common.saving" : "common.save")}
           </Button>
         }

@@ -9,15 +9,20 @@ export function Header({
   title,
   onBack,
   actions,
+  style
 }: {
   title: string;
   onBack?: () => void;
   actions?: ReactNode;
+  style?: React.CSSProperties;
 }) {
   const t = useTranslations();
 
   return (
-    <header className="Cms-header">
+    <header
+      className="Cms-header"
+      style={style}
+    >
       <div className="Cms-headerTitle">
         {onBack && (
           <Button
