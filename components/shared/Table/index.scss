@@ -3,7 +3,7 @@
 .Cms-tableSection {
   overflow: hidden;
   border: 1px solid #dde1e7;
-  border-radius: 7px;
+  border-radius: var(--cms-panel-radius);
   background: #fff;
 }
 

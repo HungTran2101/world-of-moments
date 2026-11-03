@@ -1,7 +1,8 @@
 .Cms-form {
+  width: 100%;
   padding: 26px;
   border: 1px solid #dde1e7;
-  border-radius: 7px;
+  border-radius: var(--cms-panel-radius);
   background: #fff;
 }
 

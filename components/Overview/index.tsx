@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useCmsStore } from "@/store/cmsStore";
 import { checkPermission, permissions } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 
 export function OverviewPage() {
@@ -15,11 +16,11 @@ export function OverviewPage() {
   return (
     <>
       <Header title={t("nav.home")} />
-      <Breadcrumbs
-        label={t("common.breadcrumbs")}
-        items={[{ label: t("nav.home") }]}
-      />
-      <div className="Cms-content">
+      <CmsPageContent>
+        <Breadcrumbs
+          label={t("common.breadcrumbs")}
+          items={[{ label: t("nav.home") }]}
+        />
         <section className="Cms-welcome">
           <h2>{t("home.welcome", { name: user?.name ?? "" })}</h2>
           <p>{t("home.description")}</p>
@@ -33,7 +34,7 @@ export function OverviewPage() {
             <Link href="/cms/change-password">{t("nav.changePassword")} →</Link>
           </div>
         </section>
-      </div>
+      </CmsPageContent>
     </>
   );
 }

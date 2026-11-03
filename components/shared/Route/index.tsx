@@ -6,6 +6,7 @@ import { routes } from "@/services/routes";
 import { resolvePermission } from "@/services/permission";
 import { useCmsStore } from "@/store/cmsStore";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import type { CmsUser } from "@/services/shared/types";
 
 export function CmsRoute({
@@ -29,9 +30,9 @@ export function CmsRoute({
     return (
       <>
         <Header title="403" />
-        <div className="Cms-content">
+        <CmsPageContent>
           <p>{t("errors.forbidden")}</p>
-        </div>
+        </CmsPageContent>
       </>
     );
   const Component = route.component;

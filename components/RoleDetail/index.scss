@@ -1,9 +1,5 @@
 @use "../shared/Table/base";
 
-.Cms-form-wide {
-  max-width: 1100px;
-}
-
 .Cms-permissions {
   min-width: 780px !important;
 }
@@ -13,7 +9,7 @@
   text-align: center;
 }
 
-.Cms-permissions select {
+.Cms-permissions [data-slot="combobox-chips"] {
   width: 100%;
   min-width: 220px;
 }

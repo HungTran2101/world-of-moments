@@ -28,7 +28,12 @@
     "total": "{count} bản ghi",
     "breadcrumbs": "Đường dẫn điều hướng",
     "language": "Ngôn ngữ",
-    "confirmDelete": "Xóa {count} bản ghi? Thao tác này không thể hoàn tác."
+    "confirmDelete": "Xóa {count} bản ghi? Thao tác này không thể hoàn tác.",
+    "selectPlaceholder": "Chọn…",
+    "noOptions": "Không có lựa chọn phù hợp.",
+    "removeSelection": "Bỏ chọn {label}",
+    "toggleOptions": "Mở hoặc đóng lựa chọn",
+    "clearSelection": "Bỏ chọn tất cả"
   },
   "nav": {
     "home": "Tổng quan",
@@ -98,7 +103,7 @@
     "required": "Vui lòng nhập trường này.",
     "passwordMin": "Sử dụng ít nhất 8 ký tự.",
     "passwordMax": "Sử dụng tối đa 128 ký tự.",
-    "username": "Dùng 3–40 chữ thường, số, dấu chấm, gạch dưới hoặc gạch ngang.",
+    "username": "Dùng 3-40 chữ thường, số, dấu chấm, gạch dưới hoặc gạch ngang.",
     "maxLength": "Sử dụng tối đa 100 ký tự.",
     "rolesRequired": "Vui lòng chọn ít nhất một vai trò.",
     "invalidRoles": "Vui lòng chọn vai trò hợp lệ, không phải vai trò hệ thống.",

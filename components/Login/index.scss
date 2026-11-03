@@ -10,7 +10,7 @@
   max-width: 400px;
   padding: 32px;
   border: 1px solid #dde1e7;
-  border-radius: 8px;
+  border-radius: var(--cms-panel-radius);
   background: #fff;
 }
 
@@ -28,7 +28,7 @@
   background: #283b51;
 }
 
-.Cms-loginCard > select {
+.Cms-loginCard > [data-slot="select-trigger"] {
   width: 100%;
   margin-top: 24px;
 }

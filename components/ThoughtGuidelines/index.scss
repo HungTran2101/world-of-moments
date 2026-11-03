@@ -1,6 +1,11 @@
 .thoughtGuidelines {
   &-trigger {
     display: inline;
+    height: auto;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+    white-space: normal;
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
@@ -59,7 +64,9 @@
     place-items: center;
     width: 2rem;
     height: 2rem;
+    padding: 0;
     border-radius: 50%;
+    background: transparent;
     color: var(--primary-color-dark);
     cursor: pointer;
 

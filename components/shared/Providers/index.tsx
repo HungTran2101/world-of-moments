@@ -24,8 +24,8 @@ function SessionEvents() {
         useCmsStore.getState().clear();
         clear();
         if (window.location.pathname !== "/cms/login") {
-          // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Tải lại toàn trang để bỏ trạng thái phiên đã đăng xuất ở tab khác.
-          window.location.assign("/cms/login");
+          // Tải lại toàn trang để bỏ trạng thái phiên đã đăng xuất ở tab khác.
+          window.location.assign(new URL("/cms/login", window.location.origin).href);
         }
       }
     };

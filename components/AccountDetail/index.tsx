@@ -1,12 +1,17 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
 
-import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select } from "@/components/ui/select";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
@@ -26,6 +31,7 @@ import { getCmsRoleOptions } from "@/services/cms/roles";
 import type { CmsPageProps } from "@/services/shared/types";
 import { permissions } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 
@@ -76,7 +82,7 @@ function ResetPassword({
               label={t("account.newPassword")}
               error={errors.newPassword?.message}
             >
-              <input
+              <Input
                 id="cms-reset-password"
                 type="password"
                 autoComplete="new-password"
@@ -89,11 +95,11 @@ function ResetPassword({
             </Field>
             <div className="Cms-formActions">
               <Dialog.Close asChild>
-                <button type="button">{t("common.cancel")}</button>
+                <Button variant="outline" className="h-10" type="button">{t("common.cancel")}</Button>
               </Dialog.Close>
-              <button type="submit" disabled={isSubmitting}>
+              <Button variant="outline" className="h-10" type="submit" disabled={isSubmitting}>
                 {t("common.save")}
-              </button>
+              </Button>
             </div>
           </form>
         </Dialog.Content>
@@ -125,6 +131,7 @@ function AccountEditor({
   const canSave = id ? permission.update : permission.create;
   const {
     register,
+    control,
     reset,
     handleSubmit,
     setError: setFieldError,
@@ -153,40 +160,49 @@ function AccountEditor({
 
   return (
     <>
-      <Header title={title}>
-        {id &&
-          permission.custom.includes(permissions.ACCOUNT_RESET_PASSWORD) && (
-            <button
-              type="button"
-              onClick={() => setResetOpen(true)}
-              disabled={!query.data}
+      <Header
+        title={title}
+        onBack={() => router.push(backHref)}
+        actions={
+          <>
+            {id &&
+              permission.custom.includes(permissions.ACCOUNT_RESET_PASSWORD) && (
+                <Button
+                  variant="outline"
+                  className="h-10"
+                  type="button"
+                  onClick={() => setResetOpen(true)}
+                  disabled={!query.data}
+                >
+                  {t("account.resetPassword")}
+                </Button>
+              )}
+            <Button
+              variant="outline"
+              className="h-10"
+              type="submit"
+              form="cms-account-form"
+              disabled={
+                !canSave ||
+                isSubmitting ||
+                Boolean(id && !query.data) ||
+                options.isPending
+              }
             >
-              {t("account.resetPassword")}
-            </button>
-          )}
-        <Link href={backHref}>{t("common.back")}</Link>
-        <button
-          type="submit"
-          form="cms-account-form"
-          disabled={
-            !canSave ||
-            isSubmitting ||
-            Boolean(id && !query.data) ||
-            options.isPending
-          }
-        >
-          {t(isSubmitting ? "common.saving" : "common.save")}
-        </button>
-      </Header>
-      <Breadcrumbs
-        label={t("common.breadcrumbs")}
-        items={[
-          { label: t("nav.home"), href: "/cms" },
-          { label: t("nav.accounts"), href: backHref },
-          { label: title },
-        ]}
+              {t(isSubmitting ? "common.saving" : "common.save")}
+            </Button>
+          </>
+        }
       />
-      <div className="Cms-content">
+      <CmsPageContent>
+        <Breadcrumbs
+          label={t("common.breadcrumbs")}
+          items={[
+            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.accounts"), href: backHref },
+            { label: title },
+          ]}
+        />
         {(error || query.error || options.error) && (
           <ErrorNotice
             error={error || query.error || options.error}
@@ -202,7 +218,7 @@ function AccountEditor({
           (!id || query.data) && (
             <form
               id="cms-account-form"
-              className="Cms-form Cms-accountForm"
+              className="Cms-form"
               onSubmit={handleSubmit(async (values) => {
                 if (!canSave) return;
                 setError(null);
@@ -224,7 +240,7 @@ function AccountEditor({
                   label={t("account.username")}
                   error={errors.username?.message}
                 >
-                  <input
+                  <Input
                     id="cms-username"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.username)}
@@ -239,7 +255,7 @@ function AccountEditor({
                   label={t("account.name")}
                   error={errors.name?.message}
                 >
-                  <input
+                  <Input
                     id="cms-name"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.name)}
@@ -255,7 +271,7 @@ function AccountEditor({
                     label={t("account.password")}
                     error={errors.password?.message}
                   >
-                    <input
+                    <Input
                       id="cms-password"
                       type="password"
                       autoComplete="new-password"
@@ -272,28 +288,59 @@ function AccountEditor({
                   label={t("account.roles")}
                   error={errors.roleIds?.message}
                 >
-                  <select
-                    id="cms-roles"
-                    multiple
-                    size={Math.min(6, Math.max(3, options.data?.length ?? 0))}
-                    aria-invalid={Boolean(errors.roleIds)}
-                    aria-describedby={
-                      errors.roleIds ? "cms-roles-error" : undefined
-                    }
-                    {...register("roleIds")}
-                  >
-                    {options.data?.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    name="roleIds"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        popupClassName="Cms-popup"
+                        multiple={{ allowClear: true }}
+                        labels={{
+                          empty: t("common.noOptions"),
+                          toggle: t("common.toggleOptions"),
+                          clear: t("common.clearSelection"),
+                          remove: (label) => t("common.removeSelection", { label }),
+                        }}
+                        id="cms-roles"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={(options.data ?? []).map((role) => ({
+                          value: role.id,
+                          label: role.name,
+                        }))}
+                        disabled={
+                          !canSave || isSubmitting || options.isPending || Boolean(options.error)
+                        }
+                        placeholder={t(
+                          options.isPending ? "common.loading" : "common.selectPlaceholder",
+                        )}
+                        aria-invalid={Boolean(errors.roleIds)}
+                        aria-describedby={
+                          errors.roleIds ? "cms-roles-error" : undefined
+                        }
+                      />
+                    )}
+                  />
                 </Field>
                 {options.data?.length === 0 && (
                   <p className="Cms-muted">{t("account.noRoles")}</p>
                 )}
                 <label className="Cms-checkboxLabel">
-                  <input type="checkbox" {...register("isActive")} />
+                  <Controller
+                    name="isActive"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        checked={field.value}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                        disabled={!canSave || isSubmitting}
+                      />
+                    )}
+                  />
                   {t("account.active")}
                 </label>
               </fieldset>
@@ -303,7 +350,7 @@ function AccountEditor({
         {id && resetOpen && (
           <ResetPassword id={id} open={resetOpen} onOpenChange={setResetOpen} />
         )}
-      </div>
+      </CmsPageContent>
     </>
   );
 }

@@ -14,6 +14,7 @@
     "cms:seed": "node --import tsx scripts/seed-cms.ts"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "@better-auth/prisma-adapter": "^1.7.15",
     "@hookform/resolvers": "^7.0.1",
     "@prisma/adapter-pg": "^7.8.0",

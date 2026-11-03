@@ -1,6 +1,8 @@
 "use client";
 
-import "./index.scss";
+import { Button } from "@/components/ui/button";
+
+import { Input } from "@/components/ui/input";
 
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -9,6 +11,7 @@ import { useState } from "react";
 import { changePasswordSchema, type ChangePasswordValues } from "@/services/schemas";
 import { changeCmsPassword } from "@/services/cms/auth";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 
@@ -28,22 +31,25 @@ export function ChangePasswordPage() {
   });
   return (
     <>
-      <Header title={t("nav.changePassword")}>
-        <button type="submit" form="cms-password-form" disabled={isSubmitting}>
-          {t(isSubmitting ? "common.saving" : "common.save")}
-        </button>
-      </Header>
-      <Breadcrumbs
-        label={t("common.breadcrumbs")}
-        items={[
-          { label: t("nav.home"), href: "/cms" },
-          { label: t("nav.changePassword") },
-        ]}
+      <Header
+        title={t("nav.changePassword")}
+        actions={
+          <Button variant="outline" className="h-10" type="submit" form="cms-password-form" disabled={isSubmitting}>
+            {t(isSubmitting ? "common.saving" : "common.save")}
+          </Button>
+        }
       />
-      <div className="Cms-content">
+      <CmsPageContent>
+        <Breadcrumbs
+          label={t("common.breadcrumbs")}
+          items={[
+            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.changePassword") },
+          ]}
+        />
         <form
           id="cms-password-form"
-          className="Cms-form Cms-passwordForm"
+          className="Cms-form"
           onSubmit={handleSubmit(async (values) => {
             setError(null);
             setSuccess(false);
@@ -69,7 +75,7 @@ export function ChangePasswordPage() {
               label={t("account.currentPassword")}
               error={errors.currentPassword?.message}
             >
-              <input
+              <Input
                 id="cms-current-password"
                 type="password"
                 autoComplete="current-password"
@@ -87,7 +93,7 @@ export function ChangePasswordPage() {
               label={t("account.newPassword")}
               error={errors.newPassword?.message}
             >
-              <input
+              <Input
                 id="cms-new-password"
                 type="password"
                 autoComplete="new-password"
@@ -100,7 +106,7 @@ export function ChangePasswordPage() {
             </Field>
           </fieldset>
         </form>
-      </div>
+      </CmsPageContent>
     </>
   );
 }

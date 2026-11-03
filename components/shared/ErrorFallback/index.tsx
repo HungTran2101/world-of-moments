@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import enMessages from "@/messages/en.json";
 import viMessages from "@/messages/vi.json";
 import { Mail, RotateCcw, TriangleAlert } from "lucide-react";
@@ -290,7 +292,8 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
             marginTop: "28px",
           }}
         >
-          <button
+          <Button
+            className="h-auto"
             type="button"
             onClick={onRetry}
             style={{
@@ -308,11 +311,12 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
               cursor: "pointer",
             }}
           >
-            <RotateCcw size={18} />
+            <RotateCcw size={18} className="size-4.5" />
             {copy.retry}
-          </button>
+          </Button>
 
-          <button
+          <Button
+            className="h-auto"
             type="button"
             onClick={handleReport}
             disabled={!canReport}
@@ -332,9 +336,9 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
               cursor: canReport ? "pointer" : "not-allowed",
             }}
           >
-            <Mail size={18} />
+            <Mail size={18} className="size-4.5" />
             {copy.report}
-          </button>
+          </Button>
         </div>
 
         {!canReport ? (

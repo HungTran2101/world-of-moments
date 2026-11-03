@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
 
 import { useTranslations } from "next-intl";
@@ -38,9 +40,9 @@ export function ErrorNotice({
     <div className="Cms-notice Cms-notice-error" role="alert">
       <span>{t.has(message) ? t(message) : t("errors.server")}</span>
       {onRetry && (
-        <button type="button" onClick={onRetry}>
+        <Button variant="outline" className="h-10" type="button" onClick={onRetry}>
           {t("common.retry")}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -1,8 +1,13 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select } from "@/components/ui/select";
+
+import { useId, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { PaginationMetadata } from "@/services/shared/pagination";
 import { PAGE_SIZES } from "@/services/query-state";
@@ -41,18 +46,12 @@ function SelectAll({
   onChange: () => void;
   label: string;
 }) {
-  const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (ref.current) ref.current.indeterminate = indeterminate;
-  }, [indeterminate]);
   return (
-    <input
-      ref={ref}
-      type="checkbox"
+    <Checkbox
       aria-label={label}
-      checked={checked}
+      checked={indeterminate ? "indeterminate" : checked}
       disabled={disabled}
-      onChange={onChange}
+      onCheckedChange={onChange}
     />
   );
 }
@@ -114,10 +113,10 @@ export function Table<T extends object>({
   const activeAction = actions.find((item) => item.action === action);
   const canExecute = Boolean(
     selection &&
-      selectedRows.length &&
-      activeAction &&
-      !activeAction.disabled &&
-      (action === "delete" ? onBulkDelete : onBulkAction),
+    selectedRows.length &&
+    activeAction &&
+    !activeAction.disabled &&
+    (action === "delete" ? onBulkDelete : onBulkAction),
   );
 
   const select = (keys: string[]) =>
@@ -162,30 +161,28 @@ export function Table<T extends object>({
             <label className="visually-hidden" htmlFor={`${id}-action`}>
               {t("common.bulkAction")}
             </label>
-            <select
+            <Select
+              popupClassName="Cms-popup"
               id={`${id}-action`}
               value={action}
               disabled={executing}
-              onChange={(event) => setAction(event.target.value)}
-            >
-              <option value="">{t("common.bulkAction")}</option>
-              {actions.map((item) => (
-                <option
-                  key={item.action}
-                  value={item.action}
-                  disabled={item.disabled}
-                >
-                  {item.label}
-                </option>
-              ))}
-            </select>
-            <button
+              onValueChange={setAction}
+              placeholder={t("common.bulkAction")}
+              options={actions.map((item) => ({
+                value: item.action,
+                label: item.label,
+                disabled: item.disabled,
+              }))}
+            />
+            <Button
+              variant="outline"
+              className="h-10"
               type="button"
               disabled={!canExecute || executing || fetching}
               onClick={() => void execute()}
             >
               {t(executing ? "common.executing" : "common.execute")}
-            </button>
+            </Button>
             <span className="Cms-muted" role="status">
               {t("common.selected", { count: selectedKeys.length })}
             </span>
@@ -266,8 +263,7 @@ export function Table<T extends object>({
                 <tr key={keyOf(row)}>
                   {selection && (
                     <td className="Cms-selection">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         aria-label={t("common.selectRow", { key: keyOf(row) })}
                         checked={selection.selectedRowKeys.includes(keyOf(row))}
                         disabled={
@@ -275,18 +271,18 @@ export function Table<T extends object>({
                           executing ||
                           fetching
                         }
-                        onChange={(event) =>
+                        onCheckedChange={(checked) =>
                           select(
-                            event.target.checked
+                            checked === true
                               ? [
-                                  ...new Set([
-                                    ...selection.selectedRowKeys,
-                                    keyOf(row),
-                                  ]),
-                                ]
+                                ...new Set([
+                                  ...selection.selectedRowKeys,
+                                  keyOf(row),
+                                ]),
+                              ]
                               : selection.selectedRowKeys.filter(
-                                  (key) => key !== keyOf(row),
-                                ),
+                                (key) => key !== keyOf(row),
+                              ),
                           )
                         }
                       />
@@ -324,42 +320,45 @@ export function Table<T extends object>({
           {t("common.total", { count: pagination.total })}
         </span>
         <div className="Cms-paginationPages">
-          <button
+          <Button
+            variant="outline"
+            className="h-10"
             type="button"
             aria-label={t("common.previous")}
             disabled={pagination.page <= 1 || fetching}
             onClick={() => onChangePage(pagination.page - 1)}
           >
             ‹
-          </button>
+          </Button>
           <span aria-live="polite">
             {t("common.page", {
               page: pagination.page,
               total: pagination.totalPages,
             })}
           </span>
-          <button
+          <Button
+            variant="outline"
+            className="h-10"
             type="button"
             aria-label={t("common.next")}
             disabled={pagination.page >= pagination.totalPages || fetching}
             onClick={() => onChangePage(pagination.page + 1)}
           >
             ›
-          </button>
+          </Button>
         </div>
         <label className="Cms-pageSize" htmlFor={`${id}-size`}>
           {t("common.pageSize")}
-          <select
+          <Select
+            popupClassName="Cms-popup"
             id={`${id}-size`}
-            value={pagination.pageSize}
-            onChange={(event) => onChangePageSize(Number(event.target.value))}
-          >
-            {PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+            value={String(pagination.pageSize)}
+            onValueChange={(value) => onChangePageSize(Number(value))}
+            options={PAGE_SIZES.map((size) => ({
+              value: String(size),
+              label: String(size),
+            }))}
+          />
         </label>
       </nav>
     </section>

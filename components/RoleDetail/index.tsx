@@ -1,8 +1,13 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
 
-import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select } from "@/components/ui/select";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +19,7 @@ import { createCmsRole, getCmsRole, updateCmsRole } from "@/services/cms/roles";
 import type { CmsPageProps } from "@/services/shared/types";
 import { permissionModules } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import {
   applyFormError,
@@ -66,25 +72,30 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
 
   return (
     <>
-      <Header title={title}>
-        <Link href={backHref}>{t("common.back")}</Link>
-        <button
-          type="submit"
-          form="cms-role-form"
-          disabled={!canSave || isSubmitting || Boolean(id && !query.data)}
-        >
-          {t(isSubmitting ? "common.saving" : "common.save")}
-        </button>
-      </Header>
-      <Breadcrumbs
-        label={t("common.breadcrumbs")}
-        items={[
-          { label: t("nav.home"), href: "/cms" },
-          { label: t("nav.roles"), href: backHref },
-          { label: title },
-        ]}
+      <Header
+        title={title}
+        onBack={() => router.push(backHref)}
+        actions={
+          <Button
+            variant="outline"
+            className="h-10"
+            type="submit"
+            form="cms-role-form"
+            disabled={!canSave || isSubmitting || Boolean(id && !query.data)}
+          >
+            {t(isSubmitting ? "common.saving" : "common.save")}
+          </Button>
+        }
       />
-      <div className="Cms-content">
+      <CmsPageContent>
+        <Breadcrumbs
+          label={t("common.breadcrumbs")}
+          items={[
+            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.roles"), href: backHref },
+            { label: title },
+          ]}
+        />
         {(error || query.error) && (
           <ErrorNotice
             error={error || query.error}
@@ -98,7 +109,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
           (!id || query.data) && (
             <form
               id="cms-role-form"
-              className="Cms-form Cms-form-wide"
+              className="Cms-form"
               onSubmit={handleSubmit(async (values) => {
                 if (!canSave) return;
                 setError(null);
@@ -119,7 +130,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                   label={t("role.name")}
                   error={errors.name?.message}
                 >
-                  <input
+                  <Input
                     id="cms-role-name"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.name)}
@@ -129,9 +140,9 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                     {...register("name")}
                   />
                 </Field>
-                <h2>{t("role.permissions")}</h2>
+                <h2 id="cms-permissions-label">{t("role.permissions")}</h2>
                 {errors.permissions?.message && (
-                  <p className="Cms-fieldError" role="alert">
+                  <p id="cms-permissions-error" className="Cms-fieldError" role="alert">
                     {text(errors.permissions.message)}
                   </p>
                 )}
@@ -139,7 +150,12 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                   name="permissions"
                   control={control}
                   render={({ field }) => (
-                    <div className="Cms-tableScroll">
+                    <div
+                      className="Cms-tableScroll"
+                      role="group"
+                      aria-labelledby="cms-permissions-label"
+                      aria-describedby={errors.permissions ? "cms-permissions-error" : undefined}
+                    >
                       <table className="Cms-permissions">
                         <thead>
                           <tr>
@@ -163,15 +179,15 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                               <th scope="row">{t(`modules.${module.key}`)}</th>
                               {module.defaults.map((key, index) => (
                                 <td key={key}>
-                                  <input
-                                    type="checkbox"
+                                  <Checkbox
+                                    disabled={!canSave || isSubmitting}
                                     checked={
                                       isSystem || field.value.includes(key)
                                     }
                                     aria-label={`${t(`modules.${module.key}`)}: ${t(`role.${["show", "create", "update", "delete"][index]}`)}`}
-                                    onChange={(event) =>
+                                    onCheckedChange={(checked) =>
                                       field.onChange(
-                                        event.target.checked
+                                        checked === true
                                           ? [...field.value, key]
                                           : field.value.filter(
                                               (value) => value !== key,
@@ -183,41 +199,40 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                               ))}
                               <td>
                                 {module.custom.length > 0 ? (
-                                  <select
+                                  <Select
+                                    popupClassName="Cms-popup"
                                     multiple
-                                    size={2}
+                                    placeholder={t("common.selectPlaceholder")}
+                                    labels={{
+                                      empty: t("common.noOptions"),
+                                      toggle: t("common.toggleOptions"),
+                                      clear: t("common.clearSelection"),
+                                      remove: (label) => t("common.removeSelection", { label }),
+                                    }}
+                                    disabled={!canSave || isSubmitting}
                                     aria-label={`${t(`modules.${module.key}`)}: ${t("role.extra")}`}
                                     value={
                                       isSystem
                                         ? [...module.custom]
                                         : field.value.filter((value) =>
-                                            (
-                                              module.custom as readonly string[]
-                                            ).includes(value),
+                                            (module.custom as readonly string[]).includes(value),
                                           )
                                     }
-                                    onChange={(event) => {
-                                      const selected = Array.from(
-                                        event.target.selectedOptions,
-                                        (option) => option.value,
-                                      );
+                                    options={module.custom.map((key) => ({
+                                      value: key,
+                                      label: t(`permissionNames.${key}`),
+                                    }))}
+                                    onBlur={field.onBlur}
+                                    onValueChange={(selected) => {
+                                      // Chỉ thay quyền bổ sung của hàng này, giữ quyền mặc định và các module khác.
                                       field.onChange([
-                                        ...field.value.filter(
-                                          (value) =>
-                                            !(
-                                              module.custom as readonly string[]
-                                            ).includes(value),
+                                        ...field.value.filter((value) =>
+                                          !(module.custom as readonly string[]).includes(value),
                                         ),
                                         ...selected,
                                       ]);
                                     }}
-                                  >
-                                    {module.custom.map((key) => (
-                                      <option key={key} value={key}>
-                                        {t(`permissionNames.${key}`)}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  />
                                 ) : (
                                   <span className="Cms-muted">—</span>
                                 )}
@@ -233,7 +248,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
             </form>
           )
         )}
-      </div>
+      </CmsPageContent>
     </>
   );
 }

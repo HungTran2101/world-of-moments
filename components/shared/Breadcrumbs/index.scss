@@ -1,5 +1,5 @@
 .Cms-breadcrumbs {
-  padding: 19px 32px;
+  margin-bottom: 20px;
   color: #717986;
   font-size: 13px;
 }
@@ -20,7 +20,7 @@
 }
 
 @media (width <= 760px) {
-.Cms-breadcrumbs {
-    padding: 16px;
+  .Cms-breadcrumbs {
+    margin-bottom: 16px;
   }
 }

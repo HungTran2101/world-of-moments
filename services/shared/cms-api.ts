@@ -8,8 +8,8 @@ export function expireCmsSession() {
   useCmsStore.getState().clear();
   window.dispatchEvent(new Event("cms-session-ended"));
   if (window.location.pathname !== "/cms/login") {
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Tải lại toàn trang để bỏ bộ nhớ đệm của phiên đã hết hạn.
-    window.location.assign("/cms/login");
+    // Tải lại toàn trang để bỏ bộ nhớ đệm của phiên đã hết hạn.
+    window.location.assign(new URL("/cms/login", window.location.origin).href);
   }
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import ThoughtModal from "@/components/ThoughtModal";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { cn } from "@/lib/utils";
@@ -483,9 +485,9 @@ export default function MapView() {
         <RefractiveGlass>
           <div className="MapView-submissionsError" role="status">
             <p>{t("submissionsLoadError")}</p>
-            <button type="button" onClick={() => setSubmissionsRetry((value) => value + 1)}>
+            <Button type="button" onClick={() => setSubmissionsRetry((value) => value + 1)}>
               {t("retry")}
-            </button>
+            </Button>
           </div>
         </RefractiveGlass>
       )}

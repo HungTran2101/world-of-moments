@@ -18,9 +18,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/Login`, `components/Overview`,
-  `components/RoleDetail` and `components/Roles`, each with `index.tsx` and
-  `index.scss`. `components/List` contains the shared CRUD page and its styles.
-- Reusable UI lives in `components/shared/{Breadcrumbs,Forms,Header,Providers,
+  `components/RoleDetail` and `components/Roles`. Styles are colocated in
+  `index.scss` where needed; password change reuses shared Forms styles.
+  `components/List` contains the shared CRUD page and its styles.
+- Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Providers,
   Route,SearchInput,Sidebar,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
@@ -81,8 +82,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   or retry. A 403 is not retried as a mutation. Logout is propagated across tabs
   without sharing credentials.
 - Expired sessions and cross-tab logout use full-document navigation to login
-  so client/router state from the previous session is discarded. The two narrow
-  ESLint exceptions document this deliberate behavior.
+  so client/router state from the previous session is discarded. Login destinations
+  are explicit same-origin absolute URLs; no ESLint suppression is required.
 - Deactivation/deletion/password reset revoke sessions. Self-service password
   changes require the current password and revoke other sessions.
 - Login limits are shared in PostgreSQL: 30/IP and 8/username per 15-minute fixed
@@ -134,13 +135,52 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 ## Layout, forms, and localization
 
 - Persistent sidebar with logo, nested navigation, locale switch, password change
-  and logout. Mobile navigation is collapsible.
-- Single-value selects share a chevron positioned 12px from the right edge, with
-  reserved text padding for consistent alignment across locale, bulk-action and
-  page-size controls. Multiple-select lists retain their native list appearance.
-- Each page owns its sticky Header: title left, action controls right. Breadcrumbs
-  follow and accept `{ label, href? }[]`; then the table or detail form.
-- All navigation controls are Next.js Links; submissions/mutations are buttons.
+  and logout. Mobile navigation is collapsible. Sidebar and sticky page Header use
+  solid white surfaces, full borders and 12px corners. The viewport shell has 12px
+  outer spacing/gaps on desktop and 8px on mobile, with independent main scrolling.
+- CMS inputs, single selects and checkboxes use shadcn primitives. Account roles
+  and extra permissions use the shared controlled `Select` with `multiple`,
+  composed from shadcn Combobox chips with Base UI behavior: inline label search, removable tags,
+  checked options, keyboard navigation and continued selection while open. Only
+  existing options can be selected; form/service values remain `string[]`.
+- `components/ui/select.tsx` exports the shared controlled `Select` for both modes:
+  omitted/false `multiple` uses `value: string`; `multiple={true}` or
+  `multiple={{ allowClear: boolean }}` uses `value: string[]`. The object form
+  enables multiple selection even when `allowClear` is false; true adds a clear-all
+  control (account roles enable it). `onValueChange` matches the value type.
+  Callers supply `popupClassName` and optional localized multiple-select `labels`
+  (`empty`, `toggle`, `clear`, `remove`) without a separate CMS component/version.
+  Generic defaults work outside the CMS and do not require its translation keys.
+  Single and multiple dropdown option lists both use a 4px inner inset.
+  Enabled select inputs/triggers/options and checkboxes use a pointer cursor;
+  disabled inputs retain the not-allowed cursor.
+  Custom form controls use React Hook Form controllers and receive explicit
+  disabled state for read-only permissions, protected roles and submissions.
+  Portaled options carry the CMS light theme, remain above the sticky header and
+  escape table clipping. Public-map dark styles do not apply inside CMS surfaces.
+- Shared primitives live in `components/ui`; the Combobox also uses shadcn
+  InputGroup/Textarea and the existing Button. Base UI is required for its behavior.
+  CMS action buttons use the shared `Button` with outline/link variants and
+  explicit form submit types/IDs. Menu, retry, bulk/pagination and logout controls
+  also use `Button`; `.Cms-button` styling is retained only for navigation links.
+  Native button markup is confined to the shared primitive implementations.
+- Each page owns its sticky Header: title left, action controls supplied through
+  the optional `actions?: ReactNode` prop on the right (not JSX children). Its optional
+  `onBack?: () => void` renders a localized, icon-only chevron button before the
+  title; without `onBack`, no back control is rendered. Account/role detail pages
+  supply callbacks to their list URLs, preserving current filters and pagination.
+  A shared
+  `CmsPageContent` follows and wraps breadcrumbs plus the table, detail form or
+  overview; the permission-denied page uses it too. It is a normal block wrapper
+  that owns outer padding and shares Header's responsive inline-padding token.
+  Children own their vertical margins; the wrapper imposes no flex layout, gap
+  or child-margin resets. Breadcrumbs own the margin before the page body.
+  Page bodies do not add outer padding; form/table surfaces retain their internal
+  control inset. Account/role detail and password-change forms fill the available
+  content width through shared `.Cms-form` styling, without page-specific width caps.
+  Breadcrumbs accept `{ label, href? }[]`.
+- Navigation uses Next.js Links, except the Header back callback button, which
+  uses client routing. Submissions/mutations are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
   live in `services/schemas.ts`; API payloads reuse relevant schemas. Errors are localized.
 - Detail identity comes from the URL `id`. Forms hydrate once per identity and
@@ -378,3 +418,61 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   account details without role permissions. The checked successful flows have
   no console errors or warnings. Temporary fixtures and the server are removed;
   production data/deployment are unchanged.
+
+- Modern CMS controls and inset shell: shadcn Input, Select and Checkbox replace
+  native CMS controls; the shared Base UI Combobox adapter provides searchable
+  multiple selection with wrapping/removable tags and continued selection after
+  search. Sidebar/Header have 12px corners and 12px desktop / 8px mobile shell gaps.
+  Scoped ESLint/Stylelint fixes (including CSS), typecheck, repository lint and the
+  Webpack production build pass. CMS locales have matching 102-key sets and no
+  trailing newline. Development-browser checks cover account creation and role
+  persistence, extra-permission add/remove without changing other permissions,
+  inline search/empty results, keyboard selection/Backspace/Escape, validation
+  focus/error association, read-only accounts, the protected system role, locale
+  switching with dirty input preserved, search, bulk deletion and page-size reload
+  restoration. Geometry/screenshots cover 1440px, 820px and 390px views: tags wrap,
+  tables scroll horizontally without page overflow, and the inset Header remains
+  sticky with mobile navigation expanded. Popups remain light under an inherited
+  dark class, appear above the Header and respect reduced motion. Checked CMS flows
+  have no console errors or warnings. The public-map render smoke check passes;
+  Chrome reports a WebGL buffer performance warning. Temporary account/role records
+  and isolated browser tabs are removed. Production data/deployment are unchanged.
+
+- Shared page content: `CmsPageContent` wraps breadcrumbs and page bodies across
+  overview, CRUD lists, account/role details, password change and the 403 view.
+  Outer padding/gaps/bottom spacing belong to this component; Header reads the
+  same responsive inline-padding token. Old `.Cms-content`, breadcrumb padding,
+  overview top padding and main bottom padding are removed. Scoped ESLint/Stylelint
+  fixes, typecheck, repository lint and the Webpack production build pass.
+  Browser geometry verifies matching Header/content padding (32px desktop, 16px
+  mobile), aligned breadcrumb/form edges and no page overflow. At 390px, overview,
+  account list, role detail and password change each render one shared wrapper.
+
+- Unified Select: single and multiple selection share `components/ui/select.tsx`;
+  the old CMS controls module is removed and every CMS caller imports `Select`
+  directly. Multiple mode supports boolean and `{ allowClear }` configuration;
+  clear-all is keyboard reachable and updates the controlled array/form value.
+  CMS theme classes and localized labels are supplied at usage, with generic
+  English defaults for other consumers. CMS locales have matching 103-key sets
+  and retain no trailing newline. Scoped ESLint/Stylelint fixes, typecheck,
+  repository lint and the Webpack production build pass. Browser checks cover
+  single selection, boolean/object multiple modes (including allowClear false),
+  search/empty results, continued selection, tag removal, keyboard clear-all,
+  disabled controls, and operation outside the CMS without CMS translation keys.
+  Account-form clear-all triggers the existing required-role error and focuses
+  the field; 390px controls have no page overflow. CMS page-size selection and
+  protected-role rendering pass. The temporary validation route and role are
+  removed; no account records were created.
+
+- Shared Button adoption: all native button JSX in CMS pages/shared controls,
+  map attribution/guidelines/retry and the global fallback now uses `Button`.
+  Existing GlassButton consumers already compose this primitive. CMS actions use
+  outline/link variants; obsolete native-button styling is removed. Public custom
+  styles preserve attribution/guideline geometry, transparency and icon sizes.
+  Scoped ESLint/Stylelint fixes, typecheck, repository lint and the Webpack
+  production build pass. Browser checks cover external-form header submit and
+  validation, account creation, reset-dialog validation/cancel, search/deletion,
+  disabled pagination/bulk controls, mobile overflow and attribution/guideline
+  open/close with focus restoration. A temporary client-mounted global-fallback
+  harness verifies keyboard retry even with stylesheets disabled. Temporary
+  account/role records, the harness route and extra browser tabs are removed.

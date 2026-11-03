@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -9,6 +11,7 @@ import type { PagePermission } from "@/services/permission";
 import type { CrudListParams } from "@/services/shared/types";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 import { Header } from "@/components/shared/Header";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Table, type Column } from "@/components/shared/Table";
 import { ErrorNotice } from "@/components/shared/Forms";
@@ -62,14 +65,16 @@ export function CrudListPage<T extends { id: string; isSystem?: boolean }>({
         <div className="Cms-rowActions">
           <Link href={detailHref(record.id)}>{t("common.detail")}</Link>
           {permission.delete && (
-            <button
+            <Button
+              variant="link"
+              size="sm"
               type="button"
               className="Cms-dangerLink"
               disabled={record.isSystem || crud.deleteLoading || crud.fetching}
               onClick={() => void deleteRow(record.id)}
             >
               {t("common.delete")}
-            </button>
+            </Button>
           )}
         </div>
       ),
@@ -78,26 +83,29 @@ export function CrudListPage<T extends { id: string; isSystem?: boolean }>({
 
   return (
     <>
-      <Header title={t(`nav.${module}`)}>
-        <Link
-          className="Cms-button"
-          href={detailHref()}
-          aria-disabled={!permission.create}
-          onClick={(event) => {
-            if (!permission.create) event.preventDefault();
-          }}
-        >
-          {t("common.create")}
-        </Link>
-      </Header>
-      <Breadcrumbs
-        label={t("common.breadcrumbs")}
-        items={[
-          { label: t("nav.home"), href: "/cms" },
-          { label: t(`nav.${module}`) },
-        ]}
+      <Header
+        title={t(`nav.${module}`)}
+        actions={
+          <Link
+            className="Cms-button"
+            href={detailHref()}
+            aria-disabled={!permission.create}
+            onClick={(event) => {
+              if (!permission.create) event.preventDefault();
+            }}
+          >
+            {t("common.create")}
+          </Link>
+        }
       />
-      <div className="Cms-content">
+      <CmsPageContent>
+        <Breadcrumbs
+          label={t("common.breadcrumbs")}
+          items={[
+            { label: t("nav.home"), href: "/cms" },
+            { label: t(`nav.${module}`) },
+          ]}
+        />
         {Boolean(error) && <ErrorNotice error={error} />}
         <Table
           datasource={crud.list?.items ?? []}
@@ -132,7 +140,7 @@ export function CrudListPage<T extends { id: string; isSystem?: boolean }>({
           }
           onBulkDelete={permission.delete ? crud.onDelete : undefined}
         />
-      </div>
+      </CmsPageContent>
     </>
   );
 }

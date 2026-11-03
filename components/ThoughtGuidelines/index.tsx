@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import { GlassButton } from "@/components/ui/glass-button";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -19,7 +21,7 @@ export default function ThoughtGuidelines() {
           purpose: (chunks) => (
             // Dialog chỉ có một bản trên trang; giữ liên kết ARIA ổn định qua SSR và hydrate.
             <Dialog.Trigger asChild aria-controls="thought-guidelines-dialog">
-              <button type="button" className="thoughtGuidelines-trigger">{chunks}</button>
+              <Button type="button" className="thoughtGuidelines-trigger">{chunks}</Button>
             </Dialog.Trigger>
           ),
         })}
@@ -33,9 +35,9 @@ export default function ThoughtGuidelines() {
             <div className="thoughtGuidelines-header">
               <Dialog.Title className="thoughtGuidelines-title">{t("rules.title")}</Dialog.Title>
               <Dialog.Close asChild>
-                <button type="button" className="thoughtGuidelines-close" aria-label={t("rules.close")}>
-                  <X size={20} aria-hidden="true" />
-                </button>
+                <Button type="button" className="thoughtGuidelines-close" aria-label={t("rules.close")}>
+                  <X size={20} className="size-5" aria-hidden="true" />
+                </Button>
               </Dialog.Close>
             </div>
             <div className="thoughtGuidelines-body">

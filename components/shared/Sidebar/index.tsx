@@ -1,6 +1,10 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
+
+import { Select } from "@/components/ui/select";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -71,7 +75,8 @@ export function CmsShell({ children }: { children: ReactNode }) {
       <a className="Cms-skip" href="#cms-main">
         {t("nav.skip")}
       </a>
-      <button
+      <Button
+        variant="outline"
         className="Cms-menuToggle"
         type="button"
         aria-expanded={open}
@@ -79,7 +84,7 @@ export function CmsShell({ children }: { children: ReactNode }) {
         onClick={() => setOpen(!open)}
       >
         {t("nav.menu")}
-      </button>
+      </Button>
       <aside id="cms-sidebar" className="Cms-sidebar" data-open={open}>
         <Link href="/cms" className="Cms-brand">
           <Image
@@ -101,12 +106,14 @@ export function CmsShell({ children }: { children: ReactNode }) {
             <small>@{user?.username}</small>
           </p>
           <label htmlFor="cms-locale">{t("common.language")}</label>
-          <select
+          <Select
+            popupClassName="Cms-popup"
+            className="w-full"
             id="cms-locale"
             value={locale}
             disabled={busy}
-            onChange={(event) => {
-              const next = locales.find((item) => item === event.target.value);
+            onValueChange={(value) => {
+              const next = locales.find((item) => item === value);
               if (!next) return;
               setBusy(true);
               void setLocale(next)
@@ -114,10 +121,11 @@ export function CmsShell({ children }: { children: ReactNode }) {
                 .catch(setError)
                 .finally(() => setBusy(false));
             }}
-          >
-            <option value="vi">Tiếng Việt</option>
-            <option value="en">English</option>
-          </select>
+            options={[
+              { value: "vi", label: "Tiếng Việt" },
+              { value: "en", label: "English" },
+            ]}
+          />
           <Link
             href="/cms/change-password"
             aria-current={
@@ -126,9 +134,9 @@ export function CmsShell({ children }: { children: ReactNode }) {
           >
             {t("nav.changePassword")}
           </Link>
-          <button type="button" disabled={busy} onClick={() => void logout()}>
+          <Button variant="secondary" className="h-10" type="button" disabled={busy} onClick={() => void logout()}>
             {t("nav.logout")}
-          </button>
+          </Button>
         </div>
       </aside>
       <main id="cms-main" className="Cms-main" tabIndex={-1}>

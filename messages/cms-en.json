@@ -28,7 +28,12 @@
     "total": "{count} records",
     "breadcrumbs": "Breadcrumbs",
     "language": "Language",
-    "confirmDelete": "Delete {count} record(s)? This cannot be undone."
+    "confirmDelete": "Delete {count} record(s)? This cannot be undone.",
+    "selectPlaceholder": "Select…",
+    "noOptions": "No options found.",
+    "removeSelection": "Remove {label}",
+    "toggleOptions": "Toggle options",
+    "clearSelection": "Clear selections"
   },
   "nav": {
     "home": "Overview",

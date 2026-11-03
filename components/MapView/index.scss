@@ -137,6 +137,12 @@
     transform: translateX(-50%);
 
     button {
+      height: auto;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      font: inherit;
+      white-space: normal;
       margin-top: 0.25rem;
       text-decoration: underline;
       cursor: pointer;
@@ -144,6 +150,10 @@
   }
 
   &-attribution {
+    height: auto;
+    background: transparent;
+    font-weight: 400;
+    white-space: normal;
     position: absolute;
     right: 0.5rem;
     bottom: 0.5rem;
@@ -218,7 +228,9 @@
     place-items: center;
     width: 2rem;
     height: 2rem;
+    padding: 0;
     border-radius: 50%;
+    background: transparent;
     color: var(--primary-color-dark);
     cursor: pointer;
 

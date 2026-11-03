@@ -2,6 +2,10 @@
 
 import "./index.scss";
 
+import { Select } from "@/components/ui/select";
+
+import { Input } from "@/components/ui/input";
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -15,6 +19,7 @@ import { locales } from "@/i18n/config";
 import { loginSchema, type LoginValues } from "@/services/schemas";
 import { useCmsStore } from "@/store/cmsStore";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
+import { Button } from "../ui/button";
 
 export function LoginPage() {
   const t = useTranslations();
@@ -73,7 +78,7 @@ export function LoginPage() {
               label={t("account.username")}
               error={errors.username?.message}
             >
-              <input
+              <Input
                 id="cms-login-username"
                 autoComplete="username"
                 autoCapitalize="none"
@@ -90,7 +95,7 @@ export function LoginPage() {
               label={t("account.password")}
               error={errors.password?.message}
             >
-              <input
+              <Input
                 id="cms-login-password"
                 type="password"
                 autoComplete="current-password"
@@ -101,28 +106,34 @@ export function LoginPage() {
                 {...register("password")}
               />
             </Field>
-            <button className="Cms-loginSubmit" type="submit">
+            <Button
+              className="Cms-loginSubmit" type="submit"
+            >
               {t(isSubmitting ? "login.signingIn" : "login.submit")}
-            </button>
+            </Button>
           </fieldset>
         </form>
         <label className="visually-hidden" htmlFor="cms-login-locale">
           {t("common.language")}
         </label>
-        <select
+        <Select
+          popupClassName="Cms-popup"
+          className="w-full"
           id="cms-login-locale"
+          disabled={isSubmitting}
           value={locale}
-          onChange={(event) => {
-            const next = locales.find((item) => item === event.target.value);
+          onValueChange={(value) => {
+            const next = locales.find((item) => item === value);
             if (next)
               void setLocale(next)
                 .then(() => router.refresh())
                 .catch(setError);
           }}
-        >
-          <option value="vi">Tiếng Việt</option>
-          <option value="en">English</option>
-        </select>
+          options={[
+            { value: "vi", label: "Tiếng Việt" },
+            { value: "en", label: "English" },
+          ]}
+        />
       </section>
     </main>
   );

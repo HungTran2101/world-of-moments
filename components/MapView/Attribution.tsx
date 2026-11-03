@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import { Dialog } from "@/components/ui/dialog";
 import { GlassButton } from "@/components/ui/glass-button";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
@@ -13,10 +15,10 @@ const Attribution = () => {
     <Dialog.Root>
       <Dialog.Trigger asChild aria-controls="map-attribution-dialog">
         <RefractiveGlass glassThickness={20} bezelWidth={10}>
-          <button type="button" className="MapView-attribution" aria-label={t("attributionLabel")}>
+          <Button type="button" className="MapView-attribution" aria-label={t("attributionLabel")}>
             <span>© OpenStreetMap · CARTO · OpenMapTiles · EOX · Open-Meteo</span>
-            <Info size={12} aria-hidden="true" />
-          </button>
+            <Info size={12} className="size-3" aria-hidden="true" />
+          </Button>
         </RefractiveGlass>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -29,9 +31,9 @@ const Attribution = () => {
             <div className="MapView-attributionHeader">
               <Dialog.Title>{t("attributionLabel")}</Dialog.Title>
               <Dialog.Close asChild>
-                <button type="button" className="MapView-attributionClose" aria-label={t("attributionDetails.close")}>
-                  <X size={20} aria-hidden="true" />
-                </button>
+                <Button type="button" className="MapView-attributionClose" aria-label={t("attributionDetails.close")}>
+                  <X size={20} className="size-5" aria-hidden="true" />
+                </Button>
               </Dialog.Close>
             </div>
             <div className="MapView-attributionBody">

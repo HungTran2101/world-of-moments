@@ -1,6 +1,10 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import "./index.scss";
+
+import { Input } from "@/components/ui/input";
 
 import { useEffect, useId, useRef } from "react";
 import { useTranslations } from "next-intl";
@@ -53,7 +57,7 @@ export function SearchInput({
       <label htmlFor={id} className="visually-hidden">
         {t("common.search")}
       </label>
-      <input
+      <Input
         id={id}
         type="search"
         maxLength={200}
@@ -67,7 +71,7 @@ export function SearchInput({
           }, 350);
         }}
       />
-      <button type="submit">{t("common.search")}</button>
+      <Button variant="outline" className="h-10" type="submit">{t("common.search")}</Button>
     </form>
   );
 }

@@ -7,9 +7,33 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 80px;
-  padding: 18px 32px;
-  border-bottom: 1px solid #dde1e7;
+  padding: 12px var(--cms-content-padding-inline);
+  border: 1px solid var(--color-border);
+  border-radius: var(--cms-panel-radius);
   background: #fff;
+}
+
+.Cms-headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.Cms-headerBack {
+  border: 0;
+  color: var(--color-text-muted);
+  transition-property: color, background-color, box-shadow;
+
+  &:hover {
+    color: var(--color-text);
+    background: var(--color-surface-alt);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }
 
 .Cms-headerActions {
@@ -20,17 +44,17 @@
   gap: 12px;
 }
 
-@media (width <= 760px) {
-.Cms-header {
+@media (width <=760px) {
+  .Cms-header {
     min-height: 76px;
-    padding: 16px;
+    padding: 16px var(--cms-content-padding-inline);
   }
 
-.Cms-header h1 {
+  .Cms-header h1 {
     font-size: 18px;
   }
 
-.Cms-headerActions {
+  .Cms-headerActions {
     gap: 8px;
   }
 }
