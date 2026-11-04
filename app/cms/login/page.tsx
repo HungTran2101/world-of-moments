@@ -1,3 +1,4 @@
+import { ROUTE_PATHS } from "@/services/routes";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireCmsSession } from "@/handlers/auth";
@@ -12,6 +13,6 @@ export default async function Page() {
   } catch (error) {
     if (!(error instanceof CmsHttpError && error.status === 401)) throw error;
   }
-  if (authenticated) redirect("/cms");
+  if (authenticated) redirect(ROUTE_PATHS.OVERVIEW);
   return <LoginPage />;
 }

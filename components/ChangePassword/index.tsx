@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -50,7 +51,7 @@ export function ChangePasswordPage() {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.changePassword") },
           ]}
         />

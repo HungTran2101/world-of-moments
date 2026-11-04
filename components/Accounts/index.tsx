@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -42,7 +43,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
     const query = new URLSearchParams(params);
     if (id) query.set("id", id);
     else query.delete("id");
-    return `/cms/accounts/detail${query.size ? `?${query}` : ""}`;
+    return `${ROUTE_PATHS.ACCOUNT_DETAIL}${query.size ? `?${query}` : ""}`;
   };
   const deleteRow = async (id: string) => {
     if (crud.deleteLoading || crud.fetching) return;
@@ -159,7 +160,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.accounts") },
           ]}
         />

@@ -43,8 +43,14 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Server-only session/auth configuration and HTTP utilities remain in
   `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
   trusted origins for POST/PATCH and converts application errors to JSON.
-- `components/ProtectedPage/index.tsx` owns the server-side page/session wrapper.
-  Route files under `app/cms` compose it with the shared CMS providers and shell.
+- `components/ProtectedPage/index.tsx` owns the server-only `createProtectedPage`
+  factory and cached session lookup. Each protected native `page.tsx` imports its
+  content component and exports `createProtectedPage(Component, ROUTE_PATHS.KEY)`.
+  Content components retain their client boundaries; shared providers and the shell
+  remain in layouts. The factory validates the session and resolves permissions on
+  the server before including authorized content. `components/shared/Route` only
+  synchronizes the validated user into the store/sidebar and renders children or
+  the existing localized forbidden UI.
 - Permission constants, route mappings, query state and validation schemas live
   in `services/{permission,routes,query-state,schemas}.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
@@ -116,14 +122,19 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Routes and APIs import the same `permissions.ACCOUNT_SHOW`,
   `permissions.ACCOUNT_CREATE`, etc. constants. No delegation hierarchy is applied
   to ordinary accounts in this version.
-- `services/routes.ts` entries contain `key`, `component`, and optional
-  `roles: { show?, create?, update?, delete?, custom? }`, containing permission keys.
-  `show` replaces the previously discussed `index` key.
-- Every protected page is wrapped and receives a computed `permission` prop:
+- `services/routes.ts` exports `ROUTE_PATHS` for all CMS page URLs, including login,
+  and `ROUTES_PERMISSIONS` keyed by every protected path. It imports no page
+  components. Native page files own URL matching and component selection; CMS
+  navigation, breadcrumbs and redirects use the shared path constants.
+- `CmsRoutePath` is derived from the path constants; `ProtectedCmsRoutePath`
+  excludes login. The factory accepts only protected paths, and the permission map
+  must cover all of them. Account list/detail share one rule object, as do roles.
+  Overview and password change explicitly map to `undefined`.
+- Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
-- A configured `roles.show` may reference any catalog permission. Lack of that
+- A configured `show` rule may reference any catalog permission. Lack of that
   permission renders the 403 UI. Missing `show` allows authenticated viewing;
-  missing action mappings are false; omitted `roles` enables standard page actions.
+  missing action mappings are false; `undefined` rules enable standard page actions.
 - Wildcard scopes enable all standard actions and all route-declared extras.
   Otherwise extras are the intersection of scopes and route-declared custom keys.
 - UI permissions disable unavailable controls; APIs independently authorize each
@@ -401,6 +412,15 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- Native CMS page factory: scoped ESLint fixes, repository lint, TypeScript and
+  the Webpack production build pass. The default Turbopack build is blocked here
+  by font-download and worker-port restrictions. Temporary checks cover 30
+  route/scope combinations, 401 redirects, unexpected-error propagation and
+  compile-time rejection of login/unknown protected paths. Live development-browser
+  checks cover all six screens, read-only/wildcard/empty scopes, forbidden content
+  exclusion from server responses, store/sidebar updates during client navigation,
+  detail/back search and page-size preservation, login/logout redirects and unknown
+  route 404s. Temporary account, role, credentials and sessions are removed.
 - Implementation and development-database migrations/seed are complete. Production
   database/deployment have not been changed.
 - Automated test sources, package scripts and test-only dependencies were removed

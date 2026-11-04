@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import QueryProvider from "@/components/shared/QueryProvider";
 import type { CmsUser } from "@/services/shared/types";
 import { useCmsStore } from "@/store/cmsStore";
@@ -22,9 +23,9 @@ function SessionEvents() {
       if (event.data === "logout") {
         useCmsStore.getState().clear();
         clear();
-        if (window.location.pathname !== "/cms/login") {
+        if (window.location.pathname !== ROUTE_PATHS.LOGIN) {
           // Tải lại toàn trang để bỏ trạng thái phiên đã đăng xuất ở tab khác.
-          window.location.assign(new URL("/cms/login", window.location.origin).href);
+          window.location.assign(new URL(ROUTE_PATHS.LOGIN, window.location.origin).href);
         }
       }
     };

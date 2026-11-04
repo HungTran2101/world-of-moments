@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { Select } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,7 @@ export function LoginPage() {
             try {
               const { user } = await loginCms(values);
               useCmsStore.getState().setUser(user);
-              router.replace("/cms");
+              router.replace(ROUTE_PATHS.OVERVIEW);
               router.refresh();
             } catch (error) {
               setError(error);

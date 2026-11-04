@@ -1,3 +1,4 @@
+import { ROUTE_PATHS } from "@/services/routes";
 import { permissions, type PermissionKey } from "@/services/permission";
 
 export interface SidebarItem {
@@ -10,7 +11,7 @@ export interface SidebarItem {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  { key: "home", name: "nav.home", href: "/cms" },
+  { key: "home", name: "nav.home", href: ROUTE_PATHS.OVERVIEW },
   {
     key: "management",
     name: "nav.management",
@@ -18,16 +19,16 @@ export const sidebarItems: SidebarItem[] = [
       {
         key: "accounts",
         name: "nav.accounts",
-        href: "/cms/accounts",
+        href: ROUTE_PATHS.ACCOUNTS,
         showRole: permissions.ACCOUNT_SHOW,
-        childRoutes: ["/cms/accounts/detail"],
+        childRoutes: [ROUTE_PATHS.ACCOUNT_DETAIL],
       },
       {
         key: "roles",
         name: "nav.roles",
-        href: "/cms/roles",
+        href: ROUTE_PATHS.ROLES,
         showRole: permissions.ROLE_SHOW,
-        childRoutes: ["/cms/roles/detail"],
+        childRoutes: [ROUTE_PATHS.ROLE_DETAIL],
       },
     ],
   },

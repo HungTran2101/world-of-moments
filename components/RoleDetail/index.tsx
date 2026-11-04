@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
@@ -66,7 +67,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
   }, [query.data, reset]);
   const listParams = new URLSearchParams(params);
   listParams.delete("id");
-  const backHref = `/cms/roles${listParams.size ? `?${listParams}` : ""}`;
+  const backHref = `${ROUTE_PATHS.ROLES}${listParams.size ? `?${listParams}` : ""}`;
   const title = t(id ? "role.editTitle" : "role.createTitle");
 
   return (
@@ -92,7 +93,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.roles"), href: backHref },
             { label: title },
           ]}

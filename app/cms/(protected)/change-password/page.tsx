@@ -1,5 +1,5 @@
-import { ProtectedPage } from "@/components/ProtectedPage";
+import { ChangePasswordPage } from "@/components/ChangePassword";
+import { createProtectedPage } from "@/components/ProtectedPage";
+import { ROUTE_PATHS } from "@/services/routes";
 
-export default function Page() {
-  return <ProtectedPage routeKey="/cms/change-password" />;
-}
+export default createProtectedPage(ChangePasswordPage, ROUTE_PATHS.CHANGE_PASSWORD);

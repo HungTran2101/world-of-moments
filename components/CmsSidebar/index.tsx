@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
 
 import { Select } from "@/components/ui/select";
@@ -86,7 +87,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
         {t("nav.menu")}
       </Button>
       <aside id="cms-sidebar" className="cms-sidebar" data-open={open}>
-        <Link href="/cms" className="cms-brand">
+        <Link href={ROUTE_PATHS.OVERVIEW} className="cms-brand">
           <Image
             src="/favicon/android-chrome-192x192.png"
             width={34}
@@ -127,9 +128,9 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
             ]}
           />
           <Link
-            href="/cms/change-password"
+            href={ROUTE_PATHS.CHANGE_PASSWORD}
             aria-current={
-              pathname === "/cms/change-password" ? "page" : undefined
+              pathname === ROUTE_PATHS.CHANGE_PASSWORD ? "page" : undefined
             }
           >
             {t("nav.changePassword")}

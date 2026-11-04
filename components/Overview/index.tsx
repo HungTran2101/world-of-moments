@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCmsStore } from "@/store/cmsStore";
@@ -24,12 +25,12 @@ export function OverviewPage() {
           <p>{t("home.description")}</p>
           <div className="cms-homeLinks">
             {checkPermission(user?.scopes ?? [], permissions.ACCOUNT_SHOW) && (
-              <Link href="/cms/accounts">{t("nav.accounts")} →</Link>
+              <Link href={ROUTE_PATHS.ACCOUNTS}>{t("nav.accounts")} →</Link>
             )}
             {checkPermission(user?.scopes ?? [], permissions.ROLE_SHOW) && (
-              <Link href="/cms/roles">{t("nav.roles")} →</Link>
+              <Link href={ROUTE_PATHS.ROLES}>{t("nav.roles")} →</Link>
             )}
-            <Link href="/cms/change-password">{t("nav.changePassword")} →</Link>
+            <Link href={ROUTE_PATHS.CHANGE_PASSWORD}>{t("nav.changePassword")} →</Link>
           </div>
         </section>
       </CmsPageContent>

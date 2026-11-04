@@ -1,5 +1,5 @@
-import { ProtectedPage } from "@/components/ProtectedPage";
+import { RolesPage } from "@/components/Roles";
+import { createProtectedPage } from "@/components/ProtectedPage";
+import { ROUTE_PATHS } from "@/services/routes";
 
-export default function Page() {
-  return <ProtectedPage routeKey="/cms/roles" />;
-}
+export default createProtectedPage(RolesPage, ROUTE_PATHS.ROLES);

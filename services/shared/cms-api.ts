@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { apiRequest } from "@/services/shared/api";
 import { ApiError } from "@/services/shared/errors";
 import { useCmsStore } from "@/store/cmsStore";
@@ -7,9 +8,9 @@ import { useCmsStore } from "@/store/cmsStore";
 export function expireCmsSession() {
   useCmsStore.getState().clear();
   window.dispatchEvent(new Event("cms-session-ended"));
-  if (window.location.pathname !== "/cms/login") {
+  if (window.location.pathname !== ROUTE_PATHS.LOGIN) {
     // Tải lại toàn trang để bỏ bộ nhớ đệm của phiên đã hết hạn.
-    window.location.assign(new URL("/cms/login", window.location.origin).href);
+    window.location.assign(new URL(ROUTE_PATHS.LOGIN, window.location.origin).href);
   }
 }
 

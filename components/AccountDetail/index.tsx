@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/routes";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
@@ -160,7 +161,7 @@ function AccountEditor({
   }, [query.data, reset]);
   const listParams = new URLSearchParams(params);
   listParams.delete("id");
-  const backHref = `/cms/accounts${listParams.size ? `?${listParams}` : ""}`;
+  const backHref = `${ROUTE_PATHS.ACCOUNTS}${listParams.size ? `?${listParams}` : ""}`;
   const title = t(id ? "account.editTitle" : "account.createTitle");
 
   return (
@@ -204,7 +205,7 @@ function AccountEditor({
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: "/cms" },
+            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.accounts"), href: backHref },
             { label: title },
           ]}
