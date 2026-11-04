@@ -289,11 +289,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 CMS loading states use the shared `LoadingDots` component for session hydration,
 list/detail data, role options, sign-in, saving (including password reset) and bulk
-actions. Visible progress text is replaced with dots; localized accessible labels,
+actions. Standalone progress text is replaced with dots; localized accessible labels,
 busy states and disabled controls remain available. CMS buttons pass
 `loading={isSubmitting}` or `loading={executing}` to the shared `Button`; it owns
 the dots, inherited text color, busy state and loading-time disabling. The original
-button content remains available to screen readers, and callers may supply a
+button content stays visible with dots appended on its right, and callers may supply a
 localized progress `aria-label`. The optional boolean `loading` prop defaults to
 false and preserves `asChild` composition. Row-delete buttons track the initiating
 record until deletion and list invalidation finish; other row controls retain their

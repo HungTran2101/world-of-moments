@@ -74,8 +74,8 @@ function Button({
       : null
     const loadingContent = (
       <>
-        <span className="sr-only">{child ? child.props.children : children}</span>
-        <LoadingDots color="currentColor" />
+        {child ? child.props.children : children}
+        <LoadingDots color="currentColor" className="shrink-0" />
       </>
     )
 
