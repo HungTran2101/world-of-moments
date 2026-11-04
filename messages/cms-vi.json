@@ -1,5 +1,7 @@
 {
   "common": {
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
     "search": "Tìm kiếm",
     "searchPlaceholder": "Tìm kiếm…",
     "create": "Tạo mới",
@@ -37,6 +39,7 @@
     "clearSelection": "Bỏ chọn tất cả"
   },
   "nav": {
+    "profile": "Hồ sơ",
     "system": "Hệ thống",
     "general": "Cài đặt chung",
     "home": "Tổng quan",

@@ -245,21 +245,27 @@ function ComboboxChip({
     <ComboboxPrimitive.Chip
       data-slot="combobox-chip"
       className={cn(
-        "flex h-[calc(--spacing(5.25))] w-fit items-center justify-center gap-1 rounded-sm bg-muted px-1.5 text-xs font-medium whitespace-nowrap text-foreground has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50 has-data-[slot=combobox-chip-remove]:pr-0",
+        "flex min-h-6 w-fit max-w-full items-center justify-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-medium whitespace-nowrap text-foreground has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50",
+        showRemove && "pr-1",
         className
       )}
       {...props}
     >
       {children}
       {showRemove && (
-        <ComboboxPrimitive.ChipRemove
-          aria-label={removeLabel}
-          render={<Button variant="ghost" size="icon-xs" />}
-          className="-ml-1 opacity-50 hover:opacity-100"
-          data-slot="combobox-chip-remove"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          asChild
+          className="size-5 rounded-sm border-0 bg-transparent p-0 text-muted-foreground hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <XIcon className="pointer-events-none" />
-        </ComboboxPrimitive.ChipRemove>
+          <ComboboxPrimitive.ChipRemove
+            aria-label={removeLabel}
+            data-slot="combobox-chip-remove"
+          >
+            <XIcon className="pointer-events-none size-3" />
+          </ComboboxPrimitive.ChipRemove>
+        </Button>
       )}
     </ComboboxPrimitive.Chip>
   )

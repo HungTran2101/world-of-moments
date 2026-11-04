@@ -18,7 +18,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/General`, `components/Login`,
-  `components/Overview`, `components/RoleDetail` and `components/Roles`. Styles are colocated in
+  `components/Overview`, `components/Profile`, `components/RoleDetail` and `components/Roles`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
   entry, `styles/import.scss`, so public routes do not download CMS component CSS.
@@ -139,7 +139,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - `CmsRoutePath` is derived from the path constants; `ProtectedCmsRoutePath`
   excludes login. The factory accepts only protected paths, and the permission map
   must cover all of them. Account list/detail share one rule object, as do roles.
-  Overview, password change and General explicitly map to `undefined`
+  Overview, Profile, password change and General explicitly map to `undefined`
   (session-only access).
 - Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
@@ -154,7 +154,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
   `key`, translated `name`, optional `href`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
-  The System category contains General, available to every signed-in CMS user.
+  The System category contains General and Profile, available to every signed-in
+  CMS user. Profile remains highlighted on its nested password-change page.
 
 | Route | Purpose |
 | --- | --- |
@@ -164,7 +165,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 | `/cms/accounts/detail` | Create without `id`; view/update with `?id=...` |
 | `/cms/roles` | Role list |
 | `/cms/roles/detail` | Create without `id`; view/update with `?id=...` |
-| `/cms/change-password` | Self-service password change, including seeded admin |
+| `/cms/profile` | Read-only signed-in account username and display name |
+| `/cms/profile/change-password` | Self-service password change, including seeded admin |
 | `/cms/general` | General preferences; language selection for now |
 
 ## Layout, forms, and localization
@@ -174,8 +176,14 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   the same names.
 
 - Persistent sidebar with logo and nested navigation. Its compact footer shows
-  only the display name, then a secondary password-change Link and a destructive
-  icon-only sign-out button on the same row, with a localized label and tooltip.
+  only the display name and a destructive icon-only sign-out button on the same
+  row, with a localized label and tooltip. The name fills the remaining row width
+  in a muted, rounded background aligned with sign-out; long names truncate with
+  the full name available on hover. System → Profile displays the signed-in
+  account username and display name from the server-validated CMS identity. Its
+  secondary Change password button links to `/cms/profile/change-password`. The
+  password page has Profile → Change password breadcrumbs and a back button to
+  Profile; the former `/cms/change-password` page is removed.
   Language selection lives on System → General and uses the existing locale
   service/cookie with immediate saving and refresh; errors are displayed inline.
   Mobile navigation is collapsible. Sidebar and sticky page Header use
@@ -201,6 +209,15 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   disabled state for read-only permissions, protected roles and submissions.
   Portaled options carry the CMS light theme, remain above the sticky header and
   escape table clipping. Public-map dark styles do not apply inside CMS surfaces.
+- Selected-option chips use an inline, borderless remove button with balanced
+  spacing and a visible keyboard-focus ring. Chip removal composes shared Button
+  through `asChild`, preserving the primitive's styling slot and behavior.
+- `components/ui/password-input.tsx` composes Input and Button with a local
+  show/hide toggle. All CMS password fields (login, account creation/reset and
+  self-service change) use it with localized EN/VI action labels. Inputs start
+  masked; toggling preserves values, form registration, errors and autocomplete.
+  The visibility control is keyboard accessible, never submits the form and
+  follows explicit and inherited fieldset disabled state.
 - Shared primitives live in `components/ui`; the Combobox also uses shadcn
   InputGroup/Textarea and the existing Button. Base UI is required for its behavior.
   CMS Create links, Save buttons (including password reset/change), Search and
@@ -435,6 +452,24 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- Selected chips/password visibility: scoped ESLint fixes, TypeScript,
+  repository lint, translation-key/newline and diff checks pass. Desktop/390px
+  browser checks verify borderless chip removal without overlap, keyboard
+  selection/removal/clear-all and focus return. Password visibility preserves
+  values, input focus, registration/autocomplete, independent field state and
+  localized validation/error association. Keyboard Space toggles visibility;
+  fieldset disabling covers the input and its toggle. EN/VI labels and mobile
+  overflow checks pass. No account or password changes were submitted.
+- System → Profile: read-only username/display-name details reuse the validated
+  CMS identity. Password change now lives at `/cms/profile/change-password` with
+  Profile breadcrumbs/back navigation; the sidebar footer retains only identity
+  and sign-out. Scoped ESLint/Stylelint fixes, route type generation, TypeScript,
+  repository lint, translation-key/newline checks and diff checks pass. Stale
+  generated types for the deleted password route were removed. Browser checks
+  cover desktop/390px layout without horizontal overflow, EN/VI labels, button
+  navigation, active Profile highlighting, back navigation and password-form
+  validation. Both routes redirect anonymous visitors to login; the old route is
+  404. Checked pages have no console warnings/errors. No passwords were changed.
 - `displayUsername` cleanup: the username plugin disables the field, account
   creation/update and seeding no longer write it, and the Prisma column is
   removed. The migration is applied to the development database; a direct

@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
 
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -17,6 +19,7 @@ import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 
 export function ChangePasswordPage() {
   const t = useTranslations();
+  const router = useRouter();
   const [error, setError] = useState<unknown>(null);
   const [success, setSuccess] = useState(false);
   const {
@@ -33,6 +36,7 @@ export function ChangePasswordPage() {
     <>
       <Header
         title={t("nav.changePassword")}
+        onBack={() => router.push(ROUTE_PATHS.PROFILE)}
         actions={
           <Button
             variant="primary"
@@ -50,6 +54,7 @@ export function ChangePasswordPage() {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
+            { label: t("nav.profile"), href: ROUTE_PATHS.PROFILE },
             { label: t("nav.changePassword") },
           ]}
         />
@@ -81,9 +86,9 @@ export function ChangePasswordPage() {
               label={t("account.currentPassword")}
               error={errors.currentPassword?.message}
             >
-              <Input
+              <PasswordInput
                 id="cms-current-password"
-                type="password"
+                visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.currentPassword)}
                 aria-describedby={
@@ -99,9 +104,9 @@ export function ChangePasswordPage() {
               label={t("account.newPassword")}
               error={errors.newPassword?.message}
             >
-              <Input
+              <PasswordInput
                 id="cms-new-password"
-                type="password"
+                visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.newPassword)}
                 aria-describedby={

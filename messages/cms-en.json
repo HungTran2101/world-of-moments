@@ -1,5 +1,7 @@
 {
   "common": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "search": "Search",
     "searchPlaceholder": "Search…",
     "create": "Create",
@@ -37,6 +39,7 @@
     "clearSelection": "Clear selections"
   },
   "nav": {
+    "profile": "Profile",
     "system": "System",
     "general": "General",
     "home": "Overview",

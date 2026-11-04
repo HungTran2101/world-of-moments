@@ -5,6 +5,7 @@ import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 
@@ -82,9 +83,9 @@ function ResetPassword({
               label={t("account.newPassword")}
               error={errors.newPassword?.message}
             >
-              <Input
+              <PasswordInput
                 id="cms-reset-password"
-                type="password"
+                visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.newPassword)}
                 aria-describedby={
@@ -280,9 +281,9 @@ function AccountEditor({
                     label={t("account.password")}
                     error={errors.password?.message}
                   >
-                    <Input
+                    <PasswordInput
                       id="cms-password"
-                      type="password"
+                      visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                       autoComplete="new-password"
                       aria-invalid={Boolean(errors.password)}
                       aria-describedby={

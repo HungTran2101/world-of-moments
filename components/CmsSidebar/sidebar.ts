@@ -37,6 +37,12 @@ export const sidebarItems: SidebarItem[] = [
     name: "nav.system",
     items: [
       { key: "general", name: "nav.general", href: ROUTE_PATHS.GENERAL },
+      {
+        key: "profile",
+        name: "nav.profile",
+        href: ROUTE_PATHS.PROFILE,
+        childRoutes: [ROUTE_PATHS.CHANGE_PASSWORD],
+      },
     ],
   },
 ];

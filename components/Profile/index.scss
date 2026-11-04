@@ -1,0 +1,33 @@
+.cms-profile {
+  padding: 26px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--cms-panel-radius);
+  background: var(--color-surface);
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin: 0;
+  }
+
+  dt {
+    margin-bottom: 7px;
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (width <= 760px) {
+  .cms-profile {
+    padding: 18px;
+
+    dl {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

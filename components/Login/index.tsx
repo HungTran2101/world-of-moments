@@ -4,6 +4,7 @@ import { ROUTE_PATHS } from "@/services/routes";
 import { Select } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 import { Brand } from "@/components/shared/Brand";
 import { useRouter } from "next/navigation";
@@ -90,9 +91,9 @@ export function LoginPage() {
               label={t("account.password")}
               error={errors.password?.message}
             >
-              <Input
+              <PasswordInput
                 id="cms-login-password"
-                type="password"
+                visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={

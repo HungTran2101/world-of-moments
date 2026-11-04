@@ -90,36 +90,23 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
           <ul>{sidebarItems.map(renderItem)}</ul>
         </nav>
         <div className="cms-sidebarFooter">
-          <p className="cms-identity">{user?.name}</p>
-          <div className="cms-sidebarActions">
-            <Button variant="secondary" className="flex-1" asChild>
-              <Link
-                href={ROUTE_PATHS.CHANGE_PASSWORD}
-                aria-current={
-                  pathname === ROUTE_PATHS.CHANGE_PASSWORD ? "page" : undefined
-                }
-                onClick={() => setOpen(false)}
+          <p className="cms-identity" title={user?.name}>{user?.name}</p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="destructive"
+                size="icon"
+                type="button"
+                aria-label={t("nav.logout")}
+                disabled={busy}
+                loading={busy}
+                onClick={() => void logout()}
               >
-                {t("nav.changePassword")}
-              </Link>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  type="button"
-                  aria-label={t("nav.logout")}
-                  disabled={busy}
-                  loading={busy}
-                  onClick={() => void logout()}
-                >
-                  <LogOut aria-hidden="true" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t("nav.logout")}</TooltipContent>
-            </Tooltip>
-          </div>
+                <LogOut aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("nav.logout")}</TooltipContent>
+          </Tooltip>
         </div>
       </aside>
       <main id="cms-main" className="cms-main" tabIndex={-1}>
