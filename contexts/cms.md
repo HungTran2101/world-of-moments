@@ -216,7 +216,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   show/hide toggle. All CMS password fields (login, account creation/reset and
   self-service change) use it with localized EN/VI action labels. Inputs start
   masked; toggling preserves values, form registration, errors and autocomplete.
-  The visibility control is keyboard accessible, never submits the form and
+  The visibility control uses `tabIndex={-1}` so Tab moves between form fields
+  without stopping on the icon. It remains clickable, never submits the form and
   follows explicit and inherited fieldset disabled state.
 - Shared primitives live in `components/ui`; the Combobox also uses shadcn
   InputGroup/Textarea and the existing Button. Base UI is required for its behavior.
@@ -457,7 +458,7 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   browser checks verify borderless chip removal without overlap, keyboard
   selection/removal/clear-all and focus return. Password visibility preserves
   values, input focus, registration/autocomplete, independent field state and
-  localized validation/error association. Keyboard Space toggles visibility;
+  localized validation/error association. The toggle is excluded from Tab order;
   fieldset disabling covers the input and its toggle. EN/VI labels and mobile
   overflow checks pass. No account or password changes were submitted.
 - System → Profile: read-only username/display-name details reuse the validated

@@ -29,6 +29,7 @@ function PasswordInput({
       />
       <Button
         type="button"
+        tabIndex={-1}
         variant="ghost"
         size="icon-sm"
         className="absolute top-1/2 right-1 -translate-y-1/2 border-0 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -37,7 +38,7 @@ function PasswordInput({
         aria-controls={props.id}
         title={label}
         onMouseDown={(event) => {
-          // Giữ con trỏ trong ô khi bấm biểu tượng; bàn phím vẫn có thể focus nút.
+          // Giữ con trỏ trong ô khi bấm biểu tượng.
           event.preventDefault()
         }}
         onClick={() => setVisible((current) => !current)}
