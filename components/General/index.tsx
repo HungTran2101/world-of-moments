@@ -30,6 +30,7 @@ export function GeneralPage() {
           {Boolean(error) && <ErrorNotice error={error} />}
           <Field id="cms-locale" label={t("common.language")}>
             <Select
+              allowClear={false}
               popupClassName="cms-popup"
               className="w-full"
               id="cms-locale"

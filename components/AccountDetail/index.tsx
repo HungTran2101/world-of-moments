@@ -1,5 +1,6 @@
 "use client";
 
+import { RecordAudit } from "@/components/shared/RecordAudit";
 import { ROUTE_PATHS } from "@/services/routes";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ function ResetPassword({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations();
+  const client = useQueryClient();
   const [error, setError] = useState<unknown>(null);
   const {
     register,
@@ -70,6 +72,7 @@ function ResetPassword({
               setError(null);
               try {
                 await resetCmsAccountPassword(id, values);
+                await client.invalidateQueries({ queryKey: ["cms"] });
                 onOpenChange(false);
               } catch (error) {
                 setError(error);
@@ -305,7 +308,7 @@ function AccountEditor({
                       <div className="relative">
                         <Select
                           popupClassName="cms-popup"
-                          multiple={{ allowClear: true }}
+                          multiple
                           labels={{
                             empty: t("common.noOptions"),
                             toggle: t("common.toggleOptions"),
@@ -364,6 +367,7 @@ function AccountEditor({
                   {t("account.active")}
                 </label>
               </fieldset>
+              {query.data && <RecordAudit record={query.data} />}
             </form>
           )
         )}

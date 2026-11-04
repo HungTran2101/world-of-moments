@@ -24,6 +24,7 @@ export function OverviewPage() {
           <h2>{t("home.welcome", { name: user?.name ?? "" })}</h2>
           <p>{t("home.description")}</p>
           <div className="cms-homeLinks">
+            {checkPermission(user?.scopes ?? [], permissions.SUBMISSION_SHOW) && <Link href={ROUTE_PATHS.SUBMISSIONS}>{t("nav.submissions")} →</Link>}
             {checkPermission(user?.scopes ?? [], permissions.ACCOUNT_SHOW) && (
               <Link href={ROUTE_PATHS.ACCOUNTS}>{t("nav.accounts")} →</Link>
             )}

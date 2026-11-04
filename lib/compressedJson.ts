@@ -5,12 +5,14 @@ const compressBrotli = promisify(brotliCompress);
 const compressGzip = promisify(gzip);
 const MIN_COMPRESSION_BYTES = 1024;
 
-export async function compressedJson(data: unknown, request: Request): Promise<Response> {
+export async function compressedJson(data: unknown, request: Request, additionalHeaders?: HeadersInit): Promise<Response> {
   const body = Buffer.from(JSON.stringify(data));
   const headers = new Headers({
     "Content-Type": "application/json; charset=utf-8",
     Vary: "Accept-Encoding",
   });
+
+  new Headers(additionalHeaders).forEach((value, key) => headers.set(key, value));
 
   // Tôn trọng q=0 và ưu tiên của client; wildcard chỉ áp dụng khi không khai báo riêng encoding.
   const accepted = new Map<string, number>();

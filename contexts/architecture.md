@@ -110,7 +110,7 @@ CMS path constants and the exhaustive protected-route permission map, with no
 component registry. CMS page components and reusable UI
 follow the existing `components/` and `components/shared/` structure, with
 colocated `index.scss` styles. Permission/route/schema/query definitions live in
-`services/`, CMS domain requests in `services/cms/{accounts,roles,auth}/`,
+`services/`, CMS domain requests in `services/cms/{accounts,roles,submissions,auth}/`,
 transport/common types in `services/shared/`, and session state in
 `store/cmsStore.ts`. See `contexts/cms.md` for the complete ownership map.
 
@@ -153,9 +153,9 @@ Requires a valid x-author-uuid header and accepts search and page parameters (pa
 
 GET /api/submissions/:id
 
-Loads a single thought's public description and weather when its modal opens.
+Loads a single visible thought's description and weather when its modal opens.
 
-Returns id, description, lat, lng, weather_summary, and weather_code; returns 404 when missing. Both public GET handlers use compressedJson to negotiate Brotli/gzip, generally starting at 1 KB, and vary responses by Accept-Encoding.
+Returns id, description, lat, lng, weather_summary, and weather_code; returns 404 when missing or hidden. Both public GET handlers use compressedJson to negotiate Brotli/gzip, generally starting at 1 KB, and vary responses by Accept-Encoding.
 
 PATCH /api/submissions/:id
 
@@ -275,8 +275,32 @@ Author UUID comparison for public update/delete. Public identity remains a brows
 
 Public submission GET routes explicitly select safe fields. Create/update responses return the saved row to the caller.
 
-Writing guidance is implemented in the sidebar. Server-side content moderation is not implemented.
+Writing guidance is implemented in the sidebar. Manual CMS moderation is implemented; automatic content classification is not implemented.
 
 Planned protection:
 
 Optional profanity filter
+
+
+Submission moderation and audit additions
+
+Submission status is published/unpublished; validity is valid/invalid/need-inspect.
+Existing records migrate to published + valid; new records default to published +
+need-inspect. Public author edits cannot change moderation state. CMS has separate
+status and validity permissions, creation and deletion; existing content is read-only
+in CMS. See contexts/cms.md for API, warning and permission contracts.
+
+Pins and direct thought GETs require published status. A valid submission is visible
+to everyone; a non-valid published submission is visible only to its existing local
+UUID owner via x-author-uuid. Invalid/missing UUID headers confer no extra access.
+These reads are private/no-store and vary on identity and compression headers.
+UUID changes refresh visible positions without recreating the map. History retains
+all owned states; unpublished entries cannot navigate to map details.
+
+Submission createdBy/createdFrom and all three modules' updatedBy are derived by the
+server. CMS DTOs expose updatedAt/updatedBy; historical updater names are null.
+Public DTOs exclude author UUID, CMS actor names and exact timestamps; private
+history retains its existing owner-scoped timestamps. New record updater names
+start with the creator. Updates and password changes stamp the actor transactionally;
+login/session activity does not. Submission storage keeps updated_at; CMS DTOs use
+updatedAt. Creation/update public responses now use explicit safe field selections.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthorUUID } from "@/hooks/useAuthorUUID";
 import { Dialog } from "@/components/ui/dialog";
 import { GlassButton } from "@/components/ui/glass-button";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
@@ -39,6 +40,7 @@ type DetailState =
   | { id: string; status: "error"; notFound: boolean };
 
 export default function ThoughtModal({ open, submissionId, onOpenChange, onReturnFocus }: ThoughtModalProps) {
+  const authorUuid = useAuthorUUID();
   const t = useTranslations("popup");
   const weather = useTranslations("weather");
   const [detail, setDetail] = useState<DetailState | null>(null);
@@ -58,7 +60,7 @@ export default function ThoughtModal({ open, submissionId, onOpenChange, onRetur
         setDetail({ id: submissionId, status: "error", notFound: error instanceof ApiError && error.status === 404 });
       });
     return () => controller.abort();
-  }, [open, submissionId, retry]);
+  }, [open, submissionId, retry, authorUuid]);
 
   const currentDetail = detail?.id === submissionId ? detail : null;
   const submission = currentDetail?.status === "ready" ? currentDetail.submission : null;

@@ -28,7 +28,7 @@ export async function PATCH(
 ) {
   return withCmsRequest(request, async () => {
     const { id } = await context.params;
-    await requireCmsSession(request.headers, permissions.ROLE_UPDATE);
+    const actor = await requireCmsSession(request.headers, permissions.ROLE_UPDATE);
     const data = await parseBody(request, roleSchema);
     return cmsJson(
       await prisma.$transaction(
@@ -39,7 +39,7 @@ export async function PATCH(
             throw new CmsHttpError(409, "errors.protectedRole");
           return tx.cmsRole.update({
             where: { id },
-            data: { ...data, permissions: [...new Set(data.permissions)] },
+            data: { ...data, updatedBy: actor.name, permissions: [...new Set(data.permissions)] },
           });
         },
         { isolationLevel: "Serializable" },

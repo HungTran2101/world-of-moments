@@ -17,6 +17,19 @@ export const sidebarItems: SidebarItem[] = [
     name: "nav.management",
     items: [
       {
+        key: "submissions",
+        name: "nav.submissions",
+        href: ROUTE_PATHS.SUBMISSIONS,
+        showRole: permissions.SUBMISSION_SHOW,
+        childRoutes: [ROUTE_PATHS.SUBMISSION_DETAIL],
+      },
+    ],
+  },
+  {
+    key: "system",
+    name: "nav.system",
+    items: [
+      {
         key: "accounts",
         name: "nav.accounts",
         href: ROUTE_PATHS.ACCOUNTS,
@@ -30,12 +43,6 @@ export const sidebarItems: SidebarItem[] = [
         showRole: permissions.ROLE_SHOW,
         childRoutes: [ROUTE_PATHS.ROLE_DETAIL],
       },
-    ],
-  },
-  {
-    key: "system",
-    name: "nav.system",
-    items: [
       { key: "general", name: "nav.general", href: ROUTE_PATHS.GENERAL },
       {
         key: "profile",

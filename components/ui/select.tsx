@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Select as SelectPrimitive } from "radix-ui"
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
+import { ChevronDownIcon, CheckIcon, ChevronUpIcon, XIcon } from "lucide-react"
 import {
   Combobox,
   ComboboxChip,
@@ -34,6 +35,8 @@ export interface SelectLabels {
 type MultipleSelectMode = true | { allowClear: boolean };
 
 interface SharedSelectProps {
+  allowClear?: boolean;
+  labels?: SelectLabels;
   options: SelectOption[];
   popupClassName?: string;
   className?: string;
@@ -58,25 +61,60 @@ type MultipleSelectProps = SharedSelectProps &
     multiple: MultipleSelectMode;
     value: string[];
     onValueChange: (value: string[]) => void;
-    labels?: SelectLabels;
   };
 
 export type SelectProps = SingleSelectProps | MultipleSelectProps;
 
 function Select(props: SelectProps) {
-  if (props.multiple) return <MultipleSelect {...props} />;
+  return props.multiple
+    ? <MultipleSelect {...props} />
+    : <SingleSelect {...props} />;
+}
 
-  const {
-    multiple,
-    value,
-    onValueChange,
-    options,
-    placeholder,
-    disabled,
-    name,
-    popupClassName,
-    ...triggerProps
-  } = props;
+function SingleSelect({
+  multiple,
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  disabled,
+  name,
+  popupClassName,
+  className,
+  labels,
+  allowClear = true,
+  ref: forwardedRef,
+  ...triggerProps
+}: SingleSelectProps) {
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const setTriggerRef = React.useCallback((node: HTMLButtonElement | null) => {
+    triggerRef.current = node;
+    if (typeof forwardedRef === "function") {
+      const cleanup = forwardedRef(node);
+      if (cleanup) {
+        return () => {
+          triggerRef.current = null;
+          cleanup();
+        };
+      }
+    } else if (forwardedRef) forwardedRef.current = node;
+  }, [forwardedRef]);
+  const showClear = allowClear && Boolean(value) && !disabled;
+  const trigger = (
+    <SelectTrigger
+      {...triggerProps}
+      ref={setTriggerRef}
+      className={cn(allowClear && "w-full", className)}
+      hideIcon={showClear}
+      data-multiple={multiple ?? false}
+    >
+      {allowClear ? (
+        <span className="min-w-0 flex-1 truncate">
+          <SelectValue placeholder={placeholder} />
+        </span>
+      ) : <SelectValue placeholder={placeholder} />}
+    </SelectTrigger>
+  );
 
   return (
     <SelectPrimitive.Root
@@ -85,16 +123,32 @@ function Select(props: SelectProps) {
       disabled={disabled}
       name={name}
     >
-      <SelectTrigger {...triggerProps} data-multiple={multiple ?? false}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
+      {allowClear ? (
+        <div data-slot="select-control" className="relative inline-flex min-w-0 max-w-full">
+          {trigger}
+          {showClear && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute top-1/2 right-0.5 size-7 -translate-y-1/2 rounded-sm border-0 p-0 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={labels?.clear ?? "Clear selection"}
+              disabled={disabled}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onValueChange("");
+                // Nút xóa biến mất khi giá trị rỗng; đưa focus về trigger để tiếp tục chọn bằng bàn phím.
+                triggerRef.current?.focus();
+              }}
+            >
+              <XIcon aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+      ) : trigger}
       <SelectContent className={popupClassName} position="popper" align="start">
         {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            disabled={option.disabled}
-          >
+          <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </SelectItem>
         ))}
@@ -105,6 +159,7 @@ function Select(props: SelectProps) {
 
 function MultipleSelect({
   multiple,
+  allowClear: allowClearProp,
   value,
   onValueChange,
   options,
@@ -118,7 +173,8 @@ function MultipleSelect({
 }: MultipleSelectProps) {
   const anchor = useComboboxAnchor();
   const [search, setSearch] = React.useState("");
-  const allowClear = typeof multiple === "object" && multiple.allowClear;
+  const allowClear = allowClearProp ?? (typeof multiple === "object" ? multiple.allowClear : true);
+  const showClear = allowClear && value.length > 0 && !disabled;
   const selected = value.map(
     (item) =>
       options.find((option) => option.value === item) ?? {
@@ -169,19 +225,20 @@ function MultipleSelect({
           disabled={disabled}
           placeholder={value.length ? undefined : placeholder}
         />
-        {allowClear && value.length > 0 && !disabled && (
+        {showClear ? (
           <ComboboxClear
             disabled={disabled}
             tabIndex={0}
             aria-label={labels?.clear ?? "Clear selections"}
-            className="size-7 border-0 p-0 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            className="ml-auto size-7 border-0 p-0 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        ) : (
+          <ComboboxTrigger
+            disabled={disabled}
+            aria-label={labels?.toggle ?? "Toggle options"}
+            className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground"
           />
         )}
-        <ComboboxTrigger
-          disabled={disabled}
-          aria-label={labels?.toggle ?? "Toggle options"}
-          className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground"
-        />
       </ComboboxChips>
       <ComboboxContent anchor={anchor} className={popupClassName}>
         <ComboboxEmpty>{labels?.empty ?? "No options found."}</ComboboxEmpty>
@@ -223,24 +280,28 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  hideIcon = false,
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
+  hideIcon?: boolean
 }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex w-fit cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-left text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+        <span className="pointer-events-none size-4 shrink-0">
+          {!hideIcon && <ChevronDownIcon className="size-4 text-muted-foreground" />}
+        </span>
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )

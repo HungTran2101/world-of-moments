@@ -1,4 +1,9 @@
 export const permissions = {
+  SUBMISSION_SHOW: "submission.show",
+  SUBMISSION_CREATE: "submission.create",
+  SUBMISSION_DELETE: "submission.delete",
+  SUBMISSION_UPDATE_STATUS: "submission.updateSubmissionStatus",
+  SUBMISSION_UPDATE_VALIDITY: "submission.updateSubmissionValidity",
   ACCOUNT_SHOW: "account.show",
   ACCOUNT_CREATE: "account.create",
   ACCOUNT_UPDATE: "account.update",
@@ -23,6 +28,19 @@ export interface PagePermission {
 }
 
 export const permissionModules = [
+  {
+    key: "submission",
+    defaults: [
+      permissions.SUBMISSION_SHOW,
+      permissions.SUBMISSION_CREATE,
+      null,
+      permissions.SUBMISSION_DELETE,
+    ],
+    custom: [
+      permissions.SUBMISSION_UPDATE_STATUS,
+      permissions.SUBMISSION_UPDATE_VALIDITY,
+    ],
+  },
   {
     key: "account",
     defaults: [

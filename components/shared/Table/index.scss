@@ -1,5 +1,11 @@
 @use "./base";
 
+.cms-tableScroll--fixedHeader thead {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+}
+
 .cms-tableSection {
   overflow: hidden;
   border: 1px solid #dde1e7;

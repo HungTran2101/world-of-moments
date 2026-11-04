@@ -1,11 +1,13 @@
+import { submissionViewer, visibleSubmissionWhere, SUBMISSION_PRIVATE_HEADERS } from "@/lib/submissionModeration";
+import { CLIENT_SUBMISSION_ACTOR } from "@/services/submissions/constants";
+import { constants } from "@/app/api/constant";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { compressedJson } from "@/lib/compressedJson";
 
 const UpdateSchema = z.object({
-  title: z.string().min(1).max(120).optional(),
-  description: z.string().min(1).max(600).optional(),
+  description: z.string().min(1).max(constants.MAX_DESCRIPTION_LENGTH).optional(),
   author_uuid: z.string().uuid(),
 });
 
@@ -16,8 +18,8 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const submission = await prisma.submission.findUnique({
-    where: { id },
+  const submission = await prisma.submission.findFirst({
+    where: { id, ...visibleSubmissionWhere(submissionViewer(request)) },
     select: {
       id: true,
       // title: true,
@@ -30,10 +32,10 @@ export async function GET(
   });
 
   if (!submission) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404, headers: SUBMISSION_PRIVATE_HEADERS });
   }
 
-  return compressedJson(submission, request);
+  return compressedJson(submission, request, SUBMISSION_PRIVATE_HEADERS);
 }
 
 // PATCH /api/submissions/:id
@@ -65,10 +67,11 @@ export async function PATCH(
 
   const updated = await prisma.submission.update({
     where: { id },
-    data: updates,
+    data: { ...updates, updatedBy: CLIENT_SUBMISSION_ACTOR },
+    select: { id: true, description: true, lat: true, lng: true, weather_summary: true, weather_code: true },
   });
 
-  return NextResponse.json(updated);
+  return NextResponse.json(updated, { headers: SUBMISSION_PRIVATE_HEADERS });
 }
 
 // DELETE /api/submissions/:id

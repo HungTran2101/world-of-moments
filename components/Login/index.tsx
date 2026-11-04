@@ -115,6 +115,7 @@ export function LoginPage() {
           {t("common.language")}
         </label>
         <Select
+          allowClear={false}
           popupClassName="cms-popup"
           className="w-full"
           id="cms-login-locale"

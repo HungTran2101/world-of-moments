@@ -59,7 +59,7 @@ export async function GET(request: Request) {
 // Login required - Permission: account.create
 export async function POST(request: Request) {
   return withCmsRequest(request, async () => {
-    await requireCmsSession(request.headers, permissions.ACCOUNT_CREATE);
+    const actor = await requireCmsSession(request.headers, permissions.ACCOUNT_CREATE);
     const {
       password: plain,
       roleIds,
@@ -72,6 +72,7 @@ export async function POST(request: Request) {
       return tx.user.create({
         data: {
           ...data,
+          updatedBy: actor.name,
           id: userId,
           email: `${userId}@cms.invalid`,
           emailVerified: true,

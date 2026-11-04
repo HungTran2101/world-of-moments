@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     }
     const password = await hashPassword(body.newPassword);
     await prisma.$transaction([
+      prisma.user.update({ where: { id: identity.id }, data: { updatedBy: identity.name } }),
       prisma.account.update({ where: { id: account.id }, data: { password } }),
       prisma.session.deleteMany({
         where: { userId: identity.id, id: { not: identity.sessionId } },

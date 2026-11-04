@@ -1,3 +1,5 @@
+import { submissionViewer, visibleSubmissionWhere, SUBMISSION_PRIVATE_HEADERS } from "@/lib/submissionModeration";
+import { CLIENT_SUBMISSION_ACTOR } from "@/services/submissions/constants";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fetchWeatherAtmosphere } from "@/lib/weather";
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
       where: {
         lat: { gte: south, lte: north },
         // Khi vùng nhìn cắt kinh tuyến 180°, lấy cả hai dải kinh độ ở hai mép bản đồ.
-        OR: longitudeRanges,
+        AND: [visibleSubmissionWhere(submissionViewer(request)), { OR: longitudeRanges }],
       },
       select: {
         id: true,
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return await compressedJson(submissions, request);
+    return await compressedJson(submissions, request, SUBMISSION_PRIVATE_HEADERS);
   } catch {
     return NextResponse.json({ error: "Failed to fetch submissions" }, { status: 500 });
   }
@@ -93,8 +95,12 @@ export async function POST(request: NextRequest) {
       weather_summary: summary,
       weather_code: code,
       author_uuid,
+      updatedBy: CLIENT_SUBMISSION_ACTOR,
     },
   });
 
-  return NextResponse.json(submission, { status: 201 });
+  return NextResponse.json({
+    id: submission.id, description: submission.description, lat: submission.lat, lng: submission.lng,
+    weather_summary: submission.weather_summary, weather_code: submission.weather_code,
+  }, { status: 201, headers: SUBMISSION_PRIVATE_HEADERS });
 }

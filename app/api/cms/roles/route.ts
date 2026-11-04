@@ -39,6 +39,7 @@ export async function GET(request: Request) {
           items: items.map((role) => ({
             ...role,
             createdAt: role.createdAt.toISOString(),
+            updatedAt: role.updatedAt.toISOString(),
           })),
           metadata: { page, pageSize: params.pageSize, total, totalPages },
         };
@@ -52,11 +53,11 @@ export async function GET(request: Request) {
 // Login required - Permission: role.create
 export async function POST(request: Request) {
   return withCmsRequest(request, async () => {
-    await requireCmsSession(request.headers, permissions.ROLE_CREATE);
+    const actor = await requireCmsSession(request.headers, permissions.ROLE_CREATE);
     const data = await parseBody(request, roleSchema);
     return cmsJson(
       await prisma.cmsRole.create({
-        data: { ...data, permissions: [...new Set(data.permissions)] },
+        data: { ...data, updatedBy: actor.name, permissions: [...new Set(data.permissions)] },
       }),
       201,
     );

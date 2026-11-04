@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 
 export function ChangePasswordPage() {
   const t = useTranslations();
+  const client = useQueryClient();
   const router = useRouter();
   const [error, setError] = useState<unknown>(null);
   const [success, setSuccess] = useState(false);
@@ -66,6 +68,7 @@ export function ChangePasswordPage() {
             setSuccess(false);
             try {
               await changeCmsPassword(values);
+              await client.invalidateQueries({ queryKey: ["cms"] });
               reset();
               setSuccess(true);
             } catch (error) {

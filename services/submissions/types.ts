@@ -1,3 +1,4 @@
+import type { SubmissionStatus } from "./constants";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 
 export interface SubmissionPin {
@@ -26,4 +27,9 @@ export interface UpdateSubmissionPayload {
   author_uuid: string;
 }
 
-export type SubmissionHistoryPage = PaginatedResponse<Submission>;
+export interface SubmissionHistoryItem extends Submission {
+  status: SubmissionStatus;
+  created_at: string;
+}
+
+export type SubmissionHistoryPage = PaginatedResponse<SubmissionHistoryItem>;

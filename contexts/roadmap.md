@@ -70,7 +70,7 @@ Phase 6 — Moderation and Stability
 Add:
 
 report system
-admin moderation dashboard
+admin moderation dashboard — implemented in CMS with separate publication/validity permissions, bulk actions, and record audit fields
 stronger spam protection
 Phase 7 — Scaling
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -15,11 +15,13 @@ export function SearchInput({
   onSearch,
   navigationKey,
   loading = false,
+  extraTools,
 }: {
   value: string;
   onSearch: (value: string) => void;
   navigationKey: string;
   loading?: boolean;
+  extraTools?: ReactNode;
 }) {
   const t = useTranslations();
   const id = useId();
@@ -48,7 +50,7 @@ export function SearchInput({
   const searchField = register("search");
   return (
     <form
-      className="cms-search"
+      className={`cms-search${extraTools ? " cms-search--withTools" : ""}`}
       role="search"
       onSubmit={(event) => {
         event.preventDefault();
@@ -72,6 +74,7 @@ export function SearchInput({
           }, 350);
         }}
       />
+      {extraTools}
       <Button variant="primary" className="h-10" type="submit" loading={loading}>
         {t("common.search")}
       </Button>

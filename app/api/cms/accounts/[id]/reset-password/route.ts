@@ -15,7 +15,7 @@ export async function POST(
 ) {
   return withCmsRequest(request, async () => {
     const { id } = await context.params;
-    await requireCmsSession(
+    const actor = await requireCmsSession(
       request.headers,
       permissions.ACCOUNT_RESET_PASSWORD,
     );
@@ -31,6 +31,7 @@ export async function POST(
         where: { userId: id, providerId: "credential" },
         data: { password },
       });
+      await tx.user.update({ where: { id }, data: { updatedBy: actor.name } });
       await tx.session.deleteMany({ where: { userId: id } });
     });
     return cmsJson({ ok: true });

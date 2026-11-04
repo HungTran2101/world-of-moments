@@ -10,6 +10,7 @@ export class CmsHttpError extends Error {
     public status: number,
     message: string,
     public fieldErrors?: Record<string, string[]>,
+    public details?: { nonValidCount: number },
   ) {
     super(message);
   }
@@ -70,6 +71,7 @@ export function cmsError(error: unknown) {
     return cmsJson(
       {
         error: error.message,
+        ...(error.details ? { details: error.details } : {}),
         ...(error.fieldErrors ? { fieldErrors: error.fieldErrors } : {}),
       },
       error.status,

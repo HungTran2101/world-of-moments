@@ -1,3 +1,4 @@
+import { AUTHOR_UUID_CHANGED_EVENT, getUUID } from "@/lib/uuid";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import clusterBubbleImg from "@/public/assets/cluster-notes.webp";
 import { normalizeSubmissionBounds } from "@/lib/submissionBounds";
@@ -224,7 +225,7 @@ export async function addSubmissionLayers({
   const loadViewport = async () => {
     if (isCancelled() || isInteractionBlocked() || map.isMoving()) return;
     const bounds = getViewportBounds();
-    const boundsKey = JSON.stringify(bounds);
+    const boundsKey = JSON.stringify([getUUID(), bounds]);
     if (boundsKey === loadedBoundsKey || boundsKey === pendingBoundsKey) return;
     cancelViewportRequest();
     const controller = new AbortController();
@@ -246,6 +247,25 @@ export async function addSubmissionLayers({
       }
     }
   };
+
+  let viewerUuid = getUUID();
+  const onIdentityChange = () => {
+    const nextUuid = getUUID();
+    if (viewerUuid === nextUuid) return;
+    viewerUuid = nextUuid;
+    cancelViewportRequest();
+    loadedBoundsKey = null;
+    // Xóa ngay các ghim của danh tính cũ trước khi tải lại, không dựng lại map hoặc layer.
+    clearOverlays(true);
+    (map.getSource(SOURCE_ID) as GeoJSONSource).setData(toFeatureCollection([]));
+    void loadViewport();
+  };
+  window.addEventListener("storage", onIdentityChange);
+  window.addEventListener(AUTHOR_UUID_CHANGED_EVENT, onIdentityChange);
+  subscriptions.push({ unsubscribe: () => {
+    window.removeEventListener("storage", onIdentityChange);
+    window.removeEventListener(AUTHOR_UUID_CHANGED_EVENT, onIdentityChange);
+  } });
 
   const removeOverlay = (id: string, restoreIcon = true) => {
     const overlay = overlays.get(id);
@@ -384,6 +404,7 @@ export async function addSubmissionLayers({
     async prepareRefresh(signal: AbortSignal) {
       cancelViewportRequest();
       const bounds = getViewportBounds();
+      const refreshIdentity = getUUID();
       const submissions = await getSubmissions(bounds, { signal });
       signal.throwIfAborted();
       if (isCancelled()) throw new Error("Map is no longer available");
@@ -391,8 +412,9 @@ export async function addSubmissionLayers({
       // Giữ dữ liệu đã tải ngoài source để marker mới hoặc cụm chưa xuất hiện trước bubble đang bay.
       return async () => {
         // Chờ worker cập nhật vùng nhìn trước khi bỏ bubble đang bay; không dựng lại layer.
+        if (refreshIdentity !== getUUID()) throw new Error("Author identity changed");
         await applySubmissions(submissions, signal);
-        loadedBoundsKey = JSON.stringify(bounds);
+        loadedBoundsKey = JSON.stringify([getUUID(), bounds]);
         onLoadError(false);
       };
     },

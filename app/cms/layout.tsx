@@ -1,4 +1,4 @@
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import type { Metadata } from "next";
 import { CmsProviders } from "@/components/shared/Providers";
 import "@/styles/cms-import.scss";
@@ -14,11 +14,17 @@ export default async function CmsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
+  const [locale, publicMessages] = await Promise.all([
+    getLocale(),
+    getMessages(),
+  ]);
   const messages = (await import(`@/messages/cms-${locale}.json`)).default;
   return (
     <div className="cms">
-      <CmsProviders locale={locale} messages={messages}>
+      <CmsProviders
+        locale={locale}
+        messages={{ ...messages, weather: publicMessages.weather }}
+      >
         {children}
       </CmsProviders>
     </div>

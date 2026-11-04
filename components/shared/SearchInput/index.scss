@@ -5,18 +5,49 @@
   gap: 8px;
 }
 
+.cms-search--withTools {
+  align-items: flex-end;
+}
+
+.cms-searchFilter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cms-searchFilter > label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cms-searchFilter > button[role="combobox"],
+.cms-searchFilter > [data-slot="select-control"] {
+  width: 100%;
+}
+
 .cms-search input {
   width: 240px;
 }
 
 @media (width <= 760px) {
-.cms-search {
+  .cms-search {
     width: 100%;
   }
 
-.cms-search input {
+  .cms-search input {
     flex: 1;
     min-width: 0;
     width: auto;
+  }
+
+  .cms-search--withTools input {
+    flex-basis: 100%;
+  }
+
+  .cms-search--withTools > .cms-searchFilter,
+  .cms-search--withTools > button[role="combobox"] {
+    flex: 1 1 140px;
+    min-width: 0;
   }
 }

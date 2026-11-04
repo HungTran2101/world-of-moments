@@ -103,7 +103,8 @@
     "previousPage": "Trang trước",
     "nextPage": "Trang sau",
     "pageIndicator": "Trang {page} / {totalPages}",
-    "pageNumber": "Trang {page}"
+    "pageNumber": "Trang {page}",
+    "unpublished": "Suy nghĩ của bạn đang được kiểm tra nhóe."
   },
   "weather": {
     "attribution": "Thời tiết từ Open-Meteo",

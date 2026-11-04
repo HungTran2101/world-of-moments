@@ -1,5 +1,6 @@
 "use client";
 
+import { RecordAudit } from "@/components/shared/RecordAudit";
 import { ROUTE_PATHS } from "@/services/routes";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
@@ -92,10 +93,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
       <CmsPageContent>
         <Breadcrumbs
           label={t("common.breadcrumbs")}
-          items={[
-            { label: t("nav.roles"), href: backHref },
-            { label: title },
-          ]}
+          items={[{ label: t("nav.roles"), href: backHref }, { label: title }]}
         />
         {(error || query.error) && (
           <ErrorNotice
@@ -146,7 +144,11 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                 </Field>
                 <h2 id="cms-permissions-label">{t("role.permissions")}</h2>
                 {errors.permissions?.message && (
-                  <p id="cms-permissions-error" className="cms-fieldError" role="alert">
+                  <p
+                    id="cms-permissions-error"
+                    className="cms-fieldError"
+                    role="alert"
+                  >
                     {text(errors.permissions.message)}
                   </p>
                 )}
@@ -158,7 +160,9 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                       className="cms-tableScroll"
                       role="group"
                       aria-labelledby="cms-permissions-label"
-                      aria-describedby={errors.permissions ? "cms-permissions-error" : undefined}
+                      aria-describedby={
+                        errors.permissions ? "cms-permissions-error" : undefined
+                      }
                     >
                       <table className="cms-permissions">
                         <thead>
@@ -182,23 +186,27 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                             <tr key={module.key}>
                               <th scope="row">{t(`modules.${module.key}`)}</th>
                               {module.defaults.map((key, index) => (
-                                <td key={key}>
-                                  <Checkbox
-                                    disabled={!canSave || isSubmitting}
-                                    checked={
-                                      isSystem || field.value.includes(key)
-                                    }
-                                    aria-label={`${t(`modules.${module.key}`)}: ${t(`role.${["show", "create", "update", "delete"][index]}`)}`}
-                                    onCheckedChange={(checked) =>
-                                      field.onChange(
-                                        checked === true
-                                          ? [...field.value, key]
-                                          : field.value.filter(
-                                              (value) => value !== key,
-                                            ),
-                                      )
-                                    }
-                                  />
+                                <td key={key ?? "update"}>
+                                  {key ? (
+                                    <Checkbox
+                                      disabled={!canSave || isSubmitting}
+                                      checked={
+                                        isSystem || field.value.includes(key)
+                                      }
+                                      aria-label={`${t(`modules.${module.key}`)}: ${t(`role.${["show", "create", "update", "delete"][index]}`)}`}
+                                      onCheckedChange={(checked) =>
+                                        field.onChange(
+                                          checked === true
+                                            ? [...field.value, key]
+                                            : field.value.filter(
+                                                (value) => value !== key,
+                                              ),
+                                        )
+                                      }
+                                    />
+                                  ) : (
+                                    <span className="cms-muted">—</span>
+                                  )}
                                 </td>
                               ))}
                               <td>
@@ -211,7 +219,8 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                                       empty: t("common.noOptions"),
                                       toggle: t("common.toggleOptions"),
                                       clear: t("common.clearSelection"),
-                                      remove: (label) => t("common.removeSelection", { label }),
+                                      remove: (label) =>
+                                        t("common.removeSelection", { label }),
                                     }}
                                     disabled={!canSave || isSubmitting}
                                     aria-label={`${t(`modules.${module.key}`)}: ${t("role.extra")}`}
@@ -219,7 +228,9 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                                       isSystem
                                         ? [...module.custom]
                                         : field.value.filter((value) =>
-                                            (module.custom as readonly string[]).includes(value),
+                                            (
+                                              module.custom as readonly string[]
+                                            ).includes(value),
                                           )
                                     }
                                     options={module.custom.map((key) => ({
@@ -230,8 +241,11 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                                     onValueChange={(selected) => {
                                       // Chỉ thay quyền bổ sung của hàng này, giữ quyền mặc định và các module khác.
                                       field.onChange([
-                                        ...field.value.filter((value) =>
-                                          !(module.custom as readonly string[]).includes(value),
+                                        ...field.value.filter(
+                                          (value) =>
+                                            !(
+                                              module.custom as readonly string[]
+                                            ).includes(value),
                                         ),
                                         ...selected,
                                       ]);
@@ -249,6 +263,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                   )}
                 />
               </fieldset>
+              {query.data && <RecordAudit record={query.data} />}
             </form>
           )
         )}

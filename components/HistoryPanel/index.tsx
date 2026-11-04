@@ -129,12 +129,13 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
                 <GlassButton
                   className="historyPanel-visit"
                   primaryColor="darkBlue"
-                  disabled={!map || isSubmitting}
+                  disabled={!map || isSubmitting || item.status === "unpublished"}
                   onClick={() => onVisit(item)}
                 >
                   <MapPin size={16} aria-hidden="true" />
                   {t("takeMeThere")}
                 </GlassButton>
+                {item.status === "unpublished" && <p className="historyPanel-muted">{t("unpublished")}</p>}
               </li>
             );
           })}

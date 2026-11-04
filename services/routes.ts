@@ -3,6 +3,8 @@ import { permissions, type PermissionRules } from "@/services/permission";
 export const ROUTE_PATHS = {
   OVERVIEW: "/cms",
   LOGIN: "/cms/login",
+  SUBMISSIONS: "/cms/submissions",
+  SUBMISSION_DETAIL: "/cms/submissions/detail",
   ACCOUNTS: "/cms/accounts",
   ACCOUNT_DETAIL: "/cms/accounts/detail",
   ROLES: "/cms/roles",
@@ -33,7 +35,16 @@ const ROLE_PERMISSION_RULES: PermissionRules = {
   delete: permissions.ROLE_DELETE,
 };
 
+const SUBMISSION_PERMISSION_RULES: PermissionRules = {
+  show: permissions.SUBMISSION_SHOW,
+  create: permissions.SUBMISSION_CREATE,
+  delete: permissions.SUBMISSION_DELETE,
+  custom: [permissions.SUBMISSION_UPDATE_STATUS, permissions.SUBMISSION_UPDATE_VALIDITY],
+};
+
 export const ROUTES_PERMISSIONS = {
+  [ROUTE_PATHS.SUBMISSIONS]: SUBMISSION_PERMISSION_RULES,
+  [ROUTE_PATHS.SUBMISSION_DETAIL]: SUBMISSION_PERMISSION_RULES,
   [ROUTE_PATHS.OVERVIEW]: undefined,
   [ROUTE_PATHS.ACCOUNTS]: ACCOUNT_PERMISSION_RULES,
   [ROUTE_PATHS.ACCOUNT_DETAIL]: ACCOUNT_PERMISSION_RULES,

@@ -1,3 +1,4 @@
+import { getUUID } from "@/lib/uuid";
 import { apiRequest, type ApiRequestOptions } from "@/services/shared/api";
 import type { SubmissionBounds } from "@/lib/submissionBounds";
 import type {
@@ -8,8 +9,8 @@ import type {
   UpdateSubmissionPayload,
 } from "./types";
 
-// Tách cache của DTO mới khỏi các trang còn giữ metadata phẳng khi cập nhật ứng dụng.
-export const submissionHistoryKey = ["submission-history", "metadata"] as const;
+// Tách cache cũ chưa có trạng thái để lịch sử luôn khóa đúng bài chưa công bố.
+export const submissionHistoryKey = ["submission-history", "moderation"] as const;
 
 export function getSubmissionHistory(
   authorUuid: string,
@@ -25,6 +26,12 @@ export function getSubmissionHistory(
   });
 }
 
+function viewerOptions(options?: ApiRequestOptions) {
+  const uuid = getUUID();
+  const headers: Record<string, string> = uuid ? { "x-author-uuid": uuid } : {};
+  return { ...options, cache: "no-store" as const, headers };
+}
+
 export function getSubmissions(bounds: SubmissionBounds, options?: ApiRequestOptions) {
   const query = new URLSearchParams({
     west: String(bounds.west),
@@ -32,11 +39,11 @@ export function getSubmissions(bounds: SubmissionBounds, options?: ApiRequestOpt
     east: String(bounds.east),
     north: String(bounds.north),
   });
-  return apiRequest<SubmissionPin[]>(`/api/submissions?${query}`, options);
+  return apiRequest<SubmissionPin[]>(`/api/submissions?${query}`, viewerOptions(options));
 }
 
 export function getSubmissionById(id: string, options?: ApiRequestOptions) {
-  return apiRequest<Submission>(`/api/submissions/${id}`, options);
+  return apiRequest<Submission>(`/api/submissions/${encodeURIComponent(id)}`, viewerOptions(options));
 }
 
 export function createSubmission(payload: CreateSubmissionPayload, options?: ApiRequestOptions) {

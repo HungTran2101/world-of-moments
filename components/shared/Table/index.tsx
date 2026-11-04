@@ -33,6 +33,11 @@ export interface BulkAction {
   disabled?: boolean;
 }
 
+export interface TableScroll {
+  x?: number | string | true;
+  y?: number | string;
+}
+
 function SelectAll({
   checked,
   indeterminate,
@@ -57,6 +62,8 @@ function SelectAll({
 }
 
 export function Table<T extends object>({
+  scroll,
+  extraTools,
   datasource,
   columns,
   rowKey,
@@ -75,6 +82,8 @@ export function Table<T extends object>({
   onRetry,
   navigationKey,
 }: {
+  scroll?: TableScroll;
+  extraTools?: ReactNode;
   datasource: T[];
   columns: Column<T>[];
   rowKey: keyof T & string;
@@ -85,7 +94,7 @@ export function Table<T extends object>({
   onChangePageSize: (pageSize: number) => void;
   selection?: TableSelection<T>;
   bulkAction?: BulkAction[];
-  onBulkAction?: (action: string, selectedRecords: T[]) => void | Promise<void>;
+  onBulkAction?: (action: string, selectedRecords: T[]) => void | boolean | Promise<void | boolean>;
   onBulkDelete?: (selectedRowKeys: string[]) => Promise<void>;
   loading?: boolean;
   fetching?: boolean;
@@ -141,7 +150,7 @@ export function Table<T extends object>({
     setBulkError(null);
     try {
       if (action === "delete") await onBulkDelete?.(selectedKeys);
-      else await onBulkAction?.(action, selectedRows);
+      else if (await onBulkAction?.(action, selectedRows) === false) return;
       selection?.onChange([], []);
       setAction("");
     } catch (error) {
@@ -158,6 +167,7 @@ export function Table<T extends object>({
     >
       <div className="cms-tableToolbar">
         <SearchInput
+          extraTools={extraTools}
           value={search}
           onSearch={(value) => {
             setListAction("search");
@@ -172,6 +182,7 @@ export function Table<T extends object>({
               {t("common.bulkAction")}
             </label>
             <Select
+              labels={{ clear: t("common.clearSelection") }}
               popupClassName="cms-popup"
               id={`${id}-action`}
               value={action}
@@ -216,12 +227,22 @@ export function Table<T extends object>({
         />
       )}
       <div
-        className="cms-tableScroll"
+        className={`cms-tableScroll${scroll?.y !== undefined ? " cms-tableScroll--fixedHeader" : ""}`}
+        style={{ maxHeight: scroll?.y }}
         tabIndex={0}
         role="region"
         aria-label={t("common.table")}
       >
-        <table>
+        <table
+          style={
+            scroll?.x !== undefined
+              ? {
+                  width: scroll.x === true ? "max-content" : scroll.x,
+                  minWidth: "100%",
+                }
+              : undefined
+          }
+        >
           <thead>
             <tr>
               {selection && (

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       take: PAGE_SIZE,
       select: {
         id: true, description: true, lat: true, lng: true,
-        weather_summary: true, weather_code: true, created_at: true,
+        weather_summary: true, weather_code: true, created_at: true, status: true,
       },
     });
     return NextResponse.json<PaginatedResponse<(typeof items)[number]>>({

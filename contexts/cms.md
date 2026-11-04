@@ -9,8 +9,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Internal CMS only: `/cms` and `/api/cms`.
 - Next.js App Router, Better Auth hosted in Next.js, Neon PostgreSQL through the
   existing Prisma client, TanStack Query, Zustand, React Hook Form and Yup.
-- Initial modules: accounts and roles. Submission administration and exports are
-  deferred. There are no social logins, public registration, or email recovery.
+- Modules: submissions, accounts and roles. Exports are deferred. There are no
+  social logins, public registration, or email recovery.
 - Use a restrained, readable interface with shared spacing, controls and subtle
   transitions. No glass dashboard styling or decorative statistics panels.
 
@@ -18,7 +18,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/General`, `components/Login`,
-  `components/Overview`, `components/Profile`, `components/RoleDetail` and `components/Roles`. Styles are colocated in
+  `components/Overview`, `components/Profile`, `components/RoleDetail`, `components/Roles`,
+  `components/Submissions` and `components/SubmissionDetail`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
   entry, `styles/import.scss`, so public routes do not download CMS component CSS.
@@ -31,7 +32,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   They call `useCRUDPage` directly for query state, loading and deletion. There is
   no shared CRUD page wrapper.
 - Reusable UI lives in `components/shared/{Brand,Breadcrumbs,CmsPageContent,Forms,Header,Pagination,Providers,
-  Route,SearchInput,Table}`. Styles are colocated as `index.scss` with
+  Route,SearchInput,RecordAudit,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
 - `components/shared/Brand` owns the CMS logo, title, subtitle and brand styles.
@@ -43,7 +44,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   rendering component, `CmsSidebar`; the public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
-  `app/api/cms/{auth,accounts,roles,nopermission}`. Shared account selection,
+  `app/api/cms/{auth,accounts,roles,submissions,nopermission}`. Shared account selection,
   serialization and role validation live in `app/api/cms/accounts/_shared.ts`.
 - Server-only session/auth configuration and HTTP utilities remain in
   `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
@@ -59,7 +60,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Permission constants, route mappings, query state and validation schemas live
   in `services/{permission,routes,query-state,schemas}.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
-  types: `services/cms/{accounts,roles,auth}`, `services/future-message`,
+  types: `services/cms/{accounts,roles,submissions,auth}`, `services/future-message`,
   `services/submissions`, and `services/locale`. Types are imported directly from
   the module's `/types` path, separately from runtime functions.
 - CMS UI imports named service functions instead of calling `cmsRequest`,
@@ -154,13 +155,16 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
   `key`, translated `name`, optional `href`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
-  The System category contains General and Profile, available to every signed-in
-  CMS user. Profile remains highlighted on its nested password-change page.
+  Management contains Submissions. System contains Accounts, Roles, General and
+  Profile; General and Profile are available to every signed-in CMS user. Profile
+  remains highlighted on its nested password-change page.
 
 | Route | Purpose |
 | --- | --- |
 | `/cms/login` | Username/password login; redirects signed-in users to `/cms` |
 | `/cms` | Authenticated overview with permitted navigation |
+| `/cms/submissions` | Submission list and bulk moderation |
+| `/cms/submissions/detail` | Create without `id`; view/moderate with `?id=...` |
 | `/cms/accounts` | Account list |
 | `/cms/accounts/detail` | Create without `id`; view/update with `?id=...` |
 | `/cms/roles` | Role list |
@@ -198,10 +202,20 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   omitted/false `multiple` uses `value: string`; `multiple={true}` or
   `multiple={{ allowClear: boolean }}` uses `value: string[]`. The object form
   enables multiple selection even when `allowClear` is false; true adds a clear-all
-  control (account roles enable it). `onValueChange` matches the value type.
-  Callers supply `popupClassName` and optional localized multiple-select `labels`
+  control. `allowClear` defaults to true in both modes, so filters, account roles
+  and extra permissions do not pass a redundant true prop. An explicit top-level
+  value overrides the legacy multiple-object setting when supplied. Required
+  page-size, language and submission-state selects use `allowClear={false}`.
+  Single-select clearing calls `onValueChange("")`, restores the placeholder, and
+  returns keyboard focus to the trigger; the clear button is separate from the
+  trigger and hidden when empty or disabled. In both modes the clear icon replaces
+  the down arrow while visible; clearing restores the arrow. Multiple clearing
+  returns `[]`.
+  `onValueChange` matches the value type.
+  Callers supply `popupClassName` and optional localized `labels`
   (`empty`, `toggle`, `clear`, `remove`) without a separate CMS component/version.
   Generic defaults work outside the CMS and do not require its translation keys.
+  Single-select values and placeholders stay left-aligned at fixed widths.
   Single and multiple dropdown option lists both use a 4px inner inset.
   Enabled select inputs/triggers/options and checkboxes use a pointer cursor;
   disabled inputs retain the not-allowed cursor.
@@ -308,7 +322,19 @@ requests release their loading state.
 
 `Table<T>` receives `datasource: T[]`, `columns`, string `rowKey`, pagination
 metadata, search, `onSearch`, `onChangePage`, `onChangePageSize`, initial/background
-loading, error/retry, and a navigation key for search synchronization.
+loading, error/retry, and a navigation key for search synchronization. Optional
+`extraTools?: ReactNode` is forwarded into SearchInput between its search input and
+Search button. A bulk handler returning `false` preserves selection and action
+after cancellation.
+
+Optional `scroll?: TableScroll` follows Antd-style dimensions: `x` accepts a pixel
+number, CSS width string (including `"max-content"`), or `true` for intrinsic width;
+`y` accepts a pixel number or CSS max-height string. Horizontal scrolling keeps
+the table at least as wide as its container. Vertical scrolling constrains only
+the table viewport and keeps its header visible. Toolbar and pagination remain
+outside the scrolling region. Omitting `scroll` preserves the existing layout.
+Submissions opts into `scroll={{ x: "max-content" }}` so headers and values keep
+their natural widths instead of wrapping into narrow columns.
 
 `components/shared/Pagination` exports the controlled `Pagination` component and
 `PaginationProps`. It receives `pagination: PaginationMetadata`,
@@ -652,3 +678,121 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   mobile password navigation closes the sidebar. Account/role list and detail
   breadcrumbs and password-change breadcrumbs omit the Overview prefix.
   Sign-out returns to login, and the checked pages have no console warnings/errors.
+
+## Submission administration and record audit fields
+
+- Management → Submissions uses `/cms/submissions` and `/cms/submissions/detail`.
+  Accounts and Roles retain their URLs under System. Lists own their Table, columns,
+  actions and selection and reuse `useCRUDPage`. Submission status/validity filters
+  have visible localized labels associated with their selects, apply immediately,
+  persist in the URL, and reset the page. Labeled filters align their controls with
+  Search and wrap on mobile. Search keeps its existing
+  debounce/manual-submit behavior. Empty filter values mean all states and show
+  the localized “All” placeholder. Dropdown options contain only real states;
+  each filter inherits default clearing to remove its URL parameter and reset page 1.
+- Submission permissions are `submission.show`, `submission.create`,
+  `submission.delete`, `submission.updateSubmissionStatus` and
+  `submission.updateSubmissionValidity`. There is no `submission.update`; its
+  permission-matrix Update cell is unavailable. The two moderation permissions are
+  independent extras, enforced by UI and APIs. Existing submission description,
+  coordinates, UUID, weather and provenance are read-only in the CMS.
+- Existing submissions migrate to `published` + `valid`. New public and CMS records
+  default to `published` + `need-inspect`. Other states are `unpublished` and
+  `invalid`; wire values use the hyphenated `need-inspect` spelling. Public create
+  and author-edit payloads cannot set moderation or provenance. Public author edits
+  preserve the current moderation state.
+- CMS creation accepts description, coordinates and initial state. Choosing a
+  non-default status or validity requires the matching moderation permission.
+  The server generates a normal random UUID; the UI shows “Auto generated” before
+  creation and the actual read-only UUID afterward. Creation fetches weather.
+  Creation and detail forms show UUID first, latitude/longitude side by side on
+  the second row, and description third. Creator/source, weather and audit metadata
+  live in a subtle bordered inner card with plain labels/values, without input or
+  textarea controls. Weather shows its numeric code and a translated
+  description from the same `weather` message namespace as the public map,
+  including code 0; unknown/missing codes fall back to the stored summary or “—”.
+  The CMS layout merges only that public weather namespace into its own catalog.
+  Weather descriptions wrap naturally as text on narrow screens, and audit
+  separators use the shared border color.
+- CMS submission services own list/create/detail/moderation and bulk endpoints.
+  GET/POST `/api/cms/submissions`, GET/PATCH `/api/cms/submissions/[id]`, POST
+  `/api/cms/submissions/bulk-moderate` and POST `/api/cms/submissions/bulk-delete`
+  use existing session, trusted-origin and pagination contracts. List filters are
+  `search`, `status`, `validity`, `page`, and `pageSize`.
+- Bulk moderation accepts deduplicated `ids` and exactly one `status` or `validity`.
+  Bulk moderation/deletion are atomic and reject missing IDs. Single moderation
+  accepts either or both state fields and rejects content/audit fields.
+- Any CMS create/moderation resulting in published non-valid content requires
+  `confirmPublish: true`. Otherwise the API returns 409 `errors.confirmPublish`
+  with `details.nonValidCount`. The UI confirms the current affected count and
+  retries the same mutation; cancellation preserves input/selection. Current rows
+  are checked in a serializable transaction for moderation. Publishing preserves
+  validity and does not make non-valid content visible to other visitors.
+- Submission `createdBy` is `client` or a snapshot of the authenticated CMS account's
+  display name; `createdFrom` is `client` or `cms`. These fields are immutable and
+  derived server-side. Existing submissions backfill `client` for both.
+- Submissions, roles and CMS user accounts expose ISO `updatedAt` and nullable
+  `updatedBy` in CMS DTOs. Existing timestamps are preserved; old updater names are
+  unknown (`null`). New authenticated records initialize `updatedBy` to their
+  creator; new public submissions use `client`. Bootstrap records without an
+  authenticated actor retain null. Account-name snapshots survive later renames
+  and deletions and never serve as authorization identity.
+- Successful public author edits and CMS submission moderation stamp their actor;
+  bulk moderation stamps every affected row. Role/account updates, account role
+  assignments, password resets and self-service password changes stamp the same
+  transaction. Login/session activity does not stamp record edits. Failed/cancelled
+  mutations do not change audit fields. The existing submission `updated_at` column
+  is serialized as `updatedAt` for CMS consumers; public field names are retained.
+- Lists and details show update time/updater. Created at stays second last before
+  centered Actions; both timestamps use `formatDateTime` in browser time zone.
+  On mobile, search inputs with extra tools fill a row so filters cannot squeeze
+  the text field.
+- Migration `20261104000100_submission_moderation_audit` adds the enum/provenance/audit
+  fields, backfills old submission validity before setting the new default, and
+  preserves timestamps. Apply the additive migration before deploying this code,
+  regenerate Prisma, and restart existing application processes. Production
+  migration/deployment is an explicit operation.
+
+### Public visibility and private history
+
+- Viewport pins and direct thought-detail reads use the same server-side predicate:
+  published + valid for everyone; published + any validity for the matching local
+  author UUID. Unpublished records are excluded for everyone and return 404 on
+  direct detail access. CMS session identity never changes public ownership.
+- Public browsing sends an existing UUID through `x-author-uuid` without creating
+  one. Missing/malformed headers act as anonymous visitors. Personalized GETs use
+  private/no-store caching and vary on Accept-Encoding and x-author-uuid while
+  retaining Brotli/gzip compression, viewport bounds and date-line handling.
+- Public DTOs omit creator/updater names, author UUID and exact timestamps.
+  Owner history retains all states and exact creation time, includes status, and
+  disables Take me there for unpublished records with a localized explanation.
+- UUID changes cancel obsolete viewport/detail requests and reload positions without
+  recreating the map. There is no new realtime polling; normal viewport/submission
+  refresh behavior remains in effect.
+
+
+### Submission and audit validation
+
+- The additive moderation/audit migration is applied to the development database;
+  all 215 pre-existing submissions were verified as published + valid. Production
+  has not been migrated or deployed. Prisma validation/generation, changed-file
+  ESLint/Stylelint fixes, route type generation, TypeScript, repository lint and the
+  Webpack production build pass.
+- All 130 temporary production-mode HTTP/database checks pass: public visibility
+  for six state combinations and four viewer identities, private caching, safe
+  DTOs, owner history, defaults/provenance, generated UUIDs, independent moderation
+  permissions, create overrides, immutable CMS content, publication acknowledgment,
+  atomic bulk failures, and role/account/password audit updates.
+- Browser checks cover desktop and 390px EN/VI pages, filter placement and URL
+  restoration, read-only details, generated-UUID labeling, correct select hydration,
+  status-only/validity-only/create-only permissions, bulk warning counts,
+  cancellation preserving selection, confirmed publication and list invalidation.
+  The submission row in role permissions has no Update checkbox and exposes its
+  two custom permissions. CMS pages have no observed console warnings/errors.
+- Public-browser checks verify UUID-triggered viewport refresh with the author
+  header and private compressed responses, unpublished history navigation being
+  disabled, and an owner's published invalid thought opening from history. The
+  map retains its existing Chrome WebGL buffer performance warning.
+- Temporary records/scripts, test-server processes and automation browser surfaces
+  are removed after validation. The development server is restarted on port 3000
+  with the regenerated Prisma client.

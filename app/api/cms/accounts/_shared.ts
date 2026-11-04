@@ -6,6 +6,8 @@ import { CmsHttpError } from "@/handlers/http";
 export const accountSelect = {
   id: true,
   createdAt: true,
+  updatedAt: true,
+  updatedBy: true,
   username: true,
   name: true,
   isActive: true,
@@ -19,6 +21,7 @@ export function serializeAccount(
   return {
     ...user,
     createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
     username: user.username ?? "",
     roles,
     roleIds: roles.map(({ id }) => id),

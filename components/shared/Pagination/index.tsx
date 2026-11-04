@@ -70,6 +70,7 @@ export function Pagination({
       <label className="cms-pageSize" htmlFor={`${id}-size`}>
         {t("common.pageSize")}
         <Select
+          allowClear={false}
           popupClassName="cms-popup"
           id={`${id}-size`}
           disabled={disabled}

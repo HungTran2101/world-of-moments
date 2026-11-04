@@ -32,7 +32,7 @@ export async function PATCH(
 ) {
   return withCmsRequest(request, async () => {
     const { id } = await context.params;
-    await requireCmsSession(request.headers, permissions.ACCOUNT_UPDATE);
+    const actor = await requireCmsSession(request.headers, permissions.ACCOUNT_UPDATE);
     const { roleIds, ...data } = await parseBody(request, accountUpdateSchema);
     const user = await prisma.$transaction(
       async (tx) => {
@@ -49,6 +49,7 @@ export async function PATCH(
           where: { id },
           data: {
             ...data,
+            updatedBy: actor.name,
             roles: {
               create: [...new Set(roleIds)].map((roleId) => ({ roleId })),
             },

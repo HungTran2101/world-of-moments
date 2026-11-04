@@ -103,7 +103,8 @@
     "previousPage": "Previous page",
     "nextPage": "Next page",
     "pageIndicator": "Page {page} of {totalPages}",
-    "pageNumber": "Page {page}"
+    "pageNumber": "Page {page}",
+    "unpublished": "Your thought hasn't found its place yet."
   },
   "weather": {
     "attribution": "Weather by Open-Meteo",

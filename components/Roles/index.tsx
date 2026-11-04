@@ -67,6 +67,11 @@ export function RolesPage({ permission }: CmsPageProps) {
         row.isSystem ? t("role.fullAccess") : row.permissions.length,
     },
     {
+      key: "updatedAt", title: t("common.updatedAt"),
+      render: (_, row) => <time className="whitespace-nowrap" dateTime={row.updatedAt}>{formatDateTime(row.updatedAt)}</time>,
+    },
+    { key: "updatedBy", title: t("common.updatedBy"), render: (_, row) => row.updatedBy ?? t("common.unknown") },
+    {
       key: "createdAt",
       title: t("common.createdAt"),
       dataIndex: "createdAt",
