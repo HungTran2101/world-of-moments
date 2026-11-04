@@ -205,7 +205,6 @@ function AccountEditor({
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.accounts"), href: backHref },
             { label: title },
           ]}

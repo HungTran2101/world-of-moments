@@ -3,31 +3,26 @@
 import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
 
-import { Select } from "@/components/ui/select";
-
-import Image from "next/image";
+import { Brand } from "@/components/shared/Brand";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { LogOut } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { setLocale } from "@/services/locale";
-import { locales } from "@/i18n/config";
 import { checkPermission } from "@/services/permission";
 import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
 import { useCmsStore } from "@/store/cmsStore";
 import { logoutCms } from "@/services/cms/auth";
 import { expireCmsSession } from "@/services/shared/cms-api";
 import { ErrorNotice } from "@/components/shared/Forms";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function CmsSidebar({ children }: { children: ReactNode }) {
   const t = useTranslations();
-  const locale = useLocale();
-  const router = useRouter();
   const pathname = usePathname();
   const user = useCmsStore((state) => state.user);
   const [open, setOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"locale" | "logout" | null>(null);
-  const busy = pendingAction !== null;
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const renderItem = (item: SidebarItem): ReactNode => {
     if (item.showRole && !checkPermission(user?.scopes ?? [], item.showRole))
@@ -58,7 +53,8 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     if (busy) return;
-    setPendingAction("logout");
+    setBusy(true);
+    setError(null);
     try {
       await logoutCms();
       const channel = new BroadcastChannel("wom-cms-session");
@@ -67,7 +63,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
       expireCmsSession();
     } catch (error) {
       setError(error);
-      setPendingAction(null);
+      setBusy(false);
     }
   };
 
@@ -87,64 +83,43 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
         {t("nav.menu")}
       </Button>
       <aside id="cms-sidebar" className="cms-sidebar" data-open={open}>
-        <Link href={ROUTE_PATHS.OVERVIEW} className="cms-brand">
-          <Image
-            src="/favicon/android-chrome-192x192.png"
-            width={34}
-            height={34}
-            alt=""
-          />
-          <span>
-            World of Moments<small>CMS</small>
-          </span>
+        <Link href={ROUTE_PATHS.OVERVIEW} className="cms-sidebarBrand">
+          <Brand />
         </Link>
         <nav aria-label={t("nav.navigation")}>
           <ul>{sidebarItems.map(renderItem)}</ul>
         </nav>
         <div className="cms-sidebarFooter">
-          <p className="cms-identity">
-            {user?.name}
-            <small>@{user?.username}</small>
-          </p>
-          <label htmlFor="cms-locale">{t("common.language")}</label>
-          <Select
-            popupClassName="cms-popup"
-            className="w-full"
-            id="cms-locale"
-            value={locale}
-            disabled={busy}
-            onValueChange={(value) => {
-              const next = locales.find((item) => item === value);
-              if (!next || busy) return;
-              setPendingAction("locale");
-              void setLocale(next)
-                .then(() => router.refresh())
-                .catch(setError)
-                .finally(() => setPendingAction(null));
-            }}
-            options={[
-              { value: "vi", label: "Tiếng Việt" },
-              { value: "en", label: "English" },
-            ]}
-          />
-          <Link
-            href={ROUTE_PATHS.CHANGE_PASSWORD}
-            aria-current={
-              pathname === ROUTE_PATHS.CHANGE_PASSWORD ? "page" : undefined
-            }
-          >
-            {t("nav.changePassword")}
-          </Link>
-          <Button
-            variant="secondary"
-            className="h-10"
-            type="button"
-            disabled={busy}
-            loading={pendingAction === "logout"}
-            onClick={() => void logout()}
-          >
-            {t("nav.logout")}
-          </Button>
+          <p className="cms-identity">{user?.name}</p>
+          <div className="cms-sidebarActions">
+            <Button variant="secondary" className="flex-1" asChild>
+              <Link
+                href={ROUTE_PATHS.CHANGE_PASSWORD}
+                aria-current={
+                  pathname === ROUTE_PATHS.CHANGE_PASSWORD ? "page" : undefined
+                }
+                onClick={() => setOpen(false)}
+              >
+                {t("nav.changePassword")}
+              </Link>
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  type="button"
+                  aria-label={t("nav.logout")}
+                  disabled={busy}
+                  loading={busy}
+                  onClick={() => void logout()}
+                >
+                  <LogOut aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("nav.logout")}</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </aside>
       <main id="cms-main" className="cms-main" tabIndex={-1}>

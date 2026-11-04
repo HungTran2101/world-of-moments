@@ -32,4 +32,11 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
+  {
+    key: "system",
+    name: "nav.system",
+    items: [
+      { key: "general", name: "nav.general", href: ROUTE_PATHS.GENERAL },
+    ],
+  },
 ];

@@ -5,7 +5,7 @@ import { Select } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
 
-import Image from "next/image";
+import { Brand } from "@/components/shared/Brand";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,9 @@ import { loginSchema, type LoginValues } from "@/services/schemas";
 import { useCmsStore } from "@/store/cmsStore";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 import { Button } from "../ui/button";
+
+const LOGIN_BRAND_IMAGE_SIZE_PX = 38;
+const LOGIN_BRAND_PADDING_BOTTOM_PX = 32;
 
 export function LoginPage() {
   const t = useTranslations();
@@ -43,17 +46,10 @@ export function LoginPage() {
   return (
     <main className="cms-login">
       <section className="cms-loginCard">
-        <div className="cms-brand">
-          <Image
-            src="/favicon/android-chrome-192x192.png"
-            width={38}
-            height={38}
-            alt=""
-          />
-          <span>
-            World of Moments<small>CMS</small>
-          </span>
-        </div>
+        <Brand
+          imageSize={LOGIN_BRAND_IMAGE_SIZE_PX}
+          style={{ paddingBottom: LOGIN_BRAND_PADDING_BOTTOM_PX }}
+        />
         <h1>{t("login.title")}</h1>
         <p className="cms-muted">{t("login.description")}</p>
         <form

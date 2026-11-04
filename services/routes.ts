@@ -8,6 +8,7 @@ export const ROUTE_PATHS = {
   ROLES: "/cms/roles",
   ROLE_DETAIL: "/cms/roles/detail",
   CHANGE_PASSWORD: "/cms/change-password",
+  GENERAL: "/cms/general",
 } as const;
 
 export type CmsRoutePath = (typeof ROUTE_PATHS)[keyof typeof ROUTE_PATHS];
@@ -38,4 +39,5 @@ export const ROUTES_PERMISSIONS = {
   [ROUTE_PATHS.ROLES]: ROLE_PERMISSION_RULES,
   [ROUTE_PATHS.ROLE_DETAIL]: ROLE_PERMISSION_RULES,
   [ROUTE_PATHS.CHANGE_PASSWORD]: undefined,
+  [ROUTE_PATHS.GENERAL]: undefined,
 } satisfies Record<ProtectedCmsRoutePath, PermissionRules | undefined>;

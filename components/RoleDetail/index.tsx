@@ -93,7 +93,6 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.roles"), href: backHref },
             { label: title },
           ]}

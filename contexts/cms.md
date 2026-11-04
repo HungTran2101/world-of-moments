@@ -17,8 +17,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 ## Code organization
 
 - Page components live in `components/AccountDetail`, `components/Accounts`,
-  `components/ChangePassword`, `components/Login`, `components/Overview`,
-  `components/RoleDetail` and `components/Roles`. Styles are colocated in
+  `components/ChangePassword`, `components/General`, `components/Login`,
+  `components/Overview`, `components/RoleDetail` and `components/Roles`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
   entry, `styles/import.scss`, so public routes do not download CMS component CSS.
@@ -30,10 +30,15 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   controlled selection and Table composition, with page-specific row-action styles.
   They call `useCRUDPage` directly for query state, loading and deletion. There is
   no shared CRUD page wrapper.
-- Reusable UI lives in `components/shared/{Breadcrumbs,CmsPageContent,Forms,Header,Pagination,Providers,
+- Reusable UI lives in `components/shared/{Brand,Breadcrumbs,CmsPageContent,Forms,Header,Pagination,Providers,
   Route,SearchInput,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
+- `components/shared/Brand` owns the CMS logo, title, subtitle and brand styles.
+  Login and sidebar reuse it; `style` accepts React `CSSProperties` for custom
+  root styling, `className` extends its root classes and `imageSize` controls the
+  square logo size in pixels. Login supplies its larger logo and bottom padding;
+  the sidebar owns the Overview link and its mobile spacing override.
 - Sidebar configuration is `components/CmsSidebar/sidebar.ts` beside its
   rendering component, `CmsSidebar`; the public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
@@ -129,7 +134,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - `CmsRoutePath` is derived from the path constants; `ProtectedCmsRoutePath`
   excludes login. The factory accepts only protected paths, and the permission map
   must cover all of them. Account list/detail share one rule object, as do roles.
-  Overview and password change explicitly map to `undefined`.
+  Overview, password change and General explicitly map to `undefined`
+  (session-only access).
 - Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
 - A configured `show` rule may reference any catalog permission. Lack of that
@@ -143,6 +149,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
   `key`, translated `name`, optional `href`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
+  The System category contains General, available to every signed-in CMS user.
 
 | Route | Purpose |
 | --- | --- |
@@ -153,6 +160,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 | `/cms/roles` | Role list |
 | `/cms/roles/detail` | Create without `id`; view/update with `?id=...` |
 | `/cms/change-password` | Self-service password change, including seeded admin |
+| `/cms/general` | General preferences; language selection for now |
 
 ## Layout, forms, and localization
 
@@ -160,8 +168,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `cms-sidebarFooter` and `mapView-wrapper`); JSX and imperative selectors use
   the same names.
 
-- Persistent sidebar with logo, nested navigation, locale switch, password change
-  and logout. Mobile navigation is collapsible. Sidebar and sticky page Header use
+- Persistent sidebar with logo and nested navigation. Its compact footer shows
+  only the display name, then a secondary password-change Link and a destructive
+  icon-only sign-out button on the same row, with a localized label and tooltip.
+  Language selection lives on System → General and uses the existing locale
+  service/cookie with immediate saving and refresh; errors are displayed inline.
+  Mobile navigation is collapsible. Sidebar and sticky page Header use
   solid white surfaces, full borders and 12px corners. The viewport shell has 12px
   outer spacing/gaps on desktop and 8px on mobile, with independent main scrolling.
 - CMS inputs, single selects and checkboxes use shadcn primitives. Account roles
@@ -208,7 +220,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Page bodies do not add outer padding; form/table surfaces retain their internal
   control inset. Account/role detail and password-change forms fill the available
   content width through shared `.cms-form` styling, without page-specific width caps.
-  Breadcrumbs accept `{ label, href? }[]`.
+  Breadcrumbs accept `{ label, href? }[]`. Root pages begin with their own label,
+  without an Overview prefix; detail pages begin with their parent list.
 - Navigation uses Next.js Links, except the Header back callback button, which
   uses client routing. Submissions/mutations are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
@@ -573,3 +586,13 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   Temporary component checks cover standalone callbacks, page-size changes, empty
   and boundary pages, disabled controls, custom sizes/classes, EN/VI labels and
   Table composition while fetching. Desktop Accounts rendering is checked.
+
+- Compact sidebar and General preferences: scoped ESLint/Stylelint fixes,
+  repository lint, route type generation and TypeScript checks pass. Browser
+  verification covers the same-row secondary password link/destructive sign-out
+  icon, localized tooltip, display-name-only identity, and System → General
+  navigation. English/Vietnamese language changes persist across reloads.
+  At 1440px and 390px, the footer stays on one row without horizontal overflow;
+  mobile password navigation closes the sidebar. Account/role list and detail
+  breadcrumbs and password-change breadcrumbs omit the Overview prefix.
+  Sign-out returns to login, and the checked pages have no console warnings/errors.

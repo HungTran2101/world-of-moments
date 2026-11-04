@@ -37,6 +37,8 @@
     "clearSelection": "Bỏ chọn tất cả"
   },
   "nav": {
+    "system": "Hệ thống",
+    "general": "Cài đặt chung",
     "home": "Tổng quan",
     "management": "Quản lý",
     "accounts": "Tài khoản",

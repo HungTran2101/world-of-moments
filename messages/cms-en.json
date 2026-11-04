@@ -37,6 +37,8 @@
     "clearSelection": "Clear selections"
   },
   "nav": {
+    "system": "System",
+    "general": "General",
     "home": "Overview",
     "management": "Management",
     "accounts": "Accounts",

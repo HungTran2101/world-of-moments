@@ -145,7 +145,6 @@ export function RolesPage({ permission }: CmsPageProps) {
         <Breadcrumbs
           label={t("common.breadcrumbs")}
           items={[
-            { label: t("nav.home"), href: ROUTE_PATHS.OVERVIEW },
             { label: t("nav.roles") },
           ]}
         />
