@@ -49,7 +49,6 @@ export async function PATCH(
           where: { id },
           data: {
             ...data,
-            displayUsername: data.username,
             roles: {
               create: [...new Set(roleIds)].map((roleId) => ({ roleId })),
             },

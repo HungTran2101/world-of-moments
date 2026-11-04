@@ -75,7 +75,6 @@ export async function POST(request: Request) {
           id: userId,
           email: `${userId}@cms.invalid`,
           emailVerified: true,
-          displayUsername: data.username,
           accounts: {
             create: { accountId: userId, providerId: "credential", password },
           },

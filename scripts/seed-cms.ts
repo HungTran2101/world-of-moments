@@ -43,7 +43,6 @@ async function main() {
         data: {
           id,
           username: "admin",
-          displayUsername: "admin",
           name: "Administrator",
           email: `${id}@cms.invalid`,
           emailVerified: true,

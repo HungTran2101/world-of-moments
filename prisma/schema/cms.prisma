@@ -1,18 +1,17 @@
 model User {
-  id              String        @id @default(cuid())
-  name            String
-  email           String        @unique
-  emailVerified   Boolean       @default(false)
-  image           String?
-  username        String?       @unique
-  displayUsername String?
-  isActive        Boolean       @default(true)
-  isSystem        Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  sessions        Session[]
-  accounts        Account[]
-  roles           CmsUserRole[]
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  emailVerified Boolean       @default(false)
+  image         String?
+  username      String?       @unique
+  isActive      Boolean       @default(true)
+  isSystem      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  roles         CmsUserRole[]
 
   @@map("cms_auth_users")
 }

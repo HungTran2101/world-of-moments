@@ -79,6 +79,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Username/password login; accounts contain username, display name, active status,
   password credentials, and multiple roles. Internal email identifiers satisfy
   Better Auth's schema; real email addresses are not collected.
+- The username plugin disables `displayUsername`; account creation, updates and
+  seeding store only `username` and the separate display name (`name`). Migration
+  `20261104000000_remove_cms_display_username` drops the redundant column.
+  Other Better Auth core user/session/account/verification fields remain in the
+  schema for adapter compatibility, even when the CMS UI does not expose them.
 - Initial username **admin**, password **worldofmoment**. Seeding reads the password
   from `CMS_INITIAL_ADMIN_PASSWORD`, hashes it, and never overwrites an existing
   account. No forced first-login password change.
@@ -397,6 +402,11 @@ table. Deploy the session-only application before applying this migration where
 older application instances could still use JWT signing keys. Existing migration
 history is retained. `BETTER_AUTH_SECRET` remains required for cookie-based auth.
 
+Deploy the application with `displayUsername` disabled and regenerate Prisma
+before applying `20261104000000_remove_cms_display_username`. Older application
+instances still write/read that column and must be restarted with the updated
+code and generated client before the column is dropped.
+
 ### Development compiler
 
 The application uses Next.js 16.4.3 with the matching `eslint-config-next` version.
@@ -425,6 +435,16 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- `displayUsername` cleanup: the username plugin disables the field, account
+  creation/update and seeding no longer write it, and the Prisma column is
+  removed. The migration is applied to the development database; a direct
+  metadata query confirms the column is absent and `username`/`name` remain.
+  Scoped ESLint fixes, repository lint, Prisma formatting/validation/client
+  generation, TypeScript and diff checks pass. The development server was
+  restarted with the regenerated client. Live HTTP checks cover account creation,
+  username update, detail retrieval, login with the updated username and the
+  existing administrator session. Temporary account/role records were removed;
+  checked browser pages have no console warnings/errors. Production is unchanged.
 - Native CMS page factory: scoped ESLint fixes, repository lint, TypeScript and
   the Webpack production build pass. The default Turbopack build is blocked here
   by font-download and worker-port restrictions. Temporary checks cover 30

@@ -82,6 +82,7 @@ function createAuth() {
     },
     plugins: [
       username({
+        displayUsername: false,
         maxUsernameLength: 40,
         usernameValidator: (value) => /^[a-z0-9_.-]{3,40}$/.test(value),
       }),
