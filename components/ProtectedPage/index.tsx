@@ -1,5 +1,6 @@
 import "server-only";
 
+import { ROUTE_PATHS, ROUTES_PERMISSIONS } from "@/services/constant";
 import { cache, type ComponentType } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,12 +8,7 @@ import { requireCmsSession } from "@/handlers/auth";
 import { CmsHttpError } from "@/handlers/http";
 import { CmsRoute } from "@/components/shared/Route";
 import { resolvePermission } from "@/services/permission";
-import {
-  ROUTE_PATHS,
-  ROUTES_PERMISSIONS,
-  getCmsLandingPath,
-  type ProtectedCmsRoutePath,
-} from "@/services/routes";
+import { getCmsLandingPath, type ProtectedCmsRoutePath } from "@/services/routes";
 import type { CmsPageProps } from "@/services/shared/types";
 
 export const getPageIdentity = cache(async () => {

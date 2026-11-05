@@ -1,7 +1,4 @@
-import type {
-  SubmissionStatus,
-  SubmissionValidity,
-} from "@/services/submissions/constants";
+import type { SubmissionStatus, SubmissionValidity } from "@/services/constant";
 
 export interface CmsSubmissionRecord {
   id: string;

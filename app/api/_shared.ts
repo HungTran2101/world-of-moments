@@ -1,15 +1,48 @@
 import "server-only";
 
-import type { Prisma, Submission } from "@prisma/client";
+import { Prisma, type Submission } from "@prisma/client";
 import { CmsHttpError } from "@/handlers/http";
-import { checkPermission, permissions } from "@/services/permission";
+import { permissions } from "@/services/constant";
+import { checkPermission } from "@/services/permission";
 import type { CmsUser } from "@/services/shared/types";
 import type { SubmissionUpdateValues } from "@/services/schemas";
 import type { CmsSubmissionRecord } from "@/services/cms/submissions/types";
-import {
-  serializeValidity,
-  toDatabaseValidity,
-} from "@/lib/submissionModeration";
+import { serializeValidity, toDatabaseValidity } from "@/lib/submissionModeration";
+
+export const accountSelect = {
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  updatedBy: true,
+  username: true,
+  name: true,
+  isActive: true,
+  roles: { select: { role: { select: { id: true, name: true } } } },
+} satisfies Prisma.UserSelect;
+
+export function serializeAccount(
+  user: Prisma.UserGetPayload<{ select: typeof accountSelect }>,
+) {
+  const roles = user.roles.map(({ role }) => role);
+  return {
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    username: user.username ?? "",
+    roles,
+    roleIds: roles.map(({ id }) => id),
+  };
+}
+
+export async function assertRoles(tx: Prisma.TransactionClient, ids: string[]) {
+  const count = await tx.cmsRole.count({
+    where: { id: { in: [...new Set(ids)] }, isSystem: false },
+  });
+  if (count !== new Set(ids).size)
+    throw new CmsHttpError(422, "errors.validation", {
+      roleIds: ["validation.invalidRoles"],
+    });
+}
 
 export function serializeSubmission(row: Submission): CmsSubmissionRecord {
   return {
@@ -77,4 +110,16 @@ export function submissionModerationData(
       ? { validity: toDatabaseValidity(data.validity) }
       : {}),
   };
+}
+
+export function dashboardCalendarBounds(timeZone: string, now = new Date()) {
+  // Prisma lưu timestamp UTC không kèm múi giờ; đổi sang ngày địa phương trước khi tính khoảng lịch.
+  return Prisma.sql`
+    settings AS (
+      SELECT ${timeZone}::text AS tz, ${now}::timestamp AS now_utc
+    ), calendar AS (
+      SELECT *, (now_utc AT TIME ZONE 'UTC' AT TIME ZONE tz)::date AS today
+      FROM settings
+    )
+  `;
 }

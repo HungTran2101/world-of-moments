@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTE_PATHS } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";

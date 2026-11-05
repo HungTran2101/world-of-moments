@@ -9,9 +9,6 @@ import type {
   UpdateSubmissionPayload,
 } from "./types";
 
-// Tách cache cũ chưa có trạng thái để lịch sử luôn khóa đúng bài chưa công bố.
-export const submissionHistoryKey = ["submission-history", "moderation"] as const;
-
 export function getSubmissionHistory(
   authorUuid: string,
   search: string,

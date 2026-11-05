@@ -1,11 +1,10 @@
 "use client";
 
-import { ROUTE_PATHS, getCmsLandingPath } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
+import { getCmsLandingPath } from "@/services/routes";
 import { Select } from "@/components/ui/select";
-
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-
 import { Brand } from "@/components/shared/Brand";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";

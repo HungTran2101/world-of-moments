@@ -1,8 +1,8 @@
 "use client";
 
-import { ROUTE_PATHS, getCmsLandingPath } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
+import { getCmsLandingPath } from "@/services/routes";
 import { Button } from "@/components/ui/button";
-
 import { Brand } from "@/components/shared/Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

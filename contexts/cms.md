@@ -44,8 +44,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   rendering component, `CmsSidebar`; the public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
-  `app/api/cms/{auth,accounts,roles,submissions,dashboard,nopermission}`. Shared account selection,
-  serialization and role validation live in `app/api/cms/accounts/_shared.ts`.
+  `app/api/cms/{auth,accounts,roles,submissions,dashboard,nopermission}`. Shared account
+  selection/serialization/role validation, submission serialization/moderation helpers
+  and dashboard calendar SQL live in the server-only `app/api/_shared.ts`.
 - Server-only session/auth configuration and HTTP utilities remain in
   `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
   trusted origins for POST/PATCH and converts application errors to JSON.
@@ -57,8 +58,13 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   the server before including authorized content. `components/shared/Route` only
   synchronizes the validated user into the store/sidebar and renders children or
   the existing localized forbidden UI.
-- Permission constants, route mappings, query state and validation schemas live
-  in `services/{permission,routes,query-state,schemas}.ts`.
+- Static service constants live in `services/constant.ts`: submission states/defaults,
+  dashboard periods, pagination sizes, permission catalogs, route paths/policies,
+  error codes/events and the submission-history query key. Consumers import these
+  directly. Permission helpers/types, landing-route helpers/types, query state and
+  validation schemas remain in `services/{permission,routes,query-state,schemas}.ts`.
+  The constants module has only type imports and stays safe for client consumers;
+  server-only API helpers stay in `app/api/_shared.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
   types: `services/cms/{accounts,roles,submissions,dashboard,auth}`, `services/future-message`,
   `services/submissions`, and `services/locale`. Types are imported directly from
@@ -133,8 +139,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 ## Permissions, routes, and sidebar
 
-- `services/permission.ts` exports `permissions`, `permissionModules`,
-  `checkPermission(scopes, permission)`, and permission-object resolution.
+- `services/constant.ts` exports `permissions` and `permissionModules`;
+  `services/permission.ts` exports `checkPermission(scopes, permission)`,
+  permission-object resolution and permission types.
 - Defaults: `account.show/create/update/delete` and `role.show/create/update/delete`.
 - Dashboard has only `dashboard.show`; its role-matrix row has no create/update/delete actions.
   Ordinary roles are not automatically granted it; wildcard access includes it.
@@ -144,7 +151,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Routes and APIs import the same `permissions.ACCOUNT_SHOW`,
   `permissions.ACCOUNT_CREATE`, etc. constants. No delegation hierarchy is applied
   to ordinary accounts in this version.
-- `services/routes.ts` exports `ROUTE_PATHS` for all CMS page URLs, including login,
+- `services/constant.ts` exports `ROUTE_PATHS` for all CMS page URLs, including login,
   and `ROUTES_PERMISSIONS` keyed by every protected path. It imports no page
   components. Native page files own URL matching and component selection; CMS
   navigation, breadcrumbs and redirects use the shared path constants.

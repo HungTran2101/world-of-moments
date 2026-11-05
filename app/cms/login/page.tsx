@@ -1,4 +1,5 @@
-import { ROUTE_PATHS, getCmsLandingPath } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
+import { getCmsLandingPath } from "@/services/routes";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireCmsSession } from "@/handlers/auth";

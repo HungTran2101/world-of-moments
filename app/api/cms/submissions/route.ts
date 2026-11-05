@@ -1,3 +1,9 @@
+import { permissions, DEFAULT_SUBMISSION_STATUS, DEFAULT_SUBMISSION_VALIDITY } from "@/services/constant";
+import {
+  assertModerationPermission,
+  assertPublicationConfirmed,
+  serializeSubmission,
+} from "@/app/api/_shared";
 import { randomUUID } from "node:crypto";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 import type { CmsSubmissionRecord } from "@/services/cms/submissions/types";
@@ -7,20 +13,10 @@ import { fetchWeatherAtmosphere } from "@/lib/weather";
 import { toDatabaseValidity } from "@/lib/submissionModeration";
 import { requireCmsSession } from "@/handlers/auth";
 import { cmsJson, parseBody, withCmsRequest } from "@/handlers/http";
-import { permissions } from "@/services/permission";
 import {
   submissionCreateSchema,
   submissionListSchema,
 } from "@/services/schemas";
-import {
-  DEFAULT_SUBMISSION_STATUS,
-  DEFAULT_SUBMISSION_VALIDITY,
-} from "@/services/submissions/constants";
-import {
-  assertModerationPermission,
-  assertPublicationConfirmed,
-  serializeSubmission,
-} from "./_shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

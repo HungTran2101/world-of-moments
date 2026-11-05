@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTE_PATHS } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
 import { apiRequest } from "@/services/shared/api";
 import { ApiError } from "@/services/shared/errors";
 

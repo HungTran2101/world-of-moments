@@ -1,14 +1,10 @@
+import { permissions, DASHBOARD_DAILY_HISTORY_LIMIT_DAYS, DASHBOARD_PERIOD_DAYS } from "@/services/constant";
+import { dashboardCalendarBounds } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";
 import { cmsJson, withCmsRequest } from "@/handlers/http";
-import { permissions } from "@/services/permission";
 import { dashboardTrendSchema } from "@/services/schemas";
-import {
-  DASHBOARD_DAILY_HISTORY_LIMIT_DAYS,
-  DASHBOARD_PERIOD_DAYS,
-} from "@/services/cms/dashboard/constants";
 import type { DashboardTrend } from "@/services/cms/dashboard/types";
-import { dashboardCalendarBounds } from "../_shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

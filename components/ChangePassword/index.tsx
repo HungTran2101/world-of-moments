@@ -1,12 +1,10 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/constant";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { ROUTE_PATHS } from "@/services/routes";
 import { Button } from "@/components/ui/button";
-
 import { PasswordInput } from "@/components/ui/password-input";
-
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";

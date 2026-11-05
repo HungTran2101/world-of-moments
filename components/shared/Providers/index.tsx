@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTE_PATHS } from "@/services/routes";
+import { ROUTE_PATHS } from "@/services/constant";
 import QueryProvider from "@/components/shared/QueryProvider";
 import type { CmsUser } from "@/services/shared/types";
 import { CmsStoreContext, createCmsStore, useCmsStoreApi } from "@/store/cmsStore";

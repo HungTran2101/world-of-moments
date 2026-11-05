@@ -1,14 +1,12 @@
 "use client";
 
+import { ROUTE_PATHS, permissionModules } from "@/services/constant";
 import { RecordAudit } from "@/components/shared/RecordAudit";
-import { ROUTE_PATHS } from "@/services/routes";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
-
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +16,6 @@ import { useEffect, useRef, useState } from "react";
 import { roleSchema, type RoleValues } from "@/services/schemas";
 import { createCmsRole, getCmsRole, updateCmsRole } from "@/services/cms/roles";
 import type { CmsPageProps } from "@/services/shared/types";
-import { permissionModules } from "@/services/permission";
 import { Header } from "@/components/shared/Header";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";

@@ -1,11 +1,11 @@
 "use client";
 
+import { PAGE_SIZES } from "@/services/constant";
 import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { PAGE_SIZES } from "@/services/query-state";
 import type { PaginationMetadata } from "@/services/shared/pagination";
 
 const FIRST_PAGE = 1;

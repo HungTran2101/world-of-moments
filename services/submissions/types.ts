@@ -1,4 +1,4 @@
-import type { SubmissionStatus } from "./constants";
+import type { SubmissionStatus } from "@/services/constant";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 
 export interface SubmissionPin {

@@ -1,25 +1,4 @@
-export const API_ERROR_STATUS = {
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503,
-} as const;
-
-// Nhom ma loi cho runtime de UI co the map sang modal phu hop.
-export const RUNTIME_ERROR_STATUS = {
-  UNKNOWN: 1000,
-  RENDER: 1001,
-  WINDOW: 1002,
-  UNHANDLED_PROMISE: 1003,
-  NETWORK: 1100,
-} as const;
-
-export const APP_ERROR_EVENT = "app-error";
+import { RUNTIME_ERROR_STATUS } from "@/services/constant";
 
 export type ApiErrorStatus = number;
 export type RuntimeErrorStatus = (typeof RUNTIME_ERROR_STATUS)[keyof typeof RUNTIME_ERROR_STATUS];

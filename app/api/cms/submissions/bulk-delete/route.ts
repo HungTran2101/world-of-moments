@@ -1,3 +1,4 @@
+import { permissions } from "@/services/constant";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";
 import {
@@ -6,7 +7,6 @@ import {
   parseBody,
   withCmsRequest,
 } from "@/handlers/http";
-import { permissions } from "@/services/permission";
 import { deleteSchema } from "@/services/schemas";
 
 export const runtime = "nodejs";

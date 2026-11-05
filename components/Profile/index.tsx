@@ -1,12 +1,12 @@
 "use client";
 
+import { ROUTE_PATHS } from "@/services/constant";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Header } from "@/components/shared/Header";
-import { ROUTE_PATHS } from "@/services/routes";
 import { useCmsStore } from "@/store/cmsStore";
 
 export function ProfilePage() {

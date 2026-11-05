@@ -1,3 +1,11 @@
+import { permissions } from "@/services/constant";
+import {
+  assertModerationPermission,
+  assertPublicationConfirmed,
+  countNonValidPublications,
+  submissionModerationData,
+  serializeSubmission,
+} from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";
 import {
@@ -6,15 +14,7 @@ import {
   parseBody,
   withCmsRequest,
 } from "@/handlers/http";
-import { permissions } from "@/services/permission";
 import { submissionUpdateSchema } from "@/services/schemas";
-import {
-  assertModerationPermission,
-  assertPublicationConfirmed,
-  countNonValidPublications,
-  submissionModerationData,
-  serializeSubmission,
-} from "../_shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

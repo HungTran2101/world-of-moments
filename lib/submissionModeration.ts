@@ -1,11 +1,11 @@
 import "server-only";
 
+import type { SubmissionValidity } from "@/services/constant";
 import type {
   Prisma,
   SubmissionValidity as DatabaseValidity,
 } from "@prisma/client";
 import { z } from "zod";
-import type { SubmissionValidity } from "@/services/submissions/constants";
 
 export const toDatabaseValidity = (
   value: SubmissionValidity,

@@ -1,8 +1,9 @@
 "use client";
 
+import { submissionHistoryKey } from "@/services/constant";
 import { useAuthorUUID } from "@/hooks/useAuthorUUID";
 import { useError } from "@/components/shared/ErrorProvider";
-import { getSubmissionHistory, submissionHistoryKey } from "@/services/submissions";
+import { getSubmissionHistory } from "@/services/submissions";
 import type { SubmissionPin } from "@/services/submissions/types";
 import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
 import { useQuery } from "@tanstack/react-query";

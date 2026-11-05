@@ -1,5 +1,5 @@
+import { CLIENT_SUBMISSION_ACTOR } from "@/services/constant";
 import { submissionViewer, visibleSubmissionWhere, SUBMISSION_PRIVATE_HEADERS } from "@/lib/submissionModeration";
-import { CLIENT_SUBMISSION_ACTOR } from "@/services/submissions/constants";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fetchWeatherAtmosphere } from "@/lib/weather";

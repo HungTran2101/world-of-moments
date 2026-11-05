@@ -107,9 +107,11 @@ Internal CMS API logic lives in native endpoint files under `app/api/cms`, with
 shared auth/HTTP utilities in `handlers/` and its server-only page factory in
 `components/ProtectedPage`. Each native CMS page selects its content component with
 `createProtectedPage(Component, ROUTE_PATHS.KEY)`; the factory validates the session
-and resolves permissions before rendering content. `services/routes.ts` holds only
-CMS path constants and the exhaustive protected-route permission map, with no
-component registry. CMS page components and reusable UI
+and resolves permissions before rendering content. `services/constant.ts` holds
+static service constants, including CMS paths and the exhaustive protected-route
+permission map, with no component registry. `services/routes.ts` retains landing
+navigation helpers and route types. Shared server-only API helpers live in
+`app/api/_shared.ts`. CMS page components and reusable UI
 follow the existing `components/` and `components/shared/` structure, with
 colocated `index.scss` styles. Permission/route/schema/query definitions live in
 `services/`, CMS domain requests in `services/cms/{accounts,roles,submissions,auth}/`,

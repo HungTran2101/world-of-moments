@@ -1,4 +1,5 @@
-import { APP_ERROR_EVENT, ApiError, RUNTIME_ERROR_STATUS, toAppError } from "@/services/shared/errors";
+import { APP_ERROR_EVENT, RUNTIME_ERROR_STATUS } from "@/services/constant";
+import { ApiError, toAppError } from "@/services/shared/errors";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: BodyInit | object;

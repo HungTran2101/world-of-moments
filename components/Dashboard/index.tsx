@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  permissions,
+  ROUTE_PATHS,
+  DASHBOARD_SUMMARY_PERIODS,
+  DASHBOARD_TREND_PERIODS,
+  DEFAULT_DASHBOARD_PERIOD,
+} from "@/services/constant";
+import type { SubmissionValidity } from "@/services/constant";
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -23,24 +31,17 @@ import {
 } from "@/components/ui/chart";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCmsStore } from "@/store/cmsStore";
-import { checkPermission, permissions } from "@/services/permission";
-import { ROUTE_PATHS } from "@/services/routes";
+import { checkPermission } from "@/services/permission";
 import {
   getCmsDashboardSummary,
   getCmsDashboardTrend,
 } from "@/services/cms/dashboard";
-import {
-  DASHBOARD_SUMMARY_PERIODS,
-  DASHBOARD_TREND_PERIODS,
-  DEFAULT_DASHBOARD_PERIOD,
-} from "@/services/cms/dashboard/constants";
 import type {
   DashboardSummary,
   DashboardSummaryPeriod,
   DashboardTrend,
   DashboardTrendPeriod,
 } from "@/services/cms/dashboard/types";
-import type { SubmissionValidity } from "@/services/submissions/constants";
 
 const SUMMARY_METRICS = [
   "total",

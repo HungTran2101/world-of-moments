@@ -1,6 +1,5 @@
+import { PAGE_SIZES } from "@/services/constant";
 import type { CrudListParams } from "@/services/shared/types";
-
-export const PAGE_SIZES = [10, 20, 50, 100] as const;
 
 export function listQuery(params: CrudListParams) {
   return new URLSearchParams({

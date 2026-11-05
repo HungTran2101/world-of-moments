@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  SUBMISSION_STATUSES,
+  SUBMISSION_VALIDITIES,
+  DEFAULT_SUBMISSION_STATUS,
+  DEFAULT_SUBMISSION_VALIDITY,
+  permissions,
+  ROUTE_PATHS,
+} from "@/services/constant";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -27,14 +35,6 @@ import {
   type SubmissionCreateValues,
   type SubmissionUpdateValues,
 } from "@/services/schemas";
-import {
-  SUBMISSION_STATUSES,
-  SUBMISSION_VALIDITIES,
-  DEFAULT_SUBMISSION_STATUS,
-  DEFAULT_SUBMISSION_VALIDITY,
-} from "@/services/submissions/constants";
-import { permissions } from "@/services/permission";
-import { ROUTE_PATHS } from "@/services/routes";
 import type { CmsPageProps } from "@/services/shared/types";
 import { constants } from "@/app/api/constant";
 

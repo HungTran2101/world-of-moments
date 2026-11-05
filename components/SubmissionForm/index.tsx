@@ -1,10 +1,11 @@
 "use client";
 
+import { RUNTIME_ERROR_STATUS, submissionHistoryKey } from "@/services/constant";
 import { useError } from "@/components/shared/ErrorProvider";
 import { getOrCreateUUID } from "@/lib/uuid";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
-import { ApiError, RUNTIME_ERROR_STATUS, type ErrorMessageKey } from "@/services/shared/errors";
-import { createSubmission, submissionHistoryKey } from "@/services/submissions";
+import { ApiError, type ErrorMessageKey } from "@/services/shared/errors";
+import { createSubmission } from "@/services/submissions";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSystemStore } from "@/store/systemStore";
 import { usePinStore } from "@/store/usePinStore";
