@@ -47,7 +47,6 @@
     "system": "System",
     "general": "General",
     "map": "Map",
-    "home": "Overview",
     "management": "Management",
     "accounts": "Accounts",
     "roles": "Roles",
@@ -57,17 +56,14 @@
     "skip": "Skip to content",
     "menu": "Menu",
     "closeMenu": "Close menu",
-    "submissions": "Submissions"
+    "submissions": "Submissions",
+    "dashboard": "Dashboard"
   },
   "login": {
     "title": "Sign in",
     "description": "Manage World of Moments.",
     "submit": "Sign in",
     "signingIn": "Signing in…"
-  },
-  "home": {
-    "welcome": "Hello, {name}.",
-    "description": "Manage submissions, CMS accounts, and role permissions."
   },
   "account": {
     "username": "Username",
@@ -106,7 +102,8 @@
   "modules": {
     "account": "Accounts",
     "role": "Roles",
-    "submission": "Submissions"
+    "submission": "Submissions",
+    "dashboard": "Dashboard"
   },
   "permissionNames": {
     "account": {
@@ -143,7 +140,8 @@
     "currentPassword": "Your current password is incorrect.",
     "rateLimited": "Too many sign-in attempts. Please try again later.",
     "server": "Unable to complete the request. Please try again.",
-    "confirmPublish": "Confirm publication of non-valid submissions before continuing."
+    "confirmPublish": "Confirm publication of non-valid submissions before continuing.",
+    "noPagePermissions": "Contact your supervisor for permissions view"
   },
   "submission": {
     "description": "Description",
@@ -182,5 +180,33 @@
     },
     "confirmPublish": "{count} submission(s) will be published without valid approval. Only their owner can see them until they are marked valid. Continue?",
     "weatherCode": "Weather code"
+  },
+  "dashboard": {
+    "summary": "Summary",
+    "trend": "Submission trend",
+    "period": "Period",
+    "periods": {
+      "7d": "7 days",
+      "30d": "30 days",
+      "all": "All time"
+    },
+    "metrics": {
+      "total": "Total",
+      "publiclyVisible": "Publicly visible",
+      "needsInspection": "Needs inspection",
+      "valid": "Valid",
+      "invalid": "Invalid"
+    },
+    "visibilityHelp": "About publicly visible submissions",
+    "visibilityCondition": "Only submissions that are Published and Valid are visible to everyone on the public map.",
+    "summaryDescription": "Submissions created in the selected period, grouped by their current moderation state.",
+    "viewSubmissions": "View submissions",
+    "emptyTrend": "No submissions in this period.",
+    "dailyCaption": "{count, plural, one {# submission} other {# submissions}} · Daily counts",
+    "monthlyCaption": "{count, plural, one {# submission} other {# submissions}} · Monthly counts",
+    "viewChartData": "View chart data",
+    "date": "Date",
+    "month": "Month",
+    "submissions": "Submissions"
   }
 }

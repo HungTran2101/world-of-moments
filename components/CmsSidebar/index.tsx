@@ -1,6 +1,6 @@
 "use client";
 
-import { ROUTE_PATHS } from "@/services/routes";
+import { ROUTE_PATHS, getCmsLandingPath } from "@/services/routes";
 import { Button } from "@/components/ui/button";
 
 import { Brand } from "@/components/shared/Brand";
@@ -24,6 +24,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
   const user = useCmsStore((state) => state.user);
+  const landingPath = getCmsLandingPath(user?.scopes ?? []);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -84,11 +85,15 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
 
   const sidebarContent = (
     <>
-      <Link href={ROUTE_PATHS.OVERVIEW} className="cms-sidebarBrand" onClick={() => setOpen(false)}>
+      <Link
+        href={landingPath ?? ROUTE_PATHS.DASHBOARD}
+        className="cms-sidebarBrand"
+        onClick={() => setOpen(false)}
+      >
         <Brand />
       </Link>
       <nav aria-label={t("nav.navigation")}>
-        <ul>{sidebarItems.map(renderItem)}</ul>
+        <ul>{landingPath ? sidebarItems.map(renderItem) : null}</ul>
       </nav>
       <div className="cms-sidebarFooter">
         <Link

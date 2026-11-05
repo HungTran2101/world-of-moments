@@ -1,4 +1,4 @@
-import { ROUTE_PATHS } from "@/services/routes";
+import { ROUTE_PATHS, getCmsLandingPath } from "@/services/routes";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireCmsSession } from "@/handlers/auth";
@@ -6,13 +6,12 @@ import { CmsHttpError } from "@/handlers/http";
 import { LoginPage } from "@/components/Login";
 
 export default async function Page() {
-  let authenticated = false;
+  let scopes: string[] | undefined;
   try {
-    await requireCmsSession(await headers());
-    authenticated = true;
+    scopes = (await requireCmsSession(await headers())).scopes;
   } catch (error) {
     if (!(error instanceof CmsHttpError && error.status === 401)) throw error;
   }
-  if (authenticated) redirect(ROUTE_PATHS.OVERVIEW);
+  if (scopes) redirect(getCmsLandingPath(scopes) ?? ROUTE_PATHS.DASHBOARD);
   return <LoginPage />;
 }

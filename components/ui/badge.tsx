@@ -76,4 +76,4 @@ function Badge({ className, variant = "default", asChild = false, color, style, 
   );
 }
 
-export { Badge, badgeVariants };
+export { Badge, badgeVariants, BADGE_COLOR_CLASSES };

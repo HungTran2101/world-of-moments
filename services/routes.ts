@@ -1,7 +1,11 @@
-import { permissions, type PermissionRules } from "@/services/permission";
+import {
+  checkPermission,
+  permissions,
+  type PermissionRules,
+} from "@/services/permission";
 
 export const ROUTE_PATHS = {
-  OVERVIEW: "/cms",
+  DASHBOARD: "/cms",
   LOGIN: "/cms/login",
   SUBMISSIONS: "/cms/submissions",
   SUBMISSION_DETAIL: "/cms/submissions/detail",
@@ -45,7 +49,7 @@ const SUBMISSION_PERMISSION_RULES: PermissionRules = {
 export const ROUTES_PERMISSIONS = {
   [ROUTE_PATHS.SUBMISSIONS]: SUBMISSION_PERMISSION_RULES,
   [ROUTE_PATHS.SUBMISSION_DETAIL]: SUBMISSION_PERMISSION_RULES,
-  [ROUTE_PATHS.OVERVIEW]: undefined,
+  [ROUTE_PATHS.DASHBOARD]: { show: permissions.DASHBOARD_SHOW },
   [ROUTE_PATHS.ACCOUNTS]: ACCOUNT_PERMISSION_RULES,
   [ROUTE_PATHS.ACCOUNT_DETAIL]: ACCOUNT_PERMISSION_RULES,
   [ROUTE_PATHS.ROLES]: ROLE_PERMISSION_RULES,
@@ -54,3 +58,16 @@ export const ROUTES_PERMISSIONS = {
   [ROUTE_PATHS.PROFILE]: undefined,
   [ROUTE_PATHS.GENERAL]: undefined,
 } satisfies Record<ProtectedCmsRoutePath, PermissionRules | undefined>;
+
+const CMS_LANDING_ROUTES = [
+  [ROUTE_PATHS.DASHBOARD, permissions.DASHBOARD_SHOW],
+  [ROUTE_PATHS.SUBMISSIONS, permissions.SUBMISSION_SHOW],
+  [ROUTE_PATHS.ACCOUNTS, permissions.ACCOUNT_SHOW],
+  [ROUTE_PATHS.ROLES, permissions.ROLE_SHOW],
+] as const;
+
+export function getCmsLandingPath(scopes: readonly string[]) {
+  return CMS_LANDING_ROUTES.find(([, permission]) =>
+    checkPermission(scopes, permission),
+  )?.[0];
+}

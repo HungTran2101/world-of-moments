@@ -10,6 +10,7 @@ import { resolvePermission } from "@/services/permission";
 import {
   ROUTE_PATHS,
   ROUTES_PERMISSIONS,
+  getCmsLandingPath,
   type ProtectedCmsRoutePath,
 } from "@/services/routes";
 import type { CmsPageProps } from "@/services/shared/types";
@@ -31,12 +32,21 @@ export function createProtectedPage(
 ) {
   return async function Page() {
     const user = await getPageIdentity();
+    const landingPath = getCmsLandingPath(user.scopes);
+    if (
+      routePath === ROUTE_PATHS.DASHBOARD &&
+      landingPath &&
+      landingPath !== routePath
+    )
+      redirect(landingPath);
     const permission = resolvePermission(user.scopes, ROUTES_PERMISSIONS[routePath]);
 
     // Chặn nội dung ngay trên server; layout có thể được giữ lại khi chuyển trang.
     return (
       <CmsRoute user={user} permission={permission}>
-        {permission.show ? <Component permission={permission} /> : null}
+        {landingPath && permission.show ? (
+          <Component permission={permission} />
+        ) : null}
       </CmsRoute>
     );
   };

@@ -186,7 +186,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                             <tr key={module.key}>
                               <th scope="row">{t(`modules.${module.key}`)}</th>
                               {module.defaults.map((key, index) => (
-                                <td key={key ?? "update"}>
+                                <td key={key ?? index}>
                                   {key ? (
                                     <Checkbox
                                       disabled={!canSave || isSubmitting}

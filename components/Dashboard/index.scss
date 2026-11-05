@@ -1,0 +1,183 @@
+.cms-dashboard {
+  display: grid;
+  gap: 20px;
+}
+
+.cms-dashboardPanel {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--cms-panel-radius);
+  background: var(--color-surface);
+}
+
+.cms-dashboardPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.cms-dashboardFilter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-muted);
+
+  [data-slot="select-trigger"] {
+    min-width: 124px;
+    color: var(--color-text);
+  }
+}
+
+.cms-dashboardDescription {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.cms-dashboardMetrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.cms-dashboardMetric {
+  padding: 12px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 8px;
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 24px;
+    font-size: 12px;
+  }
+
+  dd {
+    margin: 4px 0 0;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+}
+
+.cms-dashboardValue {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cms-dashboardInfo,
+.cms-dashboardReviewLink {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  color: inherit;
+  border-radius: 4px;
+
+  // Mở rộng vùng chạm mà không làm hàng nhãn và thẻ thống kê cao thêm.
+  &::after {
+    position: absolute;
+    inset: -8px;
+    content: "";
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentcolor;
+    outline-offset: 3px;
+  }
+}
+
+.cms .cms-dashboardMetric .cms-dashboardReviewLink {
+  color: inherit;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: rgb(0 0 0 / 5%);
+  }
+}
+
+.cms-dashboardFigure {
+  margin: 0;
+
+  figcaption {
+    margin-bottom: 20px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+  }
+}
+
+.cms-dashboardChart {
+  width: 100%;
+  min-width: 0;
+  height: 240px;
+  aspect-ratio: auto;
+
+  .recharts-surface:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+}
+
+.cms-dashboardData {
+  margin-top: 20px;
+
+  summary {
+    width: fit-content;
+    color: #304d6b;
+    cursor: pointer;
+  }
+
+  .cms-tableScroll {
+    max-height: 500px;
+    margin-top: 12px;
+  }
+}
+
+.cms-dashboardEmpty {
+  display: grid;
+  min-height: 240px;
+  margin: 0;
+  color: var(--color-text-muted);
+  place-content: center;
+  text-align: center;
+}
+
+@media (width <=1100px) {
+  .cms-dashboardMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (width <=600px) {
+  .cms-dashboardPanel {
+    padding: 16px;
+  }
+
+  .cms-dashboardPanelHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cms-dashboardMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}

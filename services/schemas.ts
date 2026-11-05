@@ -7,6 +7,11 @@ import {
   DEFAULT_SUBMISSION_VALIDITY,
 } from "@/services/submissions/constants";
 import { permissions } from "@/services/permission";
+import {
+  DASHBOARD_SUMMARY_PERIODS,
+  DASHBOARD_TREND_PERIODS,
+  DEFAULT_DASHBOARD_PERIOD,
+} from "@/services/cms/dashboard/constants";
 
 const password = () =>
   yup
@@ -89,6 +94,32 @@ export const listSchema = yup.object({
   page: yup.number().integer().min(1).max(1_000_000).default(1),
   pageSize: yup.number().oneOf([10, 20, 50, 100]).default(20),
   search: yup.string().trim().max(200).default(""),
+});
+
+const dashboardTimeZone = () => yup.string().required().test(
+  "time-zone",
+  "errors.validation",
+  (value) => {
+    if (!value || /^[+-]/.test(value)) return false;
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: value }).format();
+      return true;
+    } catch {
+      return false;
+    }
+  },
+);
+
+export const dashboardSummarySchema = yup.object({
+  period: yup.mixed<(typeof DASHBOARD_SUMMARY_PERIODS)[number]>()
+    .oneOf(DASHBOARD_SUMMARY_PERIODS).default(DEFAULT_DASHBOARD_PERIOD).defined(),
+  timeZone: dashboardTimeZone(),
+});
+
+export const dashboardTrendSchema = yup.object({
+  period: yup.mixed<(typeof DASHBOARD_TREND_PERIODS)[number]>()
+    .oneOf(DASHBOARD_TREND_PERIODS).default(DEFAULT_DASHBOARD_PERIOD).defined(),
+  timeZone: dashboardTimeZone(),
 });
 export type LoginValues = yup.InferType<typeof loginSchema>;
 export type AccountCreateValues = yup.InferType<typeof accountCreateSchema>;

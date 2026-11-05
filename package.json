@@ -34,6 +34,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.91.0",
+    "recharts": "3.8.0",
     "sass": "^1.97.3",
     "server-only": "^0.0.1",
     "shadcn": "^4.4.0",

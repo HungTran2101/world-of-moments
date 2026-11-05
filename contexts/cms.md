@@ -18,7 +18,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/General`, `components/Login`,
-  `components/Overview`, `components/Profile`, `components/RoleDetail`, `components/Roles`,
+  `components/Dashboard`, `components/Profile`, `components/RoleDetail`, `components/Roles`,
   `components/Submissions` and `components/SubmissionDetail`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
@@ -39,12 +39,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Login and sidebar reuse it; `style` accepts React `CSSProperties` for custom
   root styling, `className` extends its root classes and `imageSize` controls the
   square logo size in pixels. Login supplies its larger logo and bottom padding;
-  the sidebar owns the Overview link and its mobile spacing override.
+  the sidebar owns the brand link to the first permitted module and its mobile spacing override.
 - Sidebar configuration is `components/CmsSidebar/sidebar.ts` beside its
   rendering component, `CmsSidebar`; the public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
-  `app/api/cms/{auth,accounts,roles,submissions,nopermission}`. Shared account selection,
+  `app/api/cms/{auth,accounts,roles,submissions,dashboard,nopermission}`. Shared account selection,
   serialization and role validation live in `app/api/cms/accounts/_shared.ts`.
 - Server-only session/auth configuration and HTTP utilities remain in
   `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
@@ -60,7 +60,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Permission constants, route mappings, query state and validation schemas live
   in `services/{permission,routes,query-state,schemas}.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
-  types: `services/cms/{accounts,roles,submissions,auth}`, `services/future-message`,
+  types: `services/cms/{accounts,roles,submissions,dashboard,auth}`, `services/future-message`,
   `services/submissions`, and `services/locale`. Types are imported directly from
   the module's `/types` path, separately from runtime functions.
 - CMS UI imports named service functions instead of calling `cmsRequest`,
@@ -127,6 +127,8 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - `services/permission.ts` exports `permissions`, `permissionModules`,
   `checkPermission(scopes, permission)`, and permission-object resolution.
 - Defaults: `account.show/create/update/delete` and `role.show/create/update/delete`.
+- Dashboard has only `dashboard.show`; its role-matrix row has no create/update/delete actions.
+  Ordinary roles are not automatically granted it; wildcard access includes it.
   Extra: `account.resetPasswordPermission`.
 - Permission keys are defined in code, not created through the CMS. Roles assign
   catalog keys; account scopes combine all assigned roles without duplicates.
@@ -140,10 +142,19 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - `CmsRoutePath` is derived from the path constants; `ProtectedCmsRoutePath`
   excludes login. The factory accepts only protected paths, and the permission map
   must cover all of them. Account list/detail share one rule object, as do roles.
-  Overview, Profile, password change and General explicitly map to `undefined`
-  (session-only access).
+  Dashboard requires `dashboard.show`. Profile, password change and General map to
+  `undefined` (session-only access), subject to the no-page-access rule below.
 - Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
+- `getCmsLandingPath` centralizes landing priority: Dashboard, Submissions, Accounts,
+  then Roles, using each module's show permission. Login, authenticated login-page
+  visits, the sidebar brand and `/cms` without Dashboard access use that destination.
+  Other unauthorized module URLs retain the forbidden view.
+- If none of those four show permissions is available (including action-only roles),
+  all protected pages omit their content on the server and show
+  "Contact your supervisor for permissions view" (localized in Vietnamese).
+  The sidebar retains branding, identity and sign-out, with no page/map links or
+  empty navigation groups. This also overrides General, Profile and password change.
 - A configured `show` rule may reference any catalog permission. Lack of that
   permission renders the 403 UI. Missing `show` allows authenticated viewing;
   missing action mappings are false; `undefined` rules enable standard page actions.
@@ -160,13 +171,14 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `rel="noopener noreferrer"`. Selecting it also closes the mobile sidebar.
   Its label is localized in English and Vietnamese and requires no module permission.
   Management contains Submissions. System contains Accounts, Roles, General and
-  Profile; General and Profile are available to every signed-in CMS user. Profile
+  Profile; General and Profile are available to signed-in users with at least one
+  module show permission. Profile
   remains highlighted on its nested password-change page.
 
 | Route | Purpose |
 | --- | --- |
 | `/cms/login` | Username/password login; redirects signed-in users to `/cms` |
-| `/cms` | Authenticated overview with permitted navigation |
+| `/cms` | Dashboard (`dashboard.show`); otherwise first permitted module or no-access message |
 | `/cms/submissions` | Submission list and bulk moderation |
 | `/cms/submissions/detail` | Create without `id`; view/moderate with `?id=...` |
 | `/cms/accounts` | Account list |
@@ -176,6 +188,48 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 | `/cms/profile` | Read-only signed-in account username and display name |
 | `/cms/profile/change-password` | Self-service password change, including seeded admin |
 | `/cms/general` | General preferences; language selection for now |
+
+## Dashboard
+
+- `/cms` uses `DashboardPage` and `ROUTE_PATHS.DASHBOARD`; its title, breadcrumbs
+  and sidebar entry use Dashboard in both English and Vietnamese. Vietnamese
+  Dashboard copy uses “khoảnh khắc” for submissions.
+- Summary merges moderation counts into five metrics: Total, Publicly visible,
+  Needs inspection, Valid and Invalid. Its 7-day/30-day/all-time filter defaults to
+  30 days and selects creation dates; counts use current moderation state.
+  Compact summary cards reuse `BADGE_COLOR_CLASSES`: Total is neutral,
+  Publicly visible/Valid green (success), Needs inspection amber (warning),
+  and Invalid red (error), including the same background/border/text colors.
+  Publicly visible means published + valid and overlaps with Valid. A tooltip
+  explains the condition on hover, keyboard focus and touch/click.
+- Publicly visible, Needs inspection, Valid and Invalid include compact arrow links with localized
+  View submissions tooltips and accessible labels identifying the metric, only
+  with `submission.show`. They open `/cms/submissions?validity=need-inspect`,
+  `?validity=valid` or `?validity=invalid` at page 1. They apply no date
+  filter because the submission list has none. No queue or quick-actions section.
+  Publicly visible applies both `status=published` and `validity=valid`; its
+  explanatory tooltip remains available beside the link with separate hit areas.
+- Trend independently defaults to 30 days with an All time option. Thirty days
+  uses daily counts; All time uses daily counts through 90 calendar days of
+  history and monthly counts beyond that. Missing buckets are zero-filled,
+  including the current partial day/month. Zero totals show a localized empty state.
+  The shadcn/ui ChartContainer, ChartTooltip and Recharts line chart provide
+  a smooth monotone curve, responsive axes, localized date/count tooltips and
+  keyboard navigation. The expandable data table retains exact values. The shared chart primitive lives in
+  `components/ui/chart.tsx`, uses the existing `cn` utility and Recharts v3, with
+  chart height owned by Dashboard SCSS.
+- Browser IANA time zone is sent to the API. Calendar windows include today and
+  the preceding 6/29 days, including daylight-saving boundaries. Future-dated
+  submissions are excluded. Filters reset on a fresh visit.
+- GET `/api/cms/dashboard/summary?period=7d|30d|all&timeZone=...` returns
+  `{ total, publiclyVisible, needsInspection, valid, invalid }`.
+  GET `/api/cms/dashboard/trend?period=30d|all&timeZone=...` returns
+  `{ interval: "day" | "month", points: [{ date: "YYYY-MM-DD", count }] }`.
+  Both require `dashboard.show` independently of `submission.show`, use central
+  Yup validation, private/no-store responses and parameterized PostgreSQL aggregates.
+  Omitted periods default to 30d; timeZone is required. No schema migration.
+- Named dashboard services accept `ApiRequestOptions`; separate TanStack Query
+  keys include period and time zone. Sections load/fail/retry independently.
 
 ## Layout, forms, and localization
 
@@ -528,6 +582,36 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- Compact summary cards: shared badge palette reuse, tighter spacing/type and an
+  icon-only inspection link pass scoped ESLint/Stylelint fixes, TypeScript,
+  repository lint and diff checks. Development-browser checks verify about 83px
+  desktop cards, responsive 390px layout without overflow, matching preset colors,
+  localized link label/filter URL and visible keyboard focus. Console warnings/
+  errors are absent; temporary test records and the automation/blank window are removed.
+- Dashboard chart/localization refinement: the official radix-nova shadcn chart
+  primitive uses Recharts 3.8.0 and the existing `cn` helper. Vietnamese labels
+  retain Dashboard and use Khoảnh khắc throughout Dashboard copy. Scoped
+  ESLint/Stylelint auto-fixes, TypeScript, repository lint, locale-key/newline
+  checks and the Webpack production build pass. Development-browser checks verify
+  daily/monthly charts, independent filters, localized date/count tooltips,
+  keyboard arrow navigation with a visible focus outline and desktop/390px layout
+  without overflow or console warnings/errors. Temporary account/role/session
+  records, credentials and the dedicated browser/blank window are removed.
+- Dashboard and permission-aware landing: scoped ESLint/Stylelint auto-fixes,
+  TypeScript, repository lint, route type generation, locale-key/newline checks,
+  diff checks and the Webpack production build pass. PostgreSQL checks using
+  rolled-back temporary tables cover all status/validity combinations, empty
+  periods, local-midnight inclusion, future-date exclusion, DST transitions,
+  missing buckets and the 90/91-day aggregation switch. Live development-browser
+  checks cover 401/403 API guards, invalid-filter 422 responses, Dashboard-only,
+  Submissions-only, Accounts-only, Roles-only, wildcard, action-only and zero-view
+  access, landing redirects, empty navigation, no-access General/Profile/password views,
+  EN/VI Dashboard labels, independent filters, the prefiltered inspection link,
+  keyboard/touch tooltip access and desktop/390px layout without overflow.
+  Simulated browser responses verify zero/empty presentation and independent
+  trend failure/retry; a fresh Dashboard has no console warnings/errors. Temporary
+  account/role/session/credential artifacts and the dedicated automation browser,
+  including its blank window, are removed. Production is unchanged.
 - Selected chips/password visibility: scoped ESLint fixes, TypeScript,
   repository lint, translation-key/newline and diff checks pass. Desktop/390px
   browser checks verify borderless chip removal without overlap, keyboard

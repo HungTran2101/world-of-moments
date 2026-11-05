@@ -1,4 +1,5 @@
 export const permissions = {
+  DASHBOARD_SHOW: "dashboard.show",
   SUBMISSION_SHOW: "submission.show",
   SUBMISSION_CREATE: "submission.create",
   SUBMISSION_DELETE: "submission.delete",
@@ -28,6 +29,11 @@ export interface PagePermission {
 }
 
 export const permissionModules = [
+  {
+    key: "dashboard",
+    defaults: [permissions.DASHBOARD_SHOW, null, null, null],
+    custom: [],
+  },
   {
     key: "submission",
     defaults: [

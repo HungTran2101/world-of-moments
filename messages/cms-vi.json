@@ -47,7 +47,6 @@
     "system": "Hệ thống",
     "general": "Cài đặt chung",
     "map": "Bản đồ",
-    "home": "Tổng quan",
     "management": "Quản lý",
     "accounts": "Tài khoản",
     "roles": "Vai trò",
@@ -57,17 +56,14 @@
     "skip": "Đến nội dung",
     "menu": "Menu",
     "closeMenu": "Đóng menu",
-    "submissions": "Khoảnh khắc"
+    "submissions": "Khoảnh khắc",
+    "dashboard": "Dashboard"
   },
   "login": {
     "title": "Đăng nhập",
     "description": "Quản trị World of Moments.",
     "submit": "Đăng nhập",
     "signingIn": "Đang đăng nhập…"
-  },
-  "home": {
-    "welcome": "Xin chào, {name}.",
-    "description": "Quản lý khoảnh khắc, tài khoản CMS và phân quyền vai trò."
   },
   "account": {
     "username": "Tên đăng nhập",
@@ -106,7 +102,8 @@
   "modules": {
     "account": "Tài khoản",
     "role": "Vai trò",
-    "submission": "Khoảnh khắc"
+    "submission": "Khoảnh khắc",
+    "dashboard": "Dashboard"
   },
   "permissionNames": {
     "account": {
@@ -143,7 +140,8 @@
     "currentPassword": "Mật khẩu hiện tại không đúng.",
     "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
     "server": "Không thể hoàn tất yêu cầu. Vui lòng thử lại.",
-    "confirmPublish": "Vui lòng xác nhận hiển thị các bài chưa hợp lệ."
+    "confirmPublish": "Vui lòng xác nhận hiển thị các bài chưa hợp lệ.",
+    "noPagePermissions": "Liên hệ người phụ trách để được cấp quyền xem"
   },
   "submission": {
     "description": "Nội dung",
@@ -182,5 +180,33 @@
     },
     "confirmPublish": "{count} bài sẽ được hiển thị khi chưa hợp lệ. Chỉ chủ bài có thể xem cho đến khi bài được đánh dấu hợp lệ. Tiếp tục?",
     "weatherCode": "Mã thời tiết"
+  },
+  "dashboard": {
+    "summary": "Tổng quan",
+    "trend": "Xu hướng khoảnh khắc",
+    "period": "Khoảng thời gian",
+    "periods": {
+      "7d": "7 ngày",
+      "30d": "30 ngày",
+      "all": "Toàn bộ"
+    },
+    "metrics": {
+      "total": "Tổng số",
+      "publiclyVisible": "Hiển thị công khai",
+      "needsInspection": "Cần kiểm tra",
+      "valid": "Hợp lệ",
+      "invalid": "Không hợp lệ"
+    },
+    "visibilityHelp": "Điều kiện hiển thị công khai",
+    "visibilityCondition": "Chỉ khoảnh khắc có trạng thái Đã công bố và Hợp lệ mới hiển thị với mọi người trên bản đồ công khai.",
+    "summaryDescription": "Các khoảnh khắc được tạo trong khoảng thời gian đã chọn, phân theo trạng thái kiểm duyệt hiện tại.",
+    "viewSubmissions": "Xem khoảnh khắc",
+    "emptyTrend": "Không có khoảnh khắc trong khoảng thời gian này.",
+    "dailyCaption": "{count} khoảnh khắc · Thống kê theo ngày",
+    "monthlyCaption": "{count} khoảnh khắc · Thống kê theo tháng",
+    "viewChartData": "Xem dữ liệu biểu đồ",
+    "date": "Ngày",
+    "month": "Tháng",
+    "submissions": "Khoảnh khắc"
   }
 }

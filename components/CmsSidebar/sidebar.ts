@@ -13,7 +13,12 @@ export interface SidebarItem {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  { key: "home", name: "nav.home", href: ROUTE_PATHS.OVERVIEW },
+  {
+    key: "dashboard",
+    name: "nav.dashboard",
+    href: ROUTE_PATHS.DASHBOARD,
+    showRole: permissions.DASHBOARD_SHOW,
+  },
   {
     key: "management",
     name: "nav.management",
