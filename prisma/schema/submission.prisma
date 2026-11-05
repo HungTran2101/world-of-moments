@@ -16,6 +16,7 @@ model Submission {
 
   @@index([author_uuid])
   @@index([lat, lng])
+  @@index([created_at])
   @@map("submissions")
 }
 

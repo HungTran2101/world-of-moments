@@ -236,7 +236,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `{ interval: "day" | "month", points: [{ date: "YYYY-MM-DD", count }] }`.
   Both require `dashboard.show` independently of `submission.show`, use central
   Yup validation, private/no-store responses and parameterized PostgreSQL aggregates.
-  Omitted periods default to 30d; timeZone is required. No schema migration.
+  Omitted periods default to 30d; timeZone is required.
+- `Submission.created_at` has the B-tree index `submissions_created_at_idx`,
+  declared in Prisma and added by migration
+  `20261105000000_add_submission_created_at_index`. It supports bounded creation-date
+  ranges and earliest-date lookup; all-time aggregates still process matching rows.
 - Named dashboard services accept `ApiRequestOptions`; separate TanStack Query
   keys include period and time zone. Sections load/fail/retry independently.
 
@@ -591,6 +595,12 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- Submission creation-date index: migration
+  `20261105000000_add_submission_created_at_index` is applied to the development
+  database. Prisma formatting/validation, migration status, database-to-schema
+  comparison and diff checks pass. PostgreSQL metadata confirms
+  `submissions_created_at_idx` is a valid, ready B-tree index on `created_at`.
+  Production is unchanged; apply the migration there during deployment.
 - Provider-scoped CMS identity: `CmsSession` seeds a vanilla Zustand context
   store from the server user and renders children immediately. Scoped ESLint
   fixes, repository lint, TypeScript and the Webpack production build pass.
