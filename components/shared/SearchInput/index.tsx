@@ -75,7 +75,7 @@ export function SearchInput({
         }}
       />
       {extraTools}
-      <Button variant="primary" className="h-10" type="submit" loading={loading}>
+      <Button variant="primary" className="h-10" type="submit" aria-label={t("common.search")} loading={loading}>
         {t("common.search")}
       </Button>
     </form>

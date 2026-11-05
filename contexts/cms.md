@@ -411,9 +411,9 @@ list/detail data, role options, sign-in, saving (including password reset) and b
 actions. Standalone progress text is replaced with dots; localized accessible labels,
 busy states and disabled controls remain available. CMS buttons pass
 `loading={isSubmitting}` or `loading={executing}` to the shared `Button`; it owns
-the dots, inherited text color, busy state and loading-time disabling. The original
-button content stays visible with dots appended on its right, and callers may supply a
-localized progress `aria-label`. The optional boolean `loading` prop defaults to
+the dots, inherited text color, busy state and loading-time disabling. Loading dots
+replace the original button content while loading; callers retain localized
+accessible names through `aria-label`. The optional boolean `loading` prop defaults to
 false and preserves `asChild` composition. Row-delete buttons track the initiating
 record until deletion and list invalidation finish; other row controls retain their
 disabled guards. Search and list-retry buttons track the

@@ -45,6 +45,7 @@ export function ErrorNotice({
           className="h-10"
           type="button"
           onClick={onRetry}
+          aria-label={t("common.retry")}
           loading={retryLoading}
         >
           {t("common.retry")}

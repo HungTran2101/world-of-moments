@@ -72,12 +72,7 @@ function Button({
     const child = asChild && React.isValidElement<{ children?: React.ReactNode }>(children)
       ? children
       : null
-    const loadingContent = (
-      <>
-        {child ? child.props.children : children}
-        <LoadingDots color="currentColor" className="shrink-0" />
-      </>
-    )
+    const loadingContent = <LoadingDots color="currentColor" className="shrink-0" />
 
     // Giữ phần tử gốc khi dùng asChild để Slot vẫn truyền props/ref vào liên kết.
     content = child ? React.cloneElement(child, undefined, loadingContent) : loadingContent
