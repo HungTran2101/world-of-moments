@@ -155,8 +155,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
   `key`, translated `name`, optional `href`, `target`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
-  Map appears above Overview and links to the public map at `/` in a new tab
-  using `target: "_blank"`; new-tab links include `rel="noopener noreferrer"`.
+  Map is a centered text link above the account row in the sidebar footer and
+  links to the public map at `/` in a new tab using `target="_blank"` and
+  `rel="noopener noreferrer"`. Selecting it also closes the mobile sidebar.
   Its label is localized in English and Vietnamese and requires no module permission.
   Management contains Submissions. System contains Accounts, Roles, General and
   Profile; General and Profile are available to every signed-in CMS user. Profile
@@ -183,7 +184,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   the same names.
 
 - Persistent sidebar with logo and nested navigation. Its compact footer shows
-  only the display name and a destructive icon-only sign-out button on the same
+  the display name and a destructive icon-only sign-out button on the same
   row, with a localized label and tooltip. The name fills the remaining row width
   in a muted, rounded background aligned with sign-out; long names truncate with
   the full name available on hover. System → Profile displays the signed-in
@@ -193,7 +194,17 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Profile; the former `/cms/change-password` page is removed.
   Language selection lives on System → General and uses the existing locale
   service/cookie with immediate saving and refresh; errors are displayed inline.
-  Mobile navigation is collapsible. Sidebar and sticky page Header use
+  Mobile navigation uses a separate icon-only menu button to the left of the
+  page Header, outside its bordered surface. Both share one sticky row, with the
+  title and actions inside the Header. The mobile row has a compact 48px minimum
+  height; the menu button stretches to match the Header, including when content
+  wraps. The button opens a modal drawer
+  sliding in from the left over a dimmed backdrop, without pushing page content.
+  The drawer traps focus and locks background scrolling; Escape, backdrop click,
+  the localized close button, or a navigation link closes it. Dismissal returns
+  focus to the menu trigger. Switching to desktop closes the drawer and restores the
+  persistent sidebar. Reduced-motion preferences disable the slide animation.
+  Sidebar and sticky page Header use
   solid white surfaces, full borders and 12px corners. The viewport shell has 12px
   outer spacing/gaps on desktop and 8px on mobile, with independent main scrolling.
 - CMS inputs, single selects and checkboxes use shadcn primitives. Account roles

@@ -129,13 +129,14 @@
 @media (width <=760px) {
   .cms {
     --cms-shell-gap: 8px;
-    --cms-content-padding-inline: 16px;
+    --cms-content-padding-inline: 10px;
     --cms-content-padding-top: 16px;
   }
 
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .cms *,
   .cms *::before,
   .cms *::after,

@@ -7,8 +7,8 @@ import { Brand } from "@/components/shared/Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LogOut } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { LogOut, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { checkPermission } from "@/services/permission";
 import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
 import { useCmsStore } from "@/store/cmsStore";
@@ -16,6 +16,9 @@ import { logoutCms } from "@/services/cms/auth";
 import { expireCmsSession } from "@/services/shared/cms-api";
 import { ErrorNotice } from "@/components/shared/Forms";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog } from "@/components/ui/dialog";
+
+const CMS_MOBILE_MEDIA_QUERY = "(width <= 760px)";
 
 export function CmsSidebar({ children }: { children: ReactNode }) {
   const t = useTranslations();
@@ -24,6 +27,16 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia(CMS_MOBILE_MEDIA_QUERY);
+    // Đóng ngăn di động khi chuyển sang desktop để bỏ khóa cuộn và giữ sidebar cố định.
+    const closeOnDesktop = () => {
+      if (!media.matches) setOpen(false);
+    };
+    media.addEventListener("change", closeOnDesktop);
+    return () => media.removeEventListener("change", closeOnDesktop);
+  }, []);
   const renderItem = (item: SidebarItem): ReactNode => {
     if (item.showRole && !checkPermission(user?.scopes ?? [], item.showRole))
       return null;
@@ -69,29 +82,25 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
     }
   };
 
-  return (
-    <div className="cms-shell">
-      <a className="cms-skip" href="#cms-main">
-        {t("nav.skip")}
-      </a>
-      <Button
-        variant="outline"
-        className="cms-menuToggle"
-        type="button"
-        aria-expanded={open}
-        aria-controls="cms-sidebar"
-        onClick={() => setOpen(!open)}
-      >
-        {t("nav.menu")}
-      </Button>
-      <aside id="cms-sidebar" className="cms-sidebar" data-open={open}>
-        <Link href={ROUTE_PATHS.OVERVIEW} className="cms-sidebarBrand">
-          <Brand />
+  const sidebarContent = (
+    <>
+      <Link href={ROUTE_PATHS.OVERVIEW} className="cms-sidebarBrand" onClick={() => setOpen(false)}>
+        <Brand />
+      </Link>
+      <nav aria-label={t("nav.navigation")}>
+        <ul>{sidebarItems.map(renderItem)}</ul>
+      </nav>
+      <div className="cms-sidebarFooter">
+        <Link
+          className="cms-sidebarMapLink"
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => setOpen(false)}
+        >
+          {t("nav.map")}
         </Link>
-        <nav aria-label={t("nav.navigation")}>
-          <ul>{sidebarItems.map(renderItem)}</ul>
-        </nav>
-        <div className="cms-sidebarFooter">
+        <div className="cms-sidebarAccount">
           <p className="cms-identity" title={user?.name}>{user?.name}</p>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -110,11 +119,47 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
             <TooltipContent>{t("nav.logout")}</TooltipContent>
           </Tooltip>
         </div>
-      </aside>
-      <main id="cms-main" className="cms-main" tabIndex={-1}>
-        {Boolean(error) && <ErrorNotice error={error} />}
-        {children}
-      </main>
-    </div>
+      </div>
+    </>
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <div className="cms-shell">
+        <a className="cms-skip" href="#cms-main">
+          {t("nav.skip")}
+        </a>
+        <aside className="cms-sidebar cms-sidebarDesktop">
+          {sidebarContent}
+        </aside>
+        <main id="cms-main" className="cms-main" tabIndex={-1}>
+          {Boolean(error) && <ErrorNotice error={error} />}
+          {children}
+        </main>
+      </div>
+      <Dialog.Portal>
+        <Dialog.Overlay className="cms-sidebarOverlay" />
+        <Dialog.Content
+          id="cms-sidebar"
+          className="cms cms-sidebar cms-sidebarDrawer"
+          aria-modal="true"
+          aria-describedby={undefined}
+        >
+          <Dialog.Title className="sr-only">{t("nav.navigation")}</Dialog.Title>
+          <Dialog.Close asChild>
+            <Button
+              className="cms-sidebarClose"
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={t("nav.closeMenu")}
+            >
+              <X aria-hidden="true" />
+            </Button>
+          </Dialog.Close>
+          {sidebarContent}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

@@ -13,7 +13,6 @@ export interface SidebarItem {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  { key: "map", name: "nav.map", href: "/", target: "_blank" },
   { key: "home", name: "nav.home", href: ROUTE_PATHS.OVERVIEW },
   {
     key: "management",
