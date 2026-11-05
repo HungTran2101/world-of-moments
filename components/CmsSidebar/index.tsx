@@ -42,6 +42,8 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
       <li key={item.key}>
         <Link
           href={item.href!}
+          target={item.target}
+          rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
           aria-current={active ? "page" : undefined}
           onClick={() => setOpen(false)}
         >

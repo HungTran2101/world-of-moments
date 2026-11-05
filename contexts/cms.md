@@ -153,8 +153,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   action from the database. Account pages require `ACCOUNT_SHOW`, with create,
   update, delete, and reset guarded by their corresponding permissions.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
-  `key`, translated `name`, optional `href`, `showRole`, `childRoutes`, and `items`.
+  `key`, translated `name`, optional `href`, `target`, `showRole`, `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
+  Map appears above Overview and links to the public map at `/` in a new tab
+  using `target: "_blank"`; new-tab links include `rel="noopener noreferrer"`.
+  Its label is localized in English and Vietnamese and requires no module permission.
   Management contains Submissions. System contains Accounts, Roles, General and
   Profile; General and Profile are available to every signed-in CMS user. Profile
   remains highlighted on its nested password-change page.

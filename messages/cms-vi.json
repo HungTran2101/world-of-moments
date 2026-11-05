@@ -46,6 +46,7 @@
     "profile": "Hồ sơ",
     "system": "Hệ thống",
     "general": "Cài đặt chung",
+    "map": "Bản đồ",
     "home": "Tổng quan",
     "management": "Quản lý",
     "accounts": "Tài khoản",
@@ -55,7 +56,7 @@
     "navigation": "Điều hướng CMS",
     "skip": "Đến nội dung",
     "menu": "Menu",
-    "submissions": "Bài chia sẻ"
+    "submissions": "Khoảnh khắc"
   },
   "login": {
     "title": "Đăng nhập",
@@ -65,7 +66,7 @@
   },
   "home": {
     "welcome": "Xin chào, {name}.",
-    "description": "Quản lý bài chia sẻ, tài khoản CMS và phân quyền vai trò."
+    "description": "Quản lý khoảnh khắc, tài khoản CMS và phân quyền vai trò."
   },
   "account": {
     "username": "Tên đăng nhập",
@@ -104,7 +105,7 @@
   "modules": {
     "account": "Tài khoản",
     "role": "Vai trò",
-    "submission": "Bài chia sẻ"
+    "submission": "Khoảnh khắc"
   },
   "permissionNames": {
     "account": {
