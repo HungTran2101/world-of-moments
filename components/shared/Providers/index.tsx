@@ -3,25 +3,26 @@
 import { ROUTE_PATHS } from "@/services/routes";
 import QueryProvider from "@/components/shared/QueryProvider";
 import type { CmsUser } from "@/services/shared/types";
-import { useCmsStore } from "@/store/cmsStore";
+import { CmsStoreContext, createCmsStore, useCmsStoreApi } from "@/store/cmsStore";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   NextIntlClientProvider,
-  useTranslations,
   type AbstractIntlMessages
 } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
-import { LoadingDots } from "../LoadingDots";
 
 function SessionEvents() {
   const client = useQueryClient();
+  const store = useCmsStoreApi();
   useEffect(() => {
-    const clear = () => client.clear();
+    const clear = () => {
+      store.getState().clear();
+      client.clear();
+    };
     window.addEventListener("cms-session-ended", clear);
     const channel = new BroadcastChannel("wom-cms-session");
     channel.onmessage = (event) => {
       if (event.data === "logout") {
-        useCmsStore.getState().clear();
         clear();
         if (window.location.pathname !== ROUTE_PATHS.LOGIN) {
           // Tải lại toàn trang để bỏ trạng thái phiên đã đăng xuất ở tab khác.
@@ -33,7 +34,7 @@ function SessionEvents() {
       window.removeEventListener("cms-session-ended", clear);
       channel.close();
     };
-  }, [client]);
+  }, [client, store]);
   return null;
 }
 
@@ -49,7 +50,6 @@ export function CmsProviders({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <QueryProvider>
-        <SessionEvents />
         {children}
       </QueryProvider>
     </NextIntlClientProvider>
@@ -63,21 +63,12 @@ export function CmsSession({
   user: CmsUser;
   children: ReactNode;
 }) {
-  const t = useTranslations();
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    useCmsStore.getState().setUser(user);
-    setReady(true);
-  }, [user]);
-  if (!ready)
-    return (
-      <div
-        className="cms-sessionLoading"
-        role="status"
-        aria-label={t("common.loading")}
-      >
-        <LoadingDots />
-      </div>
-    );
-  return children;
+  const [store] = useState(() => createCmsStore(user));
+
+  return (
+    <CmsStoreContext.Provider value={store}>
+      <SessionEvents />
+      {children}
+    </CmsStoreContext.Provider>
+  );
 }

@@ -9,7 +9,7 @@ export default async function ProtectedLayout({
 }) {
   const user = await getPageIdentity();
   return (
-    <CmsSession user={user}>
+    <CmsSession key={user.id} user={user}>
       <CmsSidebar>{children}</CmsSidebar>
     </CmsSession>
   );

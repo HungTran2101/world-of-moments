@@ -17,7 +17,6 @@ import { loginCms } from "@/services/cms/auth";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
 import { loginSchema, type LoginValues } from "@/services/schemas";
-import { useCmsStore } from "@/store/cmsStore";
 import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
 import { Button } from "../ui/button";
 
@@ -31,7 +30,6 @@ export function LoginPage() {
   const queryClient = useQueryClient();
   useEffect(() => {
     // Trang đăng nhập chỉ mở khi phiên DB không hợp lệ; bỏ dữ liệu của người dùng cũ.
-    useCmsStore.getState().clear();
     queryClient.clear();
   }, [queryClient]);
   const [error, setError] = useState<unknown>(null);
@@ -58,7 +56,6 @@ export function LoginPage() {
             setError(null);
             try {
               const { user } = await loginCms(values);
-              useCmsStore.getState().setUser(user);
               router.replace(getCmsLandingPath(user.scopes) ?? ROUTE_PATHS.DASHBOARD);
               router.refresh();
             } catch (error) {

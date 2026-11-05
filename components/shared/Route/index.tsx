@@ -5,7 +5,7 @@ import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { getCmsLandingPath } from "@/services/routes";
 import type { PagePermission } from "@/services/permission";
 import type { CmsUser } from "@/services/shared/types";
-import { useCmsStore } from "@/store/cmsStore";
+import { useCmsStoreApi } from "@/store/cmsStore";
 import { useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
@@ -19,10 +19,11 @@ export function CmsRoute({
   children: ReactNode;
 }) {
   const t = useTranslations();
+  const store = useCmsStoreApi();
   useEffect(() => {
     // Dùng dữ liệu phiên đã được server kiểm tra khi tải trang để đồng bộ sidebar và store.
-    useCmsStore.getState().setUser(user);
-  }, [user]);
+    store.getState().setUser(user);
+  }, [store, user]);
   if (!getCmsLandingPath(user.scopes))
     return (
       <>

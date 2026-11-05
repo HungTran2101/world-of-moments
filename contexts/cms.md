@@ -101,11 +101,20 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Login returns `{ user: { id, username, name, scopes } }` and the HttpOnly session
   cookie. Client state contains no authentication credential or JWT. There is no
   JWT plugin, decoding, token-expiry timer, or refresh endpoint.
-- `useCmsStore` holds plain user information and scopes in memory, never
-  LocalStorage. Server-side session validation precedes protected page rendering
-  and reloads. Each protected page uses its server-validated user for permission
-  checks and synchronizes that user into the store/sidebar without a separate
-  session-information request. API checks always use current DB permissions.
+- `CmsSession` creates a provider-scoped vanilla Zustand store from the
+  server-validated user. `useCmsStore` selects from that context; no module-level
+  user store is shared between SSR requests. Identity and permitted navigation are
+  available on the first server/client render, without a ready/loading gate or
+  mount-time identity copy. State remains in memory, never LocalStorage.
+  Server-side session validation precedes protected page rendering and reloads.
+  Each protected page uses its server-validated user for permission checks and
+  synchronizes later navigation/refresh identity updates through the scoped store.
+  API checks always use current DB permissions.
+- Session events live inside `CmsSession`: session-expiry events clear its store
+  and the query cache, and cross-tab logout clears both before full-document
+  navigation to login. Transport helpers dispatch the event without accessing a
+  global user store. Login clears the query cache; protected navigation initializes
+  a fresh store from the server identity rather than the login response.
 - A protected API 401 clears the session and redirects to login, without refresh
   or retry. A 403 is not retried as a mutation. Logout is propagated across tabs
   without sharing credentials.
@@ -582,6 +591,20 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Validation status
 
+- Provider-scoped CMS identity: `CmsSession` seeds a vanilla Zustand context
+  store from the server user and renders children immediately. Scoped ESLint
+  fixes, repository lint, TypeScript and the Webpack production build pass.
+  Temporary checks verify store isolation, seeded SSR identity, first-render
+  children, same-user notification avoidance and isolated update/clear behavior.
+  Production-mode browser/HTTP checks verify identity/sidebar/content in initial
+  HTML without the loading gate, real login, isolated authorized/zero-scope users,
+  live identity/scope updates on client navigation, two-tab logout, protected API
+  401 handling and anonymous redirects without hydration warnings/errors.
+  Under the previous 390px/Slow-4G/4x-CPU cold-load scenario, one follow-up trace
+  records LCP 1.99s versus the earlier 6.81–6.83s baseline; CLS remains about 0.12
+  because summary loading space is unchanged. These are local lab measurements.
+  Temporary users, roles, sessions, credentials, test server and browser/blank
+  window are removed; production deployment is unchanged.
 - Compact summary cards: shared badge palette reuse, tighter spacing/type and an
   icon-only inspection link pass scoped ESLint/Stylelint fixes, TypeScript,
   repository lint and diff checks. Development-browser checks verify about 83px
