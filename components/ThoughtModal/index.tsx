@@ -53,7 +53,14 @@ export default function ThoughtModal({ open, submissionId, onOpenChange, onRetur
     // Mỗi lần chọn suy nghĩ chỉ tải chi tiết của ID đó; hủy phản hồi khi đóng hoặc chọn ID khác.
     void getSubmissionById(submissionId, { signal: controller.signal })
       .then((submission) => {
-        if (!controller.signal.aborted) setDetail({ id: submissionId, status: "ready", submission });
+        if (controller.signal.aborted) return;
+        // Dùng tọa độ bài đã tải để URL luôn mở lại đúng nơi, kể cả khi mở từ marker hoặc bài vừa gửi.
+        const url = new URL(window.location.href);
+        url.searchParams.set("thought", submission.id);
+        url.searchParams.set("lat", String(submission.lat));
+        url.searchParams.set("lng", String(submission.lng));
+        window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        setDetail({ id: submissionId, status: "ready", submission });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;

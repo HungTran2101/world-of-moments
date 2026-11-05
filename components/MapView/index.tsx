@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import ThoughtModal from "@/components/ThoughtModal";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { cn } from "@/lib/utils";
+import { readThoughtMapTarget } from "@/lib/thoughtMapLink";
+import { useError } from "@/components/shared/ErrorProvider";
 import { useSystemStore } from "@/store/systemStore";
 import { usePinStore } from "@/store/usePinStore";
 import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
@@ -40,6 +42,9 @@ const MIN_ROTATION_DELTA = 2;
 
 export default function MapView() {
   const t = useTranslations("map");
+  const { showError } = useError();
+  const submissionMap = useSubmissionMapStore((state) => state.map);
+  const initialThoughtVisitedRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const spaceRef = useRef<HTMLCanvasElement>(null);
@@ -63,6 +68,18 @@ export default function MapView() {
   const [submissionsRetry, setSubmissionsRetry] = useState(0);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [thoughtModalOpen, setThoughtModalOpen] = useState(false);
+
+  const handleThoughtModalOpenChange = (open: boolean) => {
+    setThoughtModalOpen(open);
+    if (open) return;
+
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("thought")) return;
+    url.searchParams.delete("thought");
+    url.searchParams.delete("lat");
+    url.searchParams.delete("lng");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  };
 
   const handleSubmissionClick = useCallback((submissionId: string) => {
     // Chọn marker khác sẽ hủy chuyến đi cũ, tránh modal cũ mở lại sau khi camera dừng.
@@ -468,6 +485,16 @@ export default function MapView() {
     };
   }, [mapReady]);
 
+  useEffect(() => {
+    if (!submissionMap || showLoader || initialThoughtVisitedRef.current) return;
+    initialThoughtVisitedRef.current = true;
+    const target = readThoughtMapTarget(window.location.search);
+    if (!target) return;
+    // Chờ layer và màn tải sẵn sàng rồi dùng lại chuyến đi từ lịch sử, chỉ một lần mỗi lần mở map.
+    submissionMap.focus();
+    void submissionMap.goToThought(target).catch((error: unknown) => showError(error));
+  }, [submissionMap, showLoader, showError]);
+
   return (
     <div className="mapView-wrapper">
       <canvas ref={spaceRef} className="mapView-space" aria-hidden="true" />
@@ -495,7 +522,7 @@ export default function MapView() {
       <ThoughtModal
         open={thoughtModalOpen}
         submissionId={selectedSubmissionId}
-        onOpenChange={setThoughtModalOpen}
+        onOpenChange={handleThoughtModalOpenChange}
         onReturnFocus={() => mapRef.current?.getCanvas().focus({ preventScroll: true })}
       />
     </div>

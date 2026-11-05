@@ -21,7 +21,7 @@ export default function ThoughtGuidelines() {
           purpose: (chunks) => (
             // Dialog chỉ có một bản trên trang; giữ liên kết ARIA ổn định qua SSR và hydrate.
             <Dialog.Trigger asChild aria-controls="thought-guidelines-dialog">
-              <Button type="button" className="thoughtGuidelines-trigger">{chunks}</Button>
+              <Button variant="default" type="button" className="thoughtGuidelines-trigger">{chunks}</Button>
             </Dialog.Trigger>
           ),
         })}

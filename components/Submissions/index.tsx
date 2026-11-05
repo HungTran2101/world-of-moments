@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, MapPin, Trash2 } from "lucide-react";
 import { useCRUDPage } from "@/hooks/useCRUDPage";
 import {
   bulkModerateCmsSubmissions,
@@ -25,6 +25,7 @@ import {
 import type { CmsSubmissionRecord } from "@/services/cms/submissions/types";
 import type { CmsPageProps, CrudListParams } from "@/services/shared/types";
 import { formatDateTime } from "@/lib/utils";
+import { getThoughtMapHref } from "@/lib/thoughtMapLink";
 import { Header } from "@/components/shared/Header";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
@@ -110,7 +111,28 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
       key: "coordinates",
       title: t("submission.coordinates"),
       width: 150,
-      render: (_, row) => `${row.lat}, ${row.lng}`,
+      align: "center",
+      render: (_, row) => (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button asChild variant="outline" size="icon">
+              <Link
+                href={getThoughtMapHref(row)}
+                target="_blank"
+                rel="noopener noreferrer"
+                prefetch={false}
+              >
+                <MapPin aria-hidden="true" />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="text-center">
+            lat: {row.lat}
+            <br />
+            lng: {row.lng}
+          </TooltipContent>
+        </Tooltip>
+      ),
     },
     {
       key: "status",

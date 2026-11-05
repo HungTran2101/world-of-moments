@@ -142,14 +142,14 @@
     "currentPassword": "Mật khẩu hiện tại không đúng.",
     "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
     "server": "Không thể hoàn tất yêu cầu. Vui lòng thử lại.",
-    "confirmPublish": "Vui lòng xác nhận công bố các bài chưa hợp lệ."
+    "confirmPublish": "Vui lòng xác nhận hiển thị các bài chưa hợp lệ."
   },
   "submission": {
     "description": "Nội dung",
     "coordinates": "Tọa độ",
     "lat": "Vĩ độ",
     "lng": "Kinh độ",
-    "status": "Trạng thái công bố",
+    "status": "Trạng thái hiển thị",
     "validity": "Độ hợp lệ",
     "createdFrom": "Tạo từ",
     "authorUuid": "UUID tác giả",
@@ -160,8 +160,8 @@
     "createTitle": "Tạo bài chia sẻ",
     "detailTitle": "Chi tiết bài chia sẻ",
     "statuses": {
-      "published": "Đã công bố",
-      "unpublished": "Chưa công bố"
+      "published": "Đã hiển thị",
+      "unpublished": "Chưa hiển thị"
     },
     "validities": {
       "valid": "Hợp lệ",
@@ -173,13 +173,13 @@
       "client": "Client"
     },
     "actions": {
-      "published": "Công bố",
+      "published": "Hiển thị",
       "unpublished": "Ẩn bài",
       "valid": "Đánh dấu hợp lệ",
       "invalid": "Đánh dấu không hợp lệ",
       "need-inspect": "Đánh dấu cần kiểm tra"
     },
-    "confirmPublish": "{count} bài sẽ được công bố khi chưa hợp lệ. Chỉ chủ bài có thể xem cho đến khi bài được đánh dấu hợp lệ. Tiếp tục?",
+    "confirmPublish": "{count} bài sẽ được hiển thị khi chưa hợp lệ. Chỉ chủ bài có thể xem cho đến khi bài được đánh dấu hợp lệ. Tiếp tục?",
     "weatherCode": "Mã thời tiết"
   }
 }

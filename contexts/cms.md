@@ -719,6 +719,18 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 
 ## Submission administration and record audit fields
 
+- The Coordinates column uses a centered map-pin icon link with a localized
+  tooltip and accessible label. It opens `/?thought=<id>&lat=<lat>&lng=<lng>` in
+  a new tab. Once map layers and the loading screen are ready, the map reuses
+  history's Take me there action to move to the coordinates and open the thought.
+  Opening a thought from any entry point writes its ID and loaded coordinates to
+  `thought`, `lat` and `lng` in the current history entry, so its URL can be shared
+  or refreshed. Other query parameters and the hash are preserved.
+  Closing the thought modal removes `thought`, `lat` and `lng` from the current
+  history entry, preserving other query parameters and the hash so refreshing
+  does not reopen the dismissed thought.
+  Invalid or missing link coordinates are ignored. Public visibility checks still
+  apply: a CMS session does not grant public access to hidden thoughts.
 - Management → Submissions uses `/cms/submissions` and `/cms/submissions/detail`.
   Accounts and Roles retain their URLs under System. Lists own their Table, columns,
   actions and selection and reuse `useCRUDPage`. Submission status/validity filters

@@ -64,6 +64,8 @@ MapLibre clusters the downloaded GeoJSON in the browser (clusterMaxZoom: 5, clus
 
 ThoughtModal fetches the selected thought's description and weather only when opened. It aborts obsolete requests and provides skeleton, retry, and not-found states.
 
+After loading a thought, ThoughtModal replaces the current URL's `thought`, `lat`, and `lng` query parameters with its ID and coordinates, preserving other parameters and the hash. Closing the modal removes those navigation parameters. Refreshing an open thought revisits it through the existing Take me there action; refreshing after closing stays on the map.
+
 Map cleanup removes request/listener/animation work, overlays, layers, sources, and images when the relevant owner is destroyed or retried.
 
 Submission Module
