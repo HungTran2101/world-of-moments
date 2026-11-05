@@ -23,6 +23,7 @@ export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  variant?: "default" | "destructive";
 }
 
 export interface SelectLabels {
@@ -148,7 +149,13 @@ function SingleSelect({
       ) : trigger}
       <SelectContent className={popupClassName} position="popper" align="start">
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            disabled={option.disabled}
+            data-variant={option.variant}
+            className={option.variant === "destructive" ? "text-destructive focus:bg-destructive/10 focus:text-destructive" : undefined}
+          >
             {option.label}
           </SelectItem>
         ))}
@@ -248,6 +255,8 @@ function MultipleSelect({
               key={option.value}
               value={option}
               disabled={disabled || option.disabled}
+              data-variant={option.variant}
+              className={option.variant === "destructive" ? "text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive" : undefined}
             >
               {option.label}
             </ComboboxItem>

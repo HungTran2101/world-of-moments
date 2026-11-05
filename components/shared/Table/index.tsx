@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { PaginationMetadata } from "@/services/shared/pagination";
 import { Pagination } from "@/components/shared/Pagination";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { ErrorNotice } from "@/components/shared/Forms";
+
+const SCROLL_EDGE_TOLERANCE_PX = 1;
 
 export interface Column<T> {
   key: string;
@@ -104,10 +106,36 @@ export function Table<T extends object>({
 }) {
   const t = useTranslations();
   const id = useId();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [action, setAction] = useState("");
   const [executing, setExecuting] = useState(false);
   const [bulkError, setBulkError] = useState<unknown>(null);
   const [listAction, setListAction] = useState<"search" | "retry" | null>(null);
+
+  useEffect(() => {
+    const viewport = scrollRef.current;
+    const table = viewport?.querySelector("table");
+    if (!viewport || !table) return;
+
+    const updateShadows = () => {
+      const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+      // Bỏ sai số làm tròn để bóng tắt hẳn khi đã cuộn tới mép bảng.
+      viewport.dataset.scrollLeft = String(viewport.scrollLeft > SCROLL_EDGE_TOLERANCE_PX);
+      viewport.dataset.scrollRight = String(maxScrollLeft - viewport.scrollLeft > SCROLL_EDGE_TOLERANCE_PX);
+    };
+
+    // Theo dõi cả khung và bảng vì dữ liệu, font hoặc kích thước trang có thể đổi độ tràn.
+    const observer = new ResizeObserver(updateShadows);
+    observer.observe(viewport);
+    observer.observe(table);
+    viewport.addEventListener("scroll", updateShadows, { passive: true });
+    updateShadows();
+
+    return () => {
+      observer.disconnect();
+      viewport.removeEventListener("scroll", updateShadows);
+    };
+  }, []);
 
   useEffect(() => {
     // Bỏ thao tác khi tải xong hoặc chuyển sang URL đã có dữ liệu mới trong cache.
@@ -186,6 +214,7 @@ export function Table<T extends object>({
               popupClassName="cms-popup"
               id={`${id}-action`}
               value={action}
+              className={action === "delete" ? "text-destructive" : undefined}
               disabled={executing}
               onValueChange={setAction}
               placeholder={t("common.bulkAction")}
@@ -193,10 +222,11 @@ export function Table<T extends object>({
                 value: item.action,
                 label: item.label,
                 disabled: item.disabled,
+                variant: item.action === "delete" ? "destructive" : "default",
               }))}
             />
             <Button
-              variant="primary"
+              variant={action === "delete" ? "destructive" : "primary"}
               className="h-10"
               type="button"
               disabled={!canExecute || fetching}
@@ -227,6 +257,7 @@ export function Table<T extends object>({
         />
       )}
       <div
+        ref={scrollRef}
         className={`cms-tableScroll${scroll?.y !== undefined ? " cms-tableScroll--fixedHeader" : ""}`}
         style={{ maxHeight: scroll?.y }}
         tabIndex={0}
@@ -266,6 +297,7 @@ export function Table<T extends object>({
                       )
                     }
                   />
+                  <span className="cms-fixedColumnShadow" aria-hidden="true" />
                 </th>
               )}
               {columns.map((column) => (
@@ -278,6 +310,7 @@ export function Table<T extends object>({
                   }
                 >
                   {column.title}
+                  {column.fixed === "right" && <span className="cms-fixedColumnShadow" aria-hidden="true" />}
                 </th>
               ))}
             </tr>
@@ -305,7 +338,10 @@ export function Table<T extends object>({
               </tr>
             ) : (
               datasource.map((row, index) => (
-                <tr key={keyOf(row)}>
+                <tr
+                  key={keyOf(row)}
+                  data-state={selection?.selectedRowKeys.includes(keyOf(row)) ? "selected" : undefined}
+                >
                   {selection && (
                     <td className="cms-selection">
                       <Checkbox
@@ -331,6 +367,7 @@ export function Table<T extends object>({
                           )
                         }
                       />
+                      <span className="cms-fixedColumnShadow" aria-hidden="true" />
                     </td>
                   )}
                   {columns.map((column) => {
@@ -352,6 +389,7 @@ export function Table<T extends object>({
                           : value == null
                             ? "—"
                             : String(value)}
+                        {column.fixed === "right" && <span className="cms-fixedColumnShadow" aria-hidden="true" />}
                       </td>
                     );
                   })}

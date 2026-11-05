@@ -135,7 +135,7 @@ function HistoryContents({ open, onVisit }: { open: boolean; onVisit: (submissio
                   <MapPin size={16} aria-hidden="true" />
                   {t("takeMeThere")}
                 </GlassButton>
-                {item.status === "unpublished" && <p className="historyPanel-muted">{t("unpublished")}</p>}
+                {item.status === "unpublished" && <sub className="historyPanel-muted">{t("unpublished")}</sub>}
               </li>
             );
           })}

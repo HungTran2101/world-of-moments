@@ -4,6 +4,7 @@
   height: 100dvh;
   gap: var(--cms-shell-gap);
   padding: var(--cms-shell-gap);
+  padding-right: 2px;
 }
 
 .cms-sidebar {
@@ -84,6 +85,7 @@
   min-width: 0;
   height: 100%;
   overflow: auto;
+  padding-right: calc(var(--cms-shell-gap) - 4px);
 }
 
 .cms-menuToggle {

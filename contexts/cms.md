@@ -236,9 +236,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Shared primitives live in `components/ui`; the Combobox also uses shadcn
   InputGroup/Textarea and the existing Button. Base UI is required for its behavior.
   CMS Create links, Save buttons (including password reset/change), Search and
-  bulk-action Execute use the shared `Button` with `variant="primary"`; Create
+  bulk-action Execute use the shared `Button` with `variant="primary"` (Execute
+  switches to `variant="destructive"` when Delete is selected); Create
   composes its Next.js Link through `asChild` and preserves permission guards.
   Global/CMS link styles exclude Button links so their variant controls appearance.
+  Public `GlassButton` explicitly uses the default variant so the shared Button's
+  outline default does not add a solid border to its gradient glass edge.
   Other actions use outline/link/destructive variants and explicit form submit types/IDs.
   Menu, retry, bulk/pagination and logout controls
   also use `Button`; `.cms-button` styling is retained only for navigation links.
@@ -335,6 +338,17 @@ the table viewport and keeps its header visible. Toolbar and pagination remain
 outside the scrolling region. Omitting `scroll` preserves the existing layout.
 Submissions opts into `scroll={{ x: "max-content" }}` so headers and values keep
 their natural widths instead of wrapping into narrow columns.
+Fixed columns use CSS `box-shadow` toward the scrolling content only while they cover
+that content: leftward for fixed-right Actions, rightward for fixed-left selection.
+Shadows disappear at their respective scroll edges and when there is no horizontal
+overflow. Scroll and resize tracking also accounts for table/data width changes.
+The scrolling table uses separate borders with zero spacing so cell shadows render.
+Inset box shadows sit inside decorative, non-interactive wrappers bounded to each
+cell's height. The wrappers clip the extended shadow corners so edges remain
+straight without adding vertical scroll overflow. Only explicit `scroll.y`
+constrains the table's height and enables intentional vertical scrolling.
+The inner shadow is explicitly anchored at `left: 0` so column text alignment
+cannot shift it outside its clipping wrapper, including centered Actions cells.
 
 `components/shared/Pagination` exports the controlled `Pagination` component and
 `PaginationProps`. It receives `pagination: PaginationMetadata`,
@@ -363,10 +377,17 @@ page 1 after a page-size change.
   in `AGENTS.md`.
 - Optional controlled `selection: { selectedRowKeys: string[], onChange(keys,
   selectedRows), getCheckboxProp?(record): { disabled? } }`.
+  When enabled, its header and row checkbox cells stay fixed to the left edge
+  during horizontal scrolling, including when the table has a fixed header.
+  Selected rows use the CMS secondary background across all cells, including
+  fixed selection and Actions cells; deselecting restores the normal background.
 - Optional `bulkAction: { action, label, disabled? }[]` and
   `onBulkAction(action, selectedRecords): void | Promise<void>`.
 - Optional `onBulkDelete(selectedRowKeys): Promise<void>`; only its presence adds
   the built-in Delete / Xóa option. `delete` is reserved for that action.
+  Delete uses red destructive text in the dropdown and selected value, and its
+  Execute button uses the shared destructive variant. Select options support an
+  optional `variant: "default" | "destructive"`, including keyboard focus states.
 - Checkboxes and bulk select plus Do it / Thực thi appear only with `selection`.
   Disabled records are excluded from selection/execution. Disabled options cannot
   be selected or executed, even if their state changes after selection.

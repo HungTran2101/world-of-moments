@@ -155,13 +155,13 @@ function SubmissionEditor({
                   const completed = await confirmPublish((confirmed) =>
                     id
                       ? updateCmsSubmission(id, {
-                          ...change,
-                          confirmPublish: confirmed,
-                        })
+                        ...change,
+                        confirmPublish: confirmed,
+                      })
                       : createCmsSubmission({
-                          ...values,
-                          confirmPublish: confirmed,
-                        }),
+                        ...values,
+                        confirmPublish: confirmed,
+                      }),
                   );
                   if (!completed) return;
                   await client.invalidateQueries({ queryKey: ["cms"] });
@@ -304,7 +304,7 @@ function SubmissionEditor({
                       <dt className="text-xs text-muted-foreground">
                         {t("common.createdBy")}
                       </dt>
-                      <dd className="mt-1 text-sm break-words">
+                      <dd className="mt-1 text-sm wrap-break-word">
                         {query.data.createdBy}
                       </dd>
                     </div>
@@ -328,7 +328,7 @@ function SubmissionEditor({
                       <dt className="text-xs text-muted-foreground">
                         {t("submission.weather")}
                       </dt>
-                      <dd className="mt-1 text-sm break-words">
+                      <dd className="mt-1 text-sm wrap-break-word">
                         {weatherDescription}
                       </dd>
                     </div>
