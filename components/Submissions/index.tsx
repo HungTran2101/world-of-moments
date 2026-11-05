@@ -31,6 +31,7 @@ import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Table, type Column } from "@/components/shared/Table";
 import { ErrorNotice } from "@/components/shared/Forms";
 import { Button } from "@/components/ui/button";
+import { Badge, type BadgeColor } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -40,6 +41,12 @@ import {
 const FILTER_KEYS = ["status", "validity"] as const;
 
 const ACTION_COLUMN_WIDTH_PX = 150;
+
+const VALIDITY_BADGE_COLORS = {
+  valid: "success",
+  invalid: "error",
+  "need-inspect": "warning",
+} satisfies Record<SubmissionValidity, BadgeColor>;
 
 const submissionServices = {
   listService: (params: CrudListParams, signal?: AbortSignal) =>
@@ -108,18 +115,38 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
     {
       key: "status",
       title: t("submission.status"),
-      render: (_, row) => t(`submission.statuses.${row.status}`),
+      align: "center",
+      render: (_, row) => (
+        <Badge color={row.status === "published" ? "success" : "default"}>
+          {t(`submission.statuses.${row.status}`)}
+        </Badge>
+      ),
     },
     {
       key: "validity",
       title: t("submission.validity"),
-      render: (_, row) => t(`submission.validities.${row.validity}`),
+      align: "center",
+      render: (_, row) => (
+        <Badge color={VALIDITY_BADGE_COLORS[row.validity]}>
+          {t(`submission.validities.${row.validity}`)}
+        </Badge>
+      ),
     },
-    { key: "createdBy", title: t("common.createdBy"), dataIndex: "createdBy" },
+    {
+      key: "createdBy",
+      align: "center",
+      title: t("common.createdBy"),
+      dataIndex: "createdBy",
+    },
     {
       key: "createdFrom",
       title: t("submission.createdFrom"),
-      render: (_, row) => t(`submission.sources.${row.createdFrom}`),
+      align: "center",
+      render: (_, row) => (
+        <Badge color={row.createdFrom === "cms" ? "geekblue" : "cyan"}>
+          {t(`submission.sources.${row.createdFrom}`)}
+        </Badge>
+      ),
     },
     {
       key: "updatedAt",

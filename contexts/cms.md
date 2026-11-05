@@ -198,6 +198,20 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   composed from shadcn Combobox chips with Base UI behavior: inline label search, removable tags,
   checked options, keyboard navigation and continued selection while open. Only
   existing options can be selected; form/service values remain `string[]`.
+- `components/ui/badge.tsx` provides the shared shadcn-style `Badge`, retaining
+  `variant`, `asChild`, native span props and icon children. Its optional `color`
+  prop accepts Ant Design Tag names: `magenta`, `red`, `volcano`, `orange`, `gold`,
+  `lime`, `green`, `cyan`, `blue`, `geekblue`, `purple`, plus `success`, `processing`,
+  `error`, `default` and `warning`, or a custom CSS color such as `#108ee9`.
+  Named colors use a subtle tinted background/border and readable text; custom
+  CSS colors use a solid background and white text. Explicit `color` takes
+  precedence over variant colors; `className` and `style` remain customizable.
+  Page-owned Table column renderers use Badge for displayed enum/boolean fields:
+  account active/inactive uses success/error; submission published/unpublished uses
+  success/default; valid/invalid/need-inspect uses success/error/warning; and
+  CMS/client source uses geekblue/cyan. Badge columns center both their headers
+  and body cells. Labels retain their EN/VI translations.
+  The shared Table does not infer enums or add domain-specific color rules.
 - `components/ui/select.tsx` exports the shared controlled `Select` for both modes:
   omitted/false `multiple` uses `value: string`; `multiple={true}` or
   `multiple={{ allowClear: boolean }}` uses `value: string[]`. The object form

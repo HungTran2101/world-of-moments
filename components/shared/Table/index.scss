@@ -26,10 +26,10 @@
 .cms-tableToolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px;
+  padding: 10px 18px 18px;
 }
 
 .cms-bulk {
@@ -68,7 +68,7 @@
 .cms .cms-fixedRight {
   right: 0;
 
-  > .cms-fixedColumnShadow {
+  >.cms-fixedColumnShadow {
     right: 100%;
 
     &::after {
@@ -81,7 +81,7 @@
   left: 0;
   width: 44px;
 
-  > .cms-fixedColumnShadow {
+  >.cms-fixedColumnShadow {
     left: 100%;
 
     &::after {
@@ -90,8 +90,8 @@
   }
 }
 
-.cms .cms-tableScroll[data-scroll-left="true"] .cms-selection > .cms-fixedColumnShadow,
-.cms .cms-tableScroll[data-scroll-right="true"] .cms-fixedRight > .cms-fixedColumnShadow {
+.cms .cms-tableScroll[data-scroll-left="true"] .cms-selection>.cms-fixedColumnShadow,
+.cms .cms-tableScroll[data-scroll-right="true"] .cms-fixedRight>.cms-fixedColumnShadow {
   opacity: 1;
 }
 

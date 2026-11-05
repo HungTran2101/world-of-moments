@@ -17,6 +17,7 @@ import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Table, type Column } from "@/components/shared/Table";
 import { ErrorNotice } from "@/components/shared/Forms";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ACTION_COLUMN_WIDTH_PX = 150;
@@ -73,12 +74,11 @@ export function AccountsPage({ permission }: CmsPageProps) {
     {
       key: "status",
       title: t("account.status"),
+      align: "center",
       render: (_, row) => (
-        <span
-          className={`cms-status ${row.isActive ? "cms-status-active" : ""}`}
-        >
+        <Badge color={row.isActive ? "success" : "error"}>
           {t(row.isActive ? "account.active" : "account.inactive")}
-        </span>
+        </Badge>
       ),
     },
     {
