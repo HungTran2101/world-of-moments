@@ -87,11 +87,13 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
       const change = field === "status"
         ? { status: value as SubmissionStatus }
         : { validity: value as SubmissionValidity };
-      return confirmPublish((confirmed) =>
-        bulkModerateCmsSubmissions(
+      return confirmPublish(
+        (confirmed) => bulkModerateCmsSubmissions(
           rows.map(({ id }) => id),
           { ...change, confirmPublish: confirmed },
         ),
+        rows,
+        change,
       );
     },
     onSuccess: async (completed) => {

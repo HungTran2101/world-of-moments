@@ -97,10 +97,12 @@ function SubmissionEditor({
     mutationFn: ({ values, change }: {
       values: SubmissionCreateValues;
       change: SubmissionUpdateValues;
-    }) => confirmPublish((confirmed) =>
-      id
+    }) => confirmPublish(
+      (confirmed) => id
         ? updateCmsSubmission(id, { ...change, confirmPublish: confirmed })
         : createCmsSubmission({ ...values, confirmPublish: confirmed }),
+      [id && query.data ? query.data : values],
+      change,
     ),
     onMutate: () => setError(null),
     onSuccess: async (completed) => {

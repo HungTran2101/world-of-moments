@@ -74,8 +74,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Row-delete prompts suppress duplicate openings. Table captures the selected
   IDs/rows and action before awaiting a confirmation, blocks duplicate execution,
   and preserves selection/action on cancellation or failure. Publication warnings
-  retain the server's 409/count contract and retry with `confirmPublish: true`
-  only after explicit confirmation; cancellation preserves form values/selection.
+  use the loaded rows and pending state changes to confirm before the first
+  mutation, sending `confirmPublish: true` only after explicit confirmation.
+  The server's 409/count contract remains a fallback for stale client data;
+  cancellation preserves form values/selection.
   The migration passes scoped ESLint, TypeScript and isolated Chrome checks with
   mocked CMS services: row/bulk cancel and success, failure recovery, permission
   guards, EN/VI labels, navigation cancellation, publication retry and detail-form
@@ -1005,8 +1007,11 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   accepts either or both state fields and rejects content/audit fields.
 - Any CMS create/moderation resulting in published non-valid content requires
   `confirmPublish: true`. Otherwise the API returns 409 `errors.confirmPublish`
-  with `details.nonValidCount`. The UI confirms the current affected count and
-  retries the same mutation; cancellation preserves input/selection. Current rows
+  with `details.nonValidCount`. The UI first counts affected records using loaded
+  status/validity plus pending changes, including creation, detail and bulk actions,
+  and confirms before sending the mutation. Cancelling this initial confirmation
+  sends no mutation and preserves input/selection. If unconfirmed stale client data receives a 409,
+  the UI confirms the server's affected count and retries the same mutation. Current rows
   are checked in a serializable transaction for moderation. Publishing preserves
   validity and does not make non-valid content visible to other visitors.
 - Submission `createdBy` is `client` or a snapshot of the authenticated CMS account's
