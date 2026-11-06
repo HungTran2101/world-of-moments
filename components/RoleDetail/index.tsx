@@ -1,14 +1,12 @@
 "use client";
 
 import { ROUTE_PATHS } from "@/services/constant";
-import { permissionModules, type PermissionKey } from "@/services/permission";
+import { permissionModules } from "@/services/permission";
 
 import { RecordAudit } from "@/components/shared/RecordAudit";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +26,10 @@ import {
   useCmsText,
 } from "@/components/shared/Forms";
 
-const DEFAULT_PERMISSION_COLUMNS = ["show", "create", "update", "delete"] as const;
+import {
+  DEFAULT_PERMISSION_COLUMNS,
+  PermissionModuleRow,
+} from "./PermissionModuleRow";
 
 function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
   const t = useTranslations();
@@ -47,6 +48,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
   const canSave = !isSystem && (id ? permission.update : permission.create);
   const {
     register,
+    getValues,
     control,
     reset,
     handleSubmit,
@@ -184,137 +186,18 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {permissionModules.map((module) => {
-                            const modulePermissions: PermissionKey[] = [
-                              ...Object.values(module.defaults),
-                              ...module.custom,
-                            ].filter(
-                              (key): key is PermissionKey => key !== undefined,
-                            );
-                            const hasPermissions = Boolean(modulePermissions.length);
-                            const allChecked =
-                              hasPermissions &&
-                              (isSystem ||
-                                modulePermissions.every((key) =>
-                                  field.value.includes(key),
-                                ));
-                            const someChecked = modulePermissions.some(
-                              (key) => field.value.includes(key),
-                            );
-
-                            return (
-                              <tr key={module.key}>
-                                <th scope="row">
-                                  <label
-                                    className="inline-flex cursor-pointer items-center gap-2 has-disabled:cursor-not-allowed"
-                                    htmlFor={`cms-role-module-${module.key}`}
-                                  >
-                                    <Checkbox
-                                      id={`cms-role-module-${module.key}`}
-                                      disabled={!hasPermissions || !canSave || isSubmitting}
-                                      checked={
-                                        allChecked
-                                          ? true
-                                          : someChecked
-                                            ? "indeterminate"
-                                            : false
-                                      }
-                                      onBlur={field.onBlur}
-                                      onCheckedChange={(checked) => {
-                                        // Chỉ thay quyền của module này, gồm cả quyền bổ sung, và giữ các module khác.
-                                        const otherPermissions = field.value.filter(
-                                          (value) =>
-                                            !modulePermissions.includes(value),
-                                        );
-                                        field.onChange(
-                                          checked === true
-                                            ? [
-                                                ...otherPermissions,
-                                                ...modulePermissions,
-                                              ]
-                                            : otherPermissions,
-                                        );
-                                      }}
-                                    />
-                                    {t(`modules.${module.key}`)}
-                                  </label>
-                                </th>
-                                {DEFAULT_PERMISSION_COLUMNS.map((action) => {
-                                  const key = module.defaults[action];
-                                  return (
-                                    <td key={action}>
-                                      {key ? (
-                                        <Checkbox
-                                          disabled={!canSave || isSubmitting}
-                                          checked={
-                                            isSystem || field.value.includes(key)
-                                          }
-                                          aria-label={`${t(`modules.${module.key}`)}: ${t(`role.${action}`)}`}
-                                          onCheckedChange={(checked) =>
-                                            field.onChange(
-                                              checked === true
-                                                ? [...field.value, key]
-                                                : field.value.filter(
-                                                    (value) => value !== key,
-                                                  ),
-                                            )
-                                          }
-                                        />
-                                      ) : (
-                                        <span className="cms-muted">—</span>
-                                      )}
-                                    </td>
-                                  );
-                                })}
-                                <td>
-                                  {module.custom.length > 0 ? (
-                                    <Select
-                                      popupClassName="cms-popup"
-                                      multiple
-                                      placeholder={t("common.selectPlaceholder")}
-                                      labels={{
-                                        empty: t("common.noOptions"),
-                                        toggle: t("common.toggleOptions"),
-                                        clear: t("common.clearSelection"),
-                                        remove: (label) =>
-                                          t("common.removeSelection", { label }),
-                                      }}
-                                      disabled={!canSave || isSubmitting}
-                                      aria-label={`${t(`modules.${module.key}`)}: ${t("role.extra")}`}
-                                      value={
-                                        isSystem
-                                          ? [...module.custom]
-                                          : field.value.filter((value) =>
-                                              (
-                                                module.custom as readonly string[]
-                                              ).includes(value),
-                                            )
-                                      }
-                                      options={module.custom.map((key) => ({
-                                        value: key,
-                                        label: t(`permissionNames.${key}`),
-                                      }))}
-                                      onBlur={field.onBlur}
-                                      onValueChange={(selected) => {
-                                        // Chỉ thay quyền bổ sung của hàng này, giữ quyền mặc định và các module khác.
-                                        field.onChange([
-                                          ...field.value.filter(
-                                            (value) =>
-                                              !(
-                                                module.custom as readonly string[]
-                                              ).includes(value),
-                                          ),
-                                          ...selected,
-                                        ]);
-                                      }}
-                                    />
-                                  ) : (
-                                    <span className="cms-muted">—</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
+                          {permissionModules.map((module) => (
+                            <PermissionModuleRow
+                              key={module.key}
+                              module={module}
+                              control={control}
+                              getValues={getValues}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              disabled={!canSave || isSubmitting}
+                              isSystem={isSystem}
+                            />
+                          ))}
                         </tbody>
                       </table>
                     </div>

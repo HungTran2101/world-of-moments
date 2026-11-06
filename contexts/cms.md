@@ -396,6 +396,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Partial selection shows an indeterminate state; toggling it selects the whole
   module. These checkboxes follow the same read-only/submitting guards as the
   individual permissions, and protected system roles display them checked.
+  Each module renders in a memoized `PermissionModuleRow` with a React Hook Form
+  subscription computed from only its own permissions. Changing one module does
+  not rerender unchanged rows; locale, disabled/submitting state, system-role state
+  and form resets still update affected rows. Changes read the latest full form
+  value before merging so edits in other modules are preserved.
   Extra-permission selects isolate intrinsic inline sizing so selecting/removing
   tags keeps column/control widths stable; tags wrap within the available width.
 - The system role is read-only. Assigned roles cannot be deleted.
