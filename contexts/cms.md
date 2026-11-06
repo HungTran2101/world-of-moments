@@ -57,6 +57,16 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   enabled and OK focused. Titles/icons and button labels are customizable;
   callers supply localized text (generic defaults are English). Closed entries
   remain through Dialog's exit animation and are then removed.
+  Animation origin detection is entirely internal to Modal/Dialog. Openings during
+  mouse activation use that click's viewport coordinates; keyboard and independent
+  programmatic openings use the center. Deferred timer/API openings use the center
+  without inheriting a recent unrelated click. `useModal` snapshots its detected
+  origin at the method call, so delayed rendering does not change it. That origin
+  remains fixed through updates and closing. Consumers pass no origin helpers,
+  coordinates, form metadata or extra bulk-action arguments.
+  Isolated Chrome checks verify ordinary Modal/useModal calls, slow click handlers
+  and rendering, mouse/keyboard/programmatic activation, deferred API openings,
+  origin retention through updates/closing and reduced motion.
   CMS row deletes, built-in Table bulk deletion and non-valid publication warnings
   use `useModal` confirmations with localized action titles and OK/Cancel labels;
   delete confirmations use the destructive OK variant. No native `window.confirm`
@@ -570,7 +580,7 @@ page 1 after a page-size change.
   Selected rows use the CMS secondary background across all cells, including
   fixed selection and Actions cells; deselecting restores the normal background.
 - Optional `bulkAction: { action, label, disabled? }[]` and
-  `onBulkAction(action, selectedRecords): void | Promise<void>`.
+  `onBulkAction(action, selectedRecords): void | boolean | Promise<void | boolean>`.
 - Optional `onBulkDelete(selectedRowKeys): Promise<void>`; only its presence adds
   the built-in Delete / Xóa option. `delete` is reserved for that action.
   Delete uses red destructive text in the dropdown and selected value, and its

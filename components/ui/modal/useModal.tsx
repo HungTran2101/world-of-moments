@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DialogOriginSnapshotContext, useDialogActivationOrigin, type DialogAnimationOrigin } from "@/components/ui/dialog/motion";
 import { CircleAlert, CircleCheck, CircleX, Info, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { Modal, type ModalProps } from "./Modal";
@@ -30,6 +31,7 @@ interface ModalEntry {
   id: number;
   kind: ModalKind;
   config: ModalConfig;
+  origin: DialogAnimationOrigin | null;
   open: boolean;
 }
 
@@ -87,74 +89,77 @@ function HookModal({ entry, onClose, onRemove, isActive }: {
   };
 
   return (
-    <Modal
-      {...props}
-      open={open}
-      title={(
-        <span className="modal-hookTitle">
-          {icon === undefined ? <Icon className={`modal-statusIcon modal-statusIcon--${kind}`} aria-hidden="true" /> : icon}
-          <span>{props.title ?? title}</span>
-        </span>
-      )}
-      closable={!busy && (props.closable ?? false)}
-      maskClosable={!busy && (props.maskClosable ?? false)}
-      keyboard={!busy && (props.keyboard ?? true)}
-      onCancel={() => { void run("cancel"); }}
-      contentProps={{
-        ...props.contentProps,
-        onOpenAutoFocus: (event) => {
-          didOpenRef.current = true;
-          props.contentProps?.onOpenAutoFocus?.(event);
-          const okButton = event.target instanceof HTMLElement
-            ? event.target.querySelector<HTMLButtonElement>("[data-modal-ok]")
-            : null;
-          if (!event.defaultPrevented && okButton && !okButton.disabled) {
-            event.preventDefault();
-            okButton.focus();
-          }
-        },
-        onCloseAutoFocus: (event) => {
-          // Giữ entry đến khi kết thúc hiệu ứng thoát và trả focus, không dùng timer trùng CSS.
-          onRemove(id);
-          props.contentProps?.onCloseAutoFocus?.(event);
-        },
-      }}
-      footer={props.footer === undefined ? (
-        <>
-          {kind === "confirm" && (
+    <DialogOriginSnapshotContext.Provider value={entry.origin}>
+      <Modal
+        {...props}
+        open={open}
+        title={(
+          <span className="modal-hookTitle">
+            {icon === undefined ? <Icon className={`modal-statusIcon modal-statusIcon--${kind}`} aria-hidden="true" /> : icon}
+            <span>{props.title ?? title}</span>
+          </span>
+        )}
+        closable={!busy && (props.closable ?? false)}
+        maskClosable={!busy && (props.maskClosable ?? false)}
+        keyboard={!busy && (props.keyboard ?? true)}
+        onCancel={() => { void run("cancel"); }}
+        contentProps={{
+          ...props.contentProps,
+          onOpenAutoFocus: (event) => {
+            didOpenRef.current = true;
+            props.contentProps?.onOpenAutoFocus?.(event);
+            const okButton = event.target instanceof HTMLElement
+              ? event.target.querySelector<HTMLButtonElement>("[data-modal-ok]")
+              : null;
+            if (!event.defaultPrevented && okButton && !okButton.disabled) {
+              event.preventDefault();
+              okButton.focus();
+            }
+          },
+          onCloseAutoFocus: (event) => {
+            // Giữ entry đến khi kết thúc hiệu ứng thoát và trả focus, không dùng timer trùng CSS.
+            onRemove(id);
+            props.contentProps?.onCloseAutoFocus?.(event);
+          },
+        }}
+        footer={props.footer === undefined ? (
+          <>
+            {kind === "confirm" && (
+              <Button
+                type="button"
+                variant="outline"
+                aria-label={typeof cancelText === "string" ? cancelText : undefined}
+                {...props.cancelButtonProps}
+                disabled={busy || props.cancelButtonProps?.disabled}
+                loading={pending === "cancel" || props.cancelButtonProps?.loading}
+                onClick={() => { void run("cancel"); }}
+              >
+                {cancelText}
+              </Button>
+            )}
             <Button
               type="button"
-              variant="outline"
-              aria-label={typeof cancelText === "string" ? cancelText : undefined}
-              {...props.cancelButtonProps}
-              disabled={busy || props.cancelButtonProps?.disabled}
-              loading={pending === "cancel" || props.cancelButtonProps?.loading}
-              onClick={() => { void run("cancel"); }}
+              variant="primary"
+              aria-label={typeof okText === "string" ? okText : undefined}
+              {...props.okButtonProps}
+              data-modal-ok=""
+              disabled={busy || props.okButtonProps?.disabled}
+              loading={pending === "ok" || props.confirmLoading || props.okButtonProps?.loading}
+              onClick={() => { void run("ok"); }}
             >
-              {cancelText}
+              {okText}
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="primary"
-            aria-label={typeof okText === "string" ? okText : undefined}
-            {...props.okButtonProps}
-            data-modal-ok=""
-            disabled={busy || props.okButtonProps?.disabled}
-            loading={pending === "ok" || props.confirmLoading || props.okButtonProps?.loading}
-            onClick={() => { void run("ok"); }}
-          >
-            {okText}
-          </Button>
-        </>
-      ) : props.footer}
-    >
-      {content}
-    </Modal>
+          </>
+        ) : props.footer}
+      >
+        {content}
+      </Modal>
+    </DialogOriginSnapshotContext.Provider>
   );
 }
 
 export function useModal(): readonly [ModalApi, ReactElement] {
+  const getAnimationOrigin = useDialogActivationOrigin();
   const [entries, setEntries] = useState<ModalEntry[]>([]);
   const nextIdRef = useRef(0);
   const resolversRef = useRef(new Map<number, (confirmed: boolean) => void>());
@@ -190,12 +195,17 @@ export function useModal(): readonly [ModalApi, ReactElement] {
 
   const api = useMemo<ModalApi>(() => {
     const create = (kind: ModalKind, config: ModalConfig): ModalInstance => {
+      // Chốt điểm mở ngay lúc gọi API, không đợi React mount hoặc đo thời gian render.
+      const origin = getAnimationOrigin();
       const id = nextIdRef.current++;
       const result = new Promise<boolean>((resolve) => {
         if (disposedRef.current) resolve(false);
         else resolversRef.current.set(id, resolve);
       });
-      if (!disposedRef.current) setEntries((current) => [...current, { id, kind, config, open: true }]);
+      if (!disposedRef.current) setEntries((current) => [
+        ...current,
+        { id, kind, config, origin, open: true },
+      ]);
 
       return {
         then: result.then.bind(result),
@@ -218,7 +228,7 @@ export function useModal(): readonly [ModalApi, ReactElement] {
       warning: (config) => create("warning", config),
       destroyAll: () => { Array.from(resolversRef.current.keys()).forEach((id) => close(id, false)); },
     };
-  }, [close]);
+  }, [close, getAnimationOrigin]);
 
   return [api, <>{entries.map((entry) => (
     <HookModal key={entry.id} entry={entry} onClose={close} onRemove={remove} isActive={isActive} />

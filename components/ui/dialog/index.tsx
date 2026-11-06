@@ -4,71 +4,35 @@ import { cn } from "@/lib/utils";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import {
   createContext,
-  useCallback,
   useContext,
-  useEffect,
-  useRef,
   useState,
   type ComponentProps,
   type CSSProperties,
-  type ReactNode,
 } from "react";
 
-interface ClickOrigin {
-  x: number;
-  y: number;
-}
+import { DialogOriginSnapshotContext, useDialogActivationOrigin, type DialogAnimationOrigin } from "./motion";
 
-const CLICK_ORIGIN_WINDOW_MS = 100;
-const RecentClickContext = createContext<() => ClickOrigin | null>(() => null);
-const DialogOriginContext = createContext<ClickOrigin | null>(null);
+export { DialogMotionProvider } from "./motion";
 
-export function DialogMotionProvider({ children }: { children: ReactNode }) {
-  const recentClickRef = useRef<(ClickOrigin & { time: number }) | null>(null);
-
-  useEffect(() => {
-    const captureClick = (event: MouseEvent) => {
-      // Bắt ở capture để cả click trên canvas hoặc có stopPropagation vẫn được ghi nhận.
-      // Click từ bàn phím không có vị trí chuột nên mở từ giữa màn hình.
-      recentClickRef.current = event.detail > 0
-        ? { x: event.clientX, y: event.clientY, time: performance.now() }
-        : null;
-    };
-    const clearClick = () => { recentClickRef.current = null; };
-
-    document.addEventListener("click", captureClick, true);
-    document.addEventListener("keydown", clearClick, true);
-    return () => {
-      document.removeEventListener("click", captureClick, true);
-      document.removeEventListener("keydown", clearClick, true);
-      clearClick();
-    };
-  }, []);
-
-  const getRecentClick = useCallback(() => {
-    const click = recentClickRef.current;
-    // Giống Ant Design, chỉ dùng click vừa xảy ra; modal mở sau tác vụ bất đồng bộ dùng tâm.
-    return click && performance.now() - click.time <= CLICK_ORIGIN_WINDOW_MS
-      ? { x: click.x, y: click.y }
-      : null;
-  }, []);
-
-  return <RecentClickContext.Provider value={getRecentClick}>{children}</RecentClickContext.Provider>;
-}
+const DialogOriginContext = createContext<DialogAnimationOrigin | null>(null);
 
 function DialogRoot({ open, defaultOpen = false, onOpenChange, ...props }: ComponentProps<typeof DialogPrimitive.Root>) {
-  const getRecentClick = useContext(RecentClickContext);
+  const getClickOrigin = useDialogActivationOrigin();
+  const originSnapshot = useContext(DialogOriginSnapshotContext);
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const isOpen = open ?? uncontrolledOpen;
   const [motion, setMotion] = useState(() => ({
     open: isOpen,
-    origin: isOpen ? getRecentClick() : null,
+    origin: isOpen ? (originSnapshot === undefined ? getClickOrigin() : originSnapshot) : null,
   }));
 
   if (motion.open !== isOpen) {
     // Chốt điểm mở trước khi render nội dung và giữ nguyên suốt lúc đóng,
     // tránh lấy nhầm vị trí nút đóng hoặc click khác trong modal.
-    setMotion({ open: isOpen, origin: isOpen ? getRecentClick() : motion.origin });
+    setMotion({
+      open: isOpen,
+      origin: isOpen ? (originSnapshot === undefined ? getClickOrigin() : originSnapshot) : motion.origin,
+    });
   }
 
   return (
