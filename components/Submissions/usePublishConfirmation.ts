@@ -2,8 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/services/shared/errors";
+import type { ModalApi } from "@/components/ui/modal";
 
-export function usePublishConfirmation() {
+export function usePublishConfirmation(modal: Pick<ModalApi, "confirm">) {
   const t = useTranslations();
   return async (
     submit: (confirmed: boolean) => Promise<unknown>,
@@ -19,14 +20,15 @@ export function usePublishConfirmation() {
       )
         throw error;
       const body = error.data as { details?: { nonValidCount?: number } };
-      if (
-        !window.confirm(
-          t("submission.confirmPublish", {
-            count: body.details?.nonValidCount ?? 1,
-          }),
-        )
-      )
-        return false;
+      const confirmed = await modal.confirm({
+        title: t("submission.actions.published"),
+        content: t("submission.confirmPublish", {
+          count: body.details?.nonValidCount ?? 1,
+        }),
+        okText: t("submission.actions.published"),
+        cancelText: t("common.cancel"),
+      });
+      if (!confirmed) return false;
       await submit(true);
       return true;
     }

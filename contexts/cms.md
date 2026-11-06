@@ -35,6 +35,63 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Route,SearchInput,RecordAudit,Table}`. Styles are colocated as `index.scss` with
   their owning components. Shared CMS tokens, controls and layout utilities live
   with `Providers`; table primitives are shared with the role permission matrix.
+- `components/ui/modal` is the CMS-only controlled convenience wrapper around
+  the shared `Dialog`. Its portaled content always carries `cms-popup`, applying
+  the CMS system font, light-theme tokens and reduced-motion rules outside the
+  CMS layout container. Callers do not need to add the theme class themselves.
+  Modal styles are loaded only through `styles/cms-import.scss`. Public client
+  surfaces compose `components/ui/dialog` directly.
+  `Modal.useModal()` (also exported as `useModal`) returns `[modal, contextHolder]`.
+  Render the holder inside the providers whose context the content needs.
+  `modal.confirm`, `info`, `success`, `error` and `warning` accept Modal options
+  with `content` instead of `children`; confirmation has Cancel/OK, other types
+  have OK only. Each result supports `update(partialOrUpdater)`, `destroy()` and
+  `await`: OK resolves true; Cancel, dismissal, destruction or hook-owner unmount
+  resolves false. `destroyAll()` affects only that hook's dialogs. Async `onOk`
+  and `onCancel` receive a close function; while a returned Promise is pending,
+  default actions and user dismissal are blocked. Resolution closes; rejection
+  keeps the dialog open and calls optional `onError`, which owns error
+  presentation. A callback that accepts `close` and returns no Promise owns
+  closing explicitly; a callback without arguments closes automatically.
+  Imperative dialogs default to no close icon or backdrop dismissal, with Escape
+  enabled and OK focused. Titles/icons and button labels are customizable;
+  callers supply localized text (generic defaults are English). Closed entries
+  remain through Dialog's exit animation and are then removed.
+  CMS row deletes, built-in Table bulk deletion and non-valid publication warnings
+  use `useModal` confirmations with localized action titles and OK/Cancel labels;
+  delete confirmations use the destructive OK variant. No native `window.confirm`
+  prompts remain. Page/query navigation cancels outstanding confirmations.
+  Row-delete prompts suppress duplicate openings. Table captures the selected
+  IDs/rows and action before awaiting a confirmation, blocks duplicate execution,
+  and preserves selection/action on cancellation or failure. Publication warnings
+  retain the server's 409/count contract and retry with `confirmPublish: true`
+  only after explicit confirmation; cancellation preserves form values/selection.
+  The migration passes scoped ESLint, TypeScript and isolated Chrome checks with
+  mocked CMS services: row/bulk cancel and success, failure recovery, permission
+  guards, EN/VI labels, navigation cancellation, publication retry and detail-form
+  preservation. These checks do not mutate real records or verify live backend writes.
+
+  ```tsx
+  const [modal, contextHolder] = Modal.useModal();
+
+  const confirmDelete = async () => {
+    const confirmed = await modal.confirm({
+      title: t("common.delete"),
+      content: t("common.confirmDelete", { count: 1 }),
+      okText: t("common.delete"),
+      cancelText: t("common.cancel"),
+      okButtonProps: { variant: "destructive" },
+    });
+    if (confirmed) deleteRecord();
+  };
+
+  return (
+    <>
+      <Button onClick={confirmDelete}>{t("common.delete")}</Button>
+      {contextHolder}
+    </>
+  );
+  ```
 - `components/shared/Brand` owns the CMS logo, title, subtitle and brand styles.
   Login and sidebar reuse it; `style` accepts React `CSSProperties` for custom
   root styling, `className` extends its root classes and `imageSize` controls the

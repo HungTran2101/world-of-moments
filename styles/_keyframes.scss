@@ -41,7 +41,7 @@
   }
 }
 
-@keyframes modal-zoom-in {
+@keyframes dialog-zoom-in {
   from {
     transform: translate(-50%, -50%) scale(0.05);
   }
@@ -51,7 +51,7 @@
   }
 }
 
-@keyframes modal-zoom-out {
+@keyframes dialog-zoom-out {
   from {
     transform: translate(-50%, -50%) scale(1);
   }
@@ -61,7 +61,7 @@
   }
 }
 
-@keyframes modal-fade-in {
+@keyframes dialog-fade-in {
   from {
     opacity: 0.2;
   }
@@ -71,7 +71,7 @@
   }
 }
 
-@keyframes modal-fade-out {
+@keyframes dialog-fade-out {
   from {
     opacity: 1;
   }

@@ -3,7 +3,7 @@
 import { ROUTE_PATHS } from "@/services/constant";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Eye, Trash2 } from "lucide-react";
 import { useCRUDPage } from "@/hooks/useCRUDPage";
@@ -17,6 +17,7 @@ import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Table, type Column } from "@/components/shared/Table";
 import { ErrorNotice } from "@/components/shared/Forms";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/components/ui/modal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -30,8 +31,11 @@ const accountServices = {
 
 export function AccountsPage({ permission }: CmsPageProps) {
   const t = useTranslations();
+  const [modal, contextHolder] = useModal();
+  const confirmingDeleteRef = useRef(false);
   const params = useSearchParams();
   const context = params.toString();
+  useEffect(() => () => modal.destroyAll(), [context, modal]);
   // Chỉ giữ lựa chọn trong cùng URL để không thao tác nhầm bản ghi sau khi đổi trang/bộ lọc.
   const [selection, setSelection] = useState({ context, keys: [] as string[] });
   const [error, setError] = useState<unknown>(null);
@@ -46,15 +50,27 @@ export function AccountsPage({ permission }: CmsPageProps) {
     else query.delete("id");
     return `${ROUTE_PATHS.ACCOUNT_DETAIL}${query.size ? `?${query}` : ""}`;
   };
-  const deleteRow = (id: string) => {
-    if (crud.deleteLoading || crud.fetching) return;
-    if (!window.confirm(t("common.confirmDelete", { count: 1 }))) return;
-    setError(null);
-    setDeletingId(id);
-    crud.deleteRecords([id], {
-      onError: setError,
-      onSettled: () => setDeletingId(null),
-    });
+  const deleteRow = async (id: string) => {
+    if (confirmingDeleteRef.current || crud.deleteLoading || crud.fetching) return;
+    confirmingDeleteRef.current = true;
+    try {
+      const confirmed = await modal.confirm({
+        title: t("common.delete"),
+        content: t("common.confirmDelete", { count: 1 }),
+        okText: t("common.delete"),
+        cancelText: t("common.cancel"),
+        okButtonProps: { variant: "destructive" },
+      });
+      if (!confirmed) return;
+      setError(null);
+      setDeletingId(id);
+      crud.deleteRecords([id], {
+        onError: setError,
+        onSettled: () => setDeletingId(null),
+      });
+    } finally {
+      confirmingDeleteRef.current = false;
+    }
   };
   const columns: Column<CmsAccountRecord>[] = [
     {
@@ -199,6 +215,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
           onBulkDelete={permission.delete ? crud.onDelete : undefined}
         />
       </CmsPageContent>
+      {contextHolder}
     </>
   );
 }

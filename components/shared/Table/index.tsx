@@ -2,6 +2,7 @@
 
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/components/ui/modal";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
@@ -106,11 +107,15 @@ export function Table<T extends object>({
   navigationKey: string;
 }) {
   const t = useTranslations();
+  const [modal, contextHolder] = useModal();
   const id = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const executionLockRef = useRef(false);
   const [action, setAction] = useState("");
   const [bulkError, setBulkError] = useState<unknown>(null);
   const [listAction, setListAction] = useState<"search" | "retry" | null>(null);
+
+  useEffect(() => () => modal.destroyAll(), [modal, navigationKey]);
 
   useEffect(() => {
     const viewport = scrollRef.current;
@@ -175,6 +180,14 @@ export function Table<T extends object>({
       onSelectionChange?: TableSelection<T>["onChange"];
     }) => {
       if (action === "delete") {
+        const confirmed = await modal.confirm({
+          title: t("common.delete"),
+          content: t("common.confirmDelete", { count: keys.length }),
+          okText: t("common.delete"),
+          cancelText: t("common.cancel"),
+          okButtonProps: { variant: "destructive" },
+        });
+        if (!confirmed) return false;
         await onBulkDelete?.(keys);
         return true;
       }
@@ -187,14 +200,13 @@ export function Table<T extends object>({
       setAction("");
     },
     onError: setBulkError,
+    onSettled: () => { executionLockRef.current = false; },
   });
   const executing = execution.isPending;
   const execute = () => {
-    if (!canExecute || executing || fetching) return;
-    if (
-      action === "delete" &&
-      !window.confirm(t("common.confirmDelete", { count: selectedKeys.length }))
-    ) return;
+    if (!canExecute || executionLockRef.current || fetching) return;
+    executionLockRef.current = true;
+    // Chốt action và bản ghi trước khi chờ xác nhận bất đồng bộ để không đổi mục tiêu thao tác.
     execution.mutate({
       action,
       keys: [...selectedKeys],
@@ -420,6 +432,7 @@ export function Table<T extends object>({
         onChangePageSize={onChangePageSize}
         disabled={fetching}
       />
+      {contextHolder}
     </section>
   );
 }

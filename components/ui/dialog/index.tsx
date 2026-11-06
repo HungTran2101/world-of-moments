@@ -91,18 +91,18 @@ function DialogContent({ className, style, ...props }: ComponentProps<typeof Dia
   return (
     <DialogPrimitive.Content
       {...props}
-      className={cn("modal-content", className)}
+      className={cn("dialog-content", className)}
       style={{
         ...style,
-        "--modal-origin-x": origin ? `${origin.x}px` : "50vw",
-        "--modal-origin-y": origin ? `${origin.y}px` : "50dvh",
+        "--dialog-origin-x": origin ? `${origin.x}px` : "50vw",
+        "--dialog-origin-y": origin ? `${origin.y}px` : "50dvh",
       } as CSSProperties}
     />
   );
 }
 
 function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
-  return <DialogPrimitive.Overlay {...props} className={cn("modal-overlay", className)} />;
+  return <DialogPrimitive.Overlay {...props} className={cn("dialog-overlay", className)} />;
 }
 
 // Mọi modal dùng chung cổng này để giữ chuyển động và hành vi Radix nhất quán.

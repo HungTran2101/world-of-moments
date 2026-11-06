@@ -1,42 +1,43 @@
 "use client";
 
-import {
-  SUBMISSION_STATUSES,
-  SUBMISSION_VALIDITIES,
-  DEFAULT_SUBMISSION_STATUS,
-  DEFAULT_SUBMISSION_VALIDITY,
-  ROUTE_PATHS,
-} from "@/services/constant";
-import { permissions } from "@/services/permission";
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Controller, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Header } from "@/components/shared/Header";
-import { CmsPageContent } from "@/components/shared/CmsPageContent";
+import { constants } from "@/app/api/constant";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import { RecordAudit } from "@/components/shared/RecordAudit";
+import { CmsPageContent } from "@/components/shared/CmsPageContent";
+import { ErrorNotice, Field, applyFormError } from "@/components/shared/Forms";
+import { Header } from "@/components/shared/Header";
 import { LoadingDots } from "@/components/shared/LoadingDots";
-import { Field, ErrorNotice, applyFormError } from "@/components/shared/Forms";
+import { RecordAudit } from "@/components/shared/RecordAudit";
 import { usePublishConfirmation } from "@/components/Submissions/usePublishConfirmation";
+import { useModal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   createCmsSubmission,
   getCmsSubmission,
   updateCmsSubmission,
 } from "@/services/cms/submissions";
 import {
+  DEFAULT_SUBMISSION_STATUS,
+  DEFAULT_SUBMISSION_VALIDITY,
+  ROUTE_PATHS,
+  SUBMISSION_STATUSES,
+  SUBMISSION_VALIDITIES,
+} from "@/services/constant";
+import { permissions } from "@/services/permission";
+import {
   submissionCreateSchema,
   type SubmissionCreateValues,
   type SubmissionUpdateValues,
 } from "@/services/schemas";
 import type { CmsPageProps } from "@/services/shared/types";
-import { constants } from "@/app/api/constant";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 function SubmissionEditor({
   permission,
@@ -47,7 +48,9 @@ function SubmissionEditor({
   const router = useRouter();
   const params = useSearchParams();
   const client = useQueryClient();
-  const confirmPublish = usePublishConfirmation();
+  const [modal, contextHolder] = useModal();
+  const confirmPublish = usePublishConfirmation(modal);
+  useEffect(() => () => modal.destroyAll(), [modal, params]);
   const hydrated = useRef(false);
   const [error, setError] = useState<unknown>(null);
   const canStatus = permission.custom.includes(
@@ -342,6 +345,7 @@ function SubmissionEditor({
           )
         )}
       </CmsPageContent>
+      {contextHolder}
     </>
   );
 }
