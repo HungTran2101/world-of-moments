@@ -1,4 +1,4 @@
-import { permissions } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import { accountSelect, serializeAccount, assertRoles } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";

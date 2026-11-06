@@ -1,7 +1,7 @@
 "use client";
 
 import { ROUTE_PATHS } from "@/services/constant";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -27,11 +27,29 @@ export function ChangePasswordPage() {
     handleSubmit,
     reset,
     setError: setFieldError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: formSubmitting },
   } = useForm<ChangePasswordValues>({
     resolver: yupResolver(changePasswordSchema),
     defaultValues: { currentPassword: "", newPassword: "" },
   });
+  const save = useMutation({
+    mutationFn: (values: ChangePasswordValues) => changeCmsPassword(values),
+    onMutate: () => {
+      setError(null);
+      setSuccess(false);
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["cms"] });
+      reset();
+      setSuccess(true);
+    },
+    onError: (error) => {
+      setError(error);
+      applyFormError(error, setFieldError);
+    },
+  });
+  const isSubmitting = formSubmitting || save.isPending;
+
   return (
     <>
       <Header
@@ -61,18 +79,8 @@ export function ChangePasswordPage() {
         <form
           id="cms-password-form"
           className="cms-form"
-          onSubmit={handleSubmit(async (values) => {
-            setError(null);
-            setSuccess(false);
-            try {
-              await changeCmsPassword(values);
-              await client.invalidateQueries({ queryKey: ["cms"] });
-              reset();
-              setSuccess(true);
-            } catch (error) {
-              setError(error);
-              applyFormError(error, setFieldError);
-            }
+          onSubmit={handleSubmit((values) => {
+            if (!save.isPending) save.mutate(values);
           })}
         >
           {Boolean(error) && <ErrorNotice error={error} />}

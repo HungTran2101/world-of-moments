@@ -6,10 +6,10 @@ import { getOrCreateUUID } from "@/lib/uuid";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError, type ErrorMessageKey } from "@/services/shared/errors";
 import { createSubmission } from "@/services/submissions";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSystemStore } from "@/store/systemStore";
 import { usePinStore } from "@/store/usePinStore";
-import { useSubmissionMapStore, type ScreenPoint } from "@/store/useSubmissionMapStore";
+import { useSubmissionMapStore, type ScreenPoint, type SubmissionMap } from "@/store/useSubmissionMapStore";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
@@ -24,6 +24,19 @@ interface SubmissionFormProps {
 }
 
 type SubmissionStage = "map" | "identity" | "create" | "refresh" | "complete";
+
+interface SubmissionRun {
+  controller: AbortController;
+  map: SubmissionMap;
+  finish: (saved: boolean) => void;
+  saved: boolean;
+  resolveAnimation: () => void;
+  animationDone: Promise<void>;
+  refreshReady: boolean;
+  stage: SubmissionStage;
+  authorUuid: string;
+  submissionId: string | null;
+}
 
 function submissionErrorKey(error: unknown, stage: SubmissionStage): ErrorMessageKey {
   if (stage === "map") return "mapUnavailable";
@@ -58,12 +71,7 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
   const descriptionRef = inputRef ?? localDescriptionRef;
   const suffixRef = useRef<HTMLSpanElement>(null);
   const hasPlacedPinRef = useRef(false);
-  const activeRunRef = useRef<{
-    controller: AbortController;
-    finish: (saved: boolean) => void;
-    saved: boolean;
-    resolveAnimation: () => void;
-  } | null>(null);
+  const activeRunRef = useRef<SubmissionRun | null>(null);
 
   const setSidebarOpen = useSystemStore((state) => state.setSidebarOpen);
   const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
@@ -108,10 +116,89 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
     useSubmissionMapStore.getState().setIsSubmitting(false);
   }, []);
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  function finishRun(run: SubmissionRun) {
+    if (activeRunRef.current !== run) return;
+    activeRunRef.current = null;
+    run.resolveAnimation();
+    run.finish(run.saved);
+    useSubmissionMapStore.getState().setIsSubmitting(false);
+    setFlight(null);
+    setIsWaiting(false);
+    // Chỉ trả focus sau khi bubble bay, marker tải xong, zoom kết thúc và bản đồ đã mở khóa.
+    if (run.stage === "complete") {
+      run.map.focus();
+      if (run.submissionId) run.map.openThought(run.submissionId);
+    }
+  }
+
+  const creation = useMutation({
+    mutationFn: ({ run, description, lat, lng }: {
+      run: SubmissionRun;
+      description: string;
+      lat: number;
+      lng: number;
+    }) => {
+      run.controller.signal.throwIfAborted();
+      run.stage = "identity";
+      run.authorUuid = getOrCreateUUID();
+      run.stage = "create";
+      return createSubmission(
+        { description, lat, lng, author_uuid: run.authorUuid },
+        { reportGlobalError: false, signal: run.controller.signal },
+      );
+    },
+    onMutate: ({ run }) => {
+      run.controller.signal.throwIfAborted();
+      run.finish = run.map.beginSubmission();
+      const rect = suffixRef.current?.getBoundingClientRect();
+      if (!rect) throw new Error("Map is not ready");
+      setIsWaiting(false);
+      setFlight({
+        origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+        getDestination: run.map.getPinPosition,
+        subscribeToResize: run.map.subscribeToResize,
+        onArrival: () => {
+          setIsWaiting(!run.refreshReady);
+          run.resolveAnimation();
+        },
+      });
+    },
+    onSuccess: async (submission, { run }) => {
+      run.submissionId = submission.id;
+      run.saved = true;
+      // Làm mới lịch sử ngay khi đã lưu, kể cả khi refresh marker phía sau thất bại.
+      void queryClient.invalidateQueries({
+        queryKey: [...submissionHistoryKey, run.authorUuid],
+      });
+      setSidebarOpen(false);
+      const signal = run.controller.signal;
+      signal.throwIfAborted();
+      run.stage = "refresh";
+      // Bài đã lưu thì xóa bản nháp để tránh gửi trùng nếu tải marker bị lỗi.
+      setDescription("");
+      const revealMarkers = await run.map.prepareMarkerRefresh(signal);
+      run.refreshReady = true;
+      await run.animationDone;
+      signal.throwIfAborted();
+      await revealMarkers();
+      setFlight(null);
+      setIsWaiting(false);
+      await run.map.zoomToPin(signal);
+      await run.map.waitForMarkerAnimations(signal);
+      run.stage = "complete";
+      onSuccess?.();
+    },
+    onError: (error, { run }) => {
+      if (!run.controller.signal.aborted) {
+        showError(error, { messageKey: submissionErrorKey(error, run.stage) });
+      }
+    },
+    onSettled: (_data, _error, { run }) => finishRun(run),
+  });
+
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     if (!isPlaced || useSubmissionMapStore.getState().isSubmitting) return;
-
     if (!description.trim()) {
       setHasDescriptionError(true);
       setIsDescriptionFlashing(false);
@@ -119,84 +206,28 @@ export default function SubmissionForm({ onSuccess, inputRef }: SubmissionFormPr
       window.requestAnimationFrame(() => setIsDescriptionFlashing(true));
       return;
     }
-    let stage: SubmissionStage = "map";
-    let run: typeof activeRunRef.current = null;
-    let submissionId: string | null = null;
-    try {
-      if (!submissionMap || !suffixRef.current) {
-        showError(new Error("Map is not ready"), { messageKey: "mapUnavailable" });
-        return;
-      }
-      const finish = submissionMap.beginSubmission();
-      const controller = new AbortController();
-      let resolveAnimation = () => { };
-      const animationDone = new Promise<void>((resolve) => { resolveAnimation = resolve; });
-      let refreshReady = false;
-      run = { controller, finish, resolveAnimation, saved: false };
-      const currentRun = run;
-      activeRunRef.current = run;
-      useSubmissionMapStore.getState().setIsSubmitting(true);
-      const rect = suffixRef.current.getBoundingClientRect();
-      setIsWaiting(false);
-      setFlight({
-        origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
-        getDestination: submissionMap.getPinPosition,
-        subscribeToResize: submissionMap.subscribeToResize,
-        onArrival: () => {
-          setIsWaiting(!refreshReady);
-          resolveAnimation();
-        },
-      });
-
-      stage = "identity";
-      const author_uuid = getOrCreateUUID();
-      const signal = controller.signal;
-      // Hai API vẫn chạy trong lúc bubble bay; chỉ đưa dữ liệu mới lên bản đồ sau khi đến ghim.
-      stage = "create";
-      const submission = await createSubmission(
-        { description: description.trim(), lat, lng, author_uuid },
-        { reportGlobalError: false, signal },
-      );
-      submissionId = submission.id;
-      // Làm mới cả các từ khóa lịch sử sau khi lưu, kể cả khi refresh marker phía sau thất bại.
-      void queryClient.invalidateQueries({ queryKey: [...submissionHistoryKey, author_uuid] });
-      setSidebarOpen(false);
-      currentRun.saved = true;
-      signal.throwIfAborted();
-      stage = "refresh";
-      // Bài đã lưu thì xóa bản nháp, kể cả khi tải marker lỗi, tránh gửi trùng khi thử lại.
-      setDescription("");
-      const revealMarkers = await submissionMap.prepareMarkerRefresh(signal);
-      refreshReady = true;
-      await animationDone;
-      signal.throwIfAborted();
-      await revealMarkers();
-      // Bỏ bubble đã đến nơi trước khi di chuyển bản đồ để ảnh không đứng lại giữa màn hình.
-      setFlight(null);
-      setIsWaiting(false);
-      await submissionMap.zoomToPin(signal);
-      await submissionMap.waitForMarkerAnimations(signal);
-      stage = "complete";
-      onSuccess?.();
-    } catch (error) {
-      if (run?.controller.signal.aborted) return;
-      showError(error, { messageKey: submissionErrorKey(error, stage) });
-    } finally {
-      if (run && activeRunRef.current === run) {
-        activeRunRef.current = null;
-        run.resolveAnimation();
-        run.finish(run.saved);
-        useSubmissionMapStore.getState().setIsSubmitting(false);
-        setFlight(null);
-        setIsWaiting(false);
-        // Chỉ trả focus sau khi bubble bay, marker tải xong, zoom kết thúc và bản đồ đã mở khóa.
-        if (stage === "complete") {
-          submissionMap?.focus();
-          // Mở suy nghĩ vừa lưu sau khi zoom và hiệu ứng marker xong, tránh giành focus với modal.
-          if (submissionId) submissionMap?.openThought(submissionId);
-        }
-      }
+    if (!submissionMap) {
+      showError(new Error("Map is not ready"), { messageKey: "mapUnavailable" });
+      return;
     }
+    let resolveAnimation = () => {};
+    const animationDone = new Promise<void>((resolve) => { resolveAnimation = resolve; });
+    const run: SubmissionRun = {
+      controller: new AbortController(),
+      map: submissionMap,
+      finish: () => {},
+      saved: false,
+      resolveAnimation,
+      animationDone,
+      refreshReady: false,
+      stage: "map",
+      authorUuid: "",
+      submissionId: null,
+    };
+    activeRunRef.current = run;
+    // Khóa đồng bộ trước khi mutation chạy để chặn hai lần gửi trong cùng một nhịp render.
+    useSubmissionMapStore.getState().setIsSubmitting(true);
+    creation.mutate({ run, description: description.trim(), lat, lng });
   }
 
   return (

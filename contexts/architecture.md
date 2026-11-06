@@ -76,6 +76,13 @@ usePinStore holds draft coordinates. useSubmissionMapStore exposes the map opera
 
 During submission, the writing pin is hidden and map interactions are paused while the bubble flies. A successful save clears the draft, refreshes viewport positions, and reveals them after arrival. The map then zooms beyond the clustering threshold while preserving a closer existing zoom. A failed save preserves the draft and pin; a refresh failure after saving is reported separately.
 
+Client API writes use TanStack Query `useMutation`. Public submission preparation
+runs in `onMutate`; its `onSuccess` invalidates UUID-scoped history and completes
+the existing bubble/marker/camera sequence. `onError` keeps stage-specific errors,
+and `onSettled` releases the map and restores focus. Unmount still aborts the
+request/animation and releases the map independently. Locale mutations refresh
+the router on success and report failures through the existing error UI.
+
 Errors are handled through the shared ErrorProvider/ErrorModal and Next.js route/root error boundaries. The empty-description validation remains beside the textarea.
 
 History Module
@@ -108,8 +115,9 @@ shared auth/HTTP utilities in `handlers/` and its server-only page factory in
 `components/ProtectedPage`. Each native CMS page selects its content component with
 `createProtectedPage(Component, ROUTE_PATHS.KEY)`; the factory validates the session
 and resolves permissions before rendering content. `services/constant.ts` holds
-static service constants, including CMS paths and the exhaustive protected-route
-permission map, with no component registry. `services/routes.ts` retains landing
+fixed service constants, including CMS paths. `services/permission.ts` owns the
+permission catalog, module definitions, exhaustive protected-route permission map
+and landing policy, with no component registry. `services/routes.ts` retains landing
 navigation helpers and route types. Shared server-only API helpers live in
 `app/api/_shared.ts`. CMS page components and reusable UI
 follow the existing `components/` and `components/shared/` structure, with

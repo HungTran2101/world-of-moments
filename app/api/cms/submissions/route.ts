@@ -1,4 +1,5 @@
-import { permissions, DEFAULT_SUBMISSION_STATUS, DEFAULT_SUBMISSION_VALIDITY } from "@/services/constant";
+import { permissions } from "@/services/permission";
+import { DEFAULT_SUBMISSION_STATUS, DEFAULT_SUBMISSION_VALIDITY } from "@/services/constant";
 import {
   assertModerationPermission,
   assertPublicationConfirmed,

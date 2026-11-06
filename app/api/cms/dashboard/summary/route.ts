@@ -1,4 +1,5 @@
-import { permissions, DASHBOARD_PERIOD_DAYS } from "@/services/constant";
+import { permissions } from "@/services/permission";
+import { DASHBOARD_PERIOD_DAYS } from "@/services/constant";
 import { dashboardCalendarBounds } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";

@@ -2,8 +2,8 @@ import "server-only";
 
 import { Prisma, type Submission } from "@prisma/client";
 import { CmsHttpError } from "@/handlers/http";
-import { permissions } from "@/services/constant";
-import { checkPermission } from "@/services/permission";
+import { permissions, checkPermission } from "@/services/permission";
+
 import type { CmsUser } from "@/services/shared/types";
 import type { SubmissionUpdateValues } from "@/services/schemas";
 import type { CmsSubmissionRecord } from "@/services/cms/submissions/types";

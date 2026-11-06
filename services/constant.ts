@@ -1,6 +1,3 @@
-import type { PermissionRules } from "@/services/permission";
-import type { ProtectedCmsRoutePath } from "@/services/routes";
-
 export const SUBMISSION_STATUSES = ["published", "unpublished"] as const;
 export const SUBMISSION_VALIDITIES = [
   "valid",
@@ -20,65 +17,7 @@ export const DASHBOARD_PERIOD_DAYS = { "7d": 7, "30d": 30 } as const;
 export const DASHBOARD_DAILY_HISTORY_LIMIT_DAYS = 90;
 
 export const PAGE_SIZES = [10, 20, 50, 100] as const;
-
-export const permissions = {
-  DASHBOARD_SHOW: "dashboard.show",
-  SUBMISSION_SHOW: "submission.show",
-  SUBMISSION_CREATE: "submission.create",
-  SUBMISSION_DELETE: "submission.delete",
-  SUBMISSION_UPDATE_STATUS: "submission.updateSubmissionStatus",
-  SUBMISSION_UPDATE_VALIDITY: "submission.updateSubmissionValidity",
-  ACCOUNT_SHOW: "account.show",
-  ACCOUNT_CREATE: "account.create",
-  ACCOUNT_UPDATE: "account.update",
-  ACCOUNT_DELETE: "account.delete",
-  ACCOUNT_RESET_PASSWORD: "account.resetPasswordPermission",
-  ROLE_SHOW: "role.show",
-  ROLE_CREATE: "role.create",
-  ROLE_UPDATE: "role.update",
-  ROLE_DELETE: "role.delete",
-} as const;
-
-export const permissionModules = [
-  {
-    key: "dashboard",
-    defaults: [permissions.DASHBOARD_SHOW, null, null, null],
-    custom: [],
-  },
-  {
-    key: "submission",
-    defaults: [
-      permissions.SUBMISSION_SHOW,
-      permissions.SUBMISSION_CREATE,
-      null,
-      permissions.SUBMISSION_DELETE,
-    ],
-    custom: [
-      permissions.SUBMISSION_UPDATE_STATUS,
-      permissions.SUBMISSION_UPDATE_VALIDITY,
-    ],
-  },
-  {
-    key: "account",
-    defaults: [
-      permissions.ACCOUNT_SHOW,
-      permissions.ACCOUNT_CREATE,
-      permissions.ACCOUNT_UPDATE,
-      permissions.ACCOUNT_DELETE,
-    ],
-    custom: [permissions.ACCOUNT_RESET_PASSWORD],
-  },
-  {
-    key: "role",
-    defaults: [
-      permissions.ROLE_SHOW,
-      permissions.ROLE_CREATE,
-      permissions.ROLE_UPDATE,
-      permissions.ROLE_DELETE,
-    ],
-    custom: [],
-  },
-] as const;
+export const MUTATION_CACHE_GC_TIME_MS = 0;
 
 export const ROUTE_PATHS = {
   DASHBOARD: "/cms",
@@ -93,51 +32,6 @@ export const ROUTE_PATHS = {
   CHANGE_PASSWORD: "/cms/profile/change-password",
   GENERAL: "/cms/general",
 } as const;
-
-const ACCOUNT_PERMISSION_RULES: PermissionRules = {
-  show: permissions.ACCOUNT_SHOW,
-  create: permissions.ACCOUNT_CREATE,
-  update: permissions.ACCOUNT_UPDATE,
-  delete: permissions.ACCOUNT_DELETE,
-  custom: [permissions.ACCOUNT_RESET_PASSWORD],
-};
-
-const ROLE_PERMISSION_RULES: PermissionRules = {
-  show: permissions.ROLE_SHOW,
-  create: permissions.ROLE_CREATE,
-  update: permissions.ROLE_UPDATE,
-  delete: permissions.ROLE_DELETE,
-};
-
-const SUBMISSION_PERMISSION_RULES: PermissionRules = {
-  show: permissions.SUBMISSION_SHOW,
-  create: permissions.SUBMISSION_CREATE,
-  delete: permissions.SUBMISSION_DELETE,
-  custom: [
-    permissions.SUBMISSION_UPDATE_STATUS,
-    permissions.SUBMISSION_UPDATE_VALIDITY,
-  ],
-};
-
-export const ROUTES_PERMISSIONS = {
-  [ROUTE_PATHS.SUBMISSIONS]: SUBMISSION_PERMISSION_RULES,
-  [ROUTE_PATHS.SUBMISSION_DETAIL]: SUBMISSION_PERMISSION_RULES,
-  [ROUTE_PATHS.DASHBOARD]: { show: permissions.DASHBOARD_SHOW },
-  [ROUTE_PATHS.ACCOUNTS]: ACCOUNT_PERMISSION_RULES,
-  [ROUTE_PATHS.ACCOUNT_DETAIL]: ACCOUNT_PERMISSION_RULES,
-  [ROUTE_PATHS.ROLES]: ROLE_PERMISSION_RULES,
-  [ROUTE_PATHS.ROLE_DETAIL]: ROLE_PERMISSION_RULES,
-  [ROUTE_PATHS.CHANGE_PASSWORD]: undefined,
-  [ROUTE_PATHS.PROFILE]: undefined,
-  [ROUTE_PATHS.GENERAL]: undefined,
-} satisfies Record<ProtectedCmsRoutePath, PermissionRules | undefined>;
-
-export const CMS_LANDING_ROUTES = [
-  [ROUTE_PATHS.DASHBOARD, permissions.DASHBOARD_SHOW],
-  [ROUTE_PATHS.SUBMISSIONS, permissions.SUBMISSION_SHOW],
-  [ROUTE_PATHS.ACCOUNTS, permissions.ACCOUNT_SHOW],
-  [ROUTE_PATHS.ROLES, permissions.ROLE_SHOW],
-] as const;
 
 export const API_ERROR_STATUS = {
   BAD_REQUEST: 400,

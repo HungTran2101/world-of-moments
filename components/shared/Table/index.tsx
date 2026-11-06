@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { PaginationMetadata } from "@/services/shared/pagination";
@@ -108,7 +109,6 @@ export function Table<T extends object>({
   const id = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [action, setAction] = useState("");
-  const [executing, setExecuting] = useState(false);
   const [bulkError, setBulkError] = useState<unknown>(null);
   const [listAction, setListAction] = useState<"search" | "retry" | null>(null);
 
@@ -167,25 +167,40 @@ export function Table<T extends object>({
       keys,
       datasource.filter((row) => keys.includes(keyOf(row))),
     );
-  const execute = async () => {
+  const execution = useMutation({
+    mutationFn: async ({ action, keys, rows }: {
+      action: string;
+      keys: string[];
+      rows: T[];
+      onSelectionChange?: TableSelection<T>["onChange"];
+    }) => {
+      if (action === "delete") {
+        await onBulkDelete?.(keys);
+        return true;
+      }
+      return onBulkAction?.(action, rows);
+    },
+    onMutate: () => setBulkError(null),
+    onSuccess: (completed, { onSelectionChange }) => {
+      if (completed === false) return;
+      onSelectionChange?.([], []);
+      setAction("");
+    },
+    onError: setBulkError,
+  });
+  const executing = execution.isPending;
+  const execute = () => {
     if (!canExecute || executing || fetching) return;
     if (
       action === "delete" &&
       !window.confirm(t("common.confirmDelete", { count: selectedKeys.length }))
-    )
-      return;
-    setExecuting(true);
-    setBulkError(null);
-    try {
-      if (action === "delete") await onBulkDelete?.(selectedKeys);
-      else if (await onBulkAction?.(action, selectedRows) === false) return;
-      selection?.onChange([], []);
-      setAction("");
-    } catch (error) {
-      setBulkError(error);
-    } finally {
-      setExecuting(false);
-    }
+    ) return;
+    execution.mutate({
+      action,
+      keys: [...selectedKeys],
+      rows: selectedRows,
+      onSelectionChange: selection?.onChange,
+    });
   };
 
   return (

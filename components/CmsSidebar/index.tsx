@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LogOut, X } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import { checkPermission } from "@/services/permission";
 import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
@@ -26,7 +27,6 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   const user = useCmsStore((state) => state.user);
   const landingPath = getCmsLandingPath(user?.scopes ?? []);
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
@@ -67,21 +67,18 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
     );
   };
 
-  const logout = async () => {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await logoutCms();
+  const logout = useMutation({
+    mutationFn: () => logoutCms(),
+    onMutate: () => setError(null),
+    onSuccess: () => {
       const channel = new BroadcastChannel("wom-cms-session");
       channel.postMessage("logout");
       channel.close();
       expireCmsSession();
-    } catch (error) {
-      setError(error);
-      setBusy(false);
-    }
-  };
+    },
+    onError: setError,
+  });
+  const busy = logout.isPending;
 
   const sidebarContent = (
     <>
@@ -116,7 +113,7 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
                 aria-label={t("nav.logout")}
                 disabled={busy}
                 loading={busy}
-                onClick={() => void logout()}
+                onClick={() => { if (!busy) logout.mutate(); }}
               >
                 <LogOut aria-hidden="true" />
               </Button>

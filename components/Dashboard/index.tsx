@@ -1,13 +1,14 @@
 "use client";
 
+import { permissions, checkPermission } from "@/services/permission";
 import {
-  permissions,
   ROUTE_PATHS,
   DASHBOARD_SUMMARY_PERIODS,
   DASHBOARD_TREND_PERIODS,
   DEFAULT_DASHBOARD_PERIOD,
+  type SubmissionValidity,
 } from "@/services/constant";
-import type { SubmissionValidity } from "@/services/constant";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -31,7 +32,7 @@ import {
 } from "@/components/ui/chart";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCmsStore } from "@/store/cmsStore";
-import { checkPermission } from "@/services/permission";
+
 import {
   getCmsDashboardSummary,
   getCmsDashboardTrend,

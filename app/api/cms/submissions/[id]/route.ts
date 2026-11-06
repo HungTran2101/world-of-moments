@@ -1,4 +1,4 @@
-import { permissions } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import {
   assertModerationPermission,
   assertPublicationConfirmed,

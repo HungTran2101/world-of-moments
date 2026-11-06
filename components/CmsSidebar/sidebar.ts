@@ -1,5 +1,6 @@
-import { ROUTE_PATHS, permissions } from "@/services/constant";
-import { type PermissionKey } from "@/services/permission";
+import { ROUTE_PATHS } from "@/services/constant";
+import { permissions, type PermissionKey } from "@/services/permission";
+
 import type { HTMLAttributeAnchorTarget } from "react";
 
 export interface SidebarItem {

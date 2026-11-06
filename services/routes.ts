@@ -1,5 +1,5 @@
-import { checkPermission } from "@/services/permission";
-import { CMS_LANDING_ROUTES, ROUTE_PATHS } from "@/services/constant";
+import { checkPermission, CMS_LANDING_ROUTES } from "@/services/permission";
+import { ROUTE_PATHS } from "@/services/constant";
 
 export type CmsRoutePath = (typeof ROUTE_PATHS)[keyof typeof ROUTE_PATHS];
 export type ProtectedCmsRoutePath = Exclude<

@@ -94,6 +94,7 @@ export function useCRUDPage<T>({
     loading: query.isPending,
     fetching: query.isFetching,
     deleteLoading: deletion.isPending,
+    deleteRecords: deletion.mutate,
     search: params.search,
     filters: params.filters,
     onSearch: (search: string) => {

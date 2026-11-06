@@ -1,6 +1,8 @@
 "use client";
 
 import { Locale, locales } from "@/i18n/config";
+import { useMutation } from "@tanstack/react-query";
+import { useError } from "@/components/shared/ErrorProvider";
 import { setLocale } from "@/services/locale";
 import { useSystemStore } from "@/store/systemStore";
 import { Clock3, History, Languages, Moon, Sun, Sunset } from "lucide-react";
@@ -41,11 +43,12 @@ export default function Toolbar() {
   const selectedTimeStage = mapTimeMode === "auto" ? mapTimeStage : mapTimeMode;
   const SelectedTimeIcon = TIME_ACTIONS.find((action) => action.value === selectedTimeStage)?.icon ?? Sun;
 
-  const handleChangeLanguage = async (nextLocale: Locale) => {
-    if (nextLocale === locale) return;
-    await setLocale(nextLocale);
-    router.refresh();
-  };
+  const { showError } = useError();
+  const language = useMutation({
+    mutationFn: (nextLocale: Locale) => setLocale(nextLocale),
+    onSuccess: () => router.refresh(),
+    onError: (error) => showError(error),
+  });
 
   return (
     <>
@@ -65,7 +68,7 @@ export default function Toolbar() {
               <TooltipTrigger asChild>
                 {/* ID cố định cho menu duy nhất để giữ liên kết ARIA ổn định khi hydrate. */}
                 <DropdownMenuTrigger asChild id="languages-menu-trigger" aria-controls="languages-menu-content">
-                  <ToolbarPrimitive.Button className="toolbar-action" aria-label={t("language")}>
+                  <ToolbarPrimitive.Button className="toolbar-action" aria-label={t("language")} disabled={language.isPending}>
                     <Languages aria-hidden="true" />
                   </ToolbarPrimitive.Button>
                 </DropdownMenuTrigger>
@@ -85,11 +88,11 @@ export default function Toolbar() {
                   value={locale}
                   onValueChange={(value) => {
                     const nextLocale = locales.find((itemLocale) => itemLocale === value);
-                    if (nextLocale) void handleChangeLanguage(nextLocale);
+                    if (nextLocale && nextLocale !== locale && !language.isPending) language.mutate(nextLocale);
                   }}
                 >
                   {locales.map((itemLocale) => (
-                    <DropdownMenuRadioItem key={itemLocale} value={itemLocale}>
+                    <DropdownMenuRadioItem key={itemLocale} value={itemLocale} disabled={language.isPending}>
                       <span aria-hidden="true">{itemLocale === "vi" ? "🇻🇳" : "🇺🇸"}</span>
                       <span>{nav(itemLocale)}</span>
                     </DropdownMenuRadioItem>

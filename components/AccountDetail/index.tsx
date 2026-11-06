@@ -1,6 +1,7 @@
 "use client";
 
-import { ROUTE_PATHS, permissions } from "@/services/constant";
+import { ROUTE_PATHS } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import { RecordAudit } from "@/components/shared/RecordAudit";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useRef, useState } from "react";
@@ -50,11 +51,25 @@ function ResetPassword({
     register,
     handleSubmit,
     setError: setFieldError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: formSubmitting },
   } = useForm<ResetPasswordValues>({
     resolver: yupResolver(resetPasswordSchema),
     defaultValues: { newPassword: "" },
   });
+  const resetPassword = useMutation({
+    mutationFn: (values: ResetPasswordValues) => resetCmsAccountPassword(id, values),
+    onMutate: () => setError(null),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["cms"] });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      setError(error);
+      applyFormError(error, setFieldError);
+    },
+  });
+  const isSubmitting = formSubmitting || resetPassword.isPending;
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -65,16 +80,8 @@ function ResetPassword({
             {t("account.resetDescription")}
           </Dialog.Description>
           <form
-            onSubmit={handleSubmit(async (values) => {
-              setError(null);
-              try {
-                await resetCmsAccountPassword(id, values);
-                await client.invalidateQueries({ queryKey: ["cms"] });
-                onOpenChange(false);
-              } catch (error) {
-                setError(error);
-                applyFormError(error, setFieldError);
-              }
+            onSubmit={handleSubmit((values) => {
+              if (!resetPassword.isPending) resetPassword.mutate(values);
             })}
           >
             {Boolean(error) && <ErrorNotice error={error} />}
@@ -142,7 +149,7 @@ function AccountEditor({
     reset,
     handleSubmit,
     setError: setFieldError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: formSubmitting },
   } = useForm<AccountEditorValues>({
     resolver: yupResolver(accountEditorSchema),
     context: { creating: !id },
@@ -164,6 +171,24 @@ function AccountEditor({
   listParams.delete("id");
   const backHref = `${ROUTE_PATHS.ACCOUNTS}${listParams.size ? `?${listParams}` : ""}`;
   const title = t(id ? "account.editTitle" : "account.createTitle");
+  const save = useMutation({
+    mutationFn: (values: AccountEditorValues) => {
+      const { password, ...data } = values;
+      return id
+        ? updateCmsAccount(id, data)
+        : createCmsAccount({ ...data, password });
+    },
+    onMutate: () => setError(null),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["cms"] });
+      router.push(backHref);
+    },
+    onError: (error) => {
+      setError(error);
+      applyFormError(error, setFieldError);
+    },
+  });
+  const isSubmitting = formSubmitting || save.isPending;
 
   return (
     <>
@@ -229,19 +254,8 @@ function AccountEditor({
             <form
               id="cms-account-form"
               className="cms-form"
-              onSubmit={handleSubmit(async (values) => {
-                if (!canSave) return;
-                setError(null);
-                try {
-                  const { password, ...data } = values;
-                  if (id) await updateCmsAccount(id, data);
-                  else await createCmsAccount({ ...data, password });
-                  await client.invalidateQueries({ queryKey: ["cms"] });
-                  router.push(backHref);
-                } catch (error) {
-                  setError(error);
-                  applyFormError(error, setFieldError);
-                }
+              onSubmit={handleSubmit((values) => {
+                if (canSave && !save.isPending) save.mutate(values);
               })}
             >
               <fieldset disabled={!canSave || isSubmitting}>

@@ -46,18 +46,15 @@ export function AccountsPage({ permission }: CmsPageProps) {
     else query.delete("id");
     return `${ROUTE_PATHS.ACCOUNT_DETAIL}${query.size ? `?${query}` : ""}`;
   };
-  const deleteRow = async (id: string) => {
+  const deleteRow = (id: string) => {
     if (crud.deleteLoading || crud.fetching) return;
     if (!window.confirm(t("common.confirmDelete", { count: 1 }))) return;
     setError(null);
     setDeletingId(id);
-    try {
-      await crud.onDelete([id]);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setDeletingId(null);
-    }
+    crud.deleteRecords([id], {
+      onError: setError,
+      onSettled: () => setDeletingId(null),
+    });
   };
   const columns: Column<CmsAccountRecord>[] = [
     {

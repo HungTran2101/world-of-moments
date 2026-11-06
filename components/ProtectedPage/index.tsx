@@ -1,13 +1,14 @@
 import "server-only";
 
-import { ROUTE_PATHS, ROUTES_PERMISSIONS } from "@/services/constant";
+import { ROUTE_PATHS } from "@/services/constant";
+import { ROUTES_PERMISSIONS, resolvePermission } from "@/services/permission";
 import { cache, type ComponentType } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireCmsSession } from "@/handlers/auth";
 import { CmsHttpError } from "@/handlers/http";
 import { CmsRoute } from "@/components/shared/Route";
-import { resolvePermission } from "@/services/permission";
+
 import { getCmsLandingPath, type ProtectedCmsRoutePath } from "@/services/routes";
 import type { CmsPageProps } from "@/services/shared/types";
 

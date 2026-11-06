@@ -11,7 +11,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { loginCms } from "@/services/cms/auth";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
@@ -36,11 +36,31 @@ export function LoginPage() {
     register,
     handleSubmit,
     setError: setFieldError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: formSubmitting },
   } = useForm<LoginValues>({
     resolver: yupResolver(loginSchema),
     defaultValues: { username: "", password: "" },
   });
+  const login = useMutation({
+    mutationFn: (values: LoginValues) => loginCms(values),
+    onMutate: () => setError(null),
+    onSuccess: ({ user }) => {
+      router.replace(getCmsLandingPath(user.scopes) ?? ROUTE_PATHS.DASHBOARD);
+      router.refresh();
+    },
+    onError: (error) => {
+      setError(error);
+      applyFormError(error, setFieldError);
+    },
+  });
+  const language = useMutation({
+    mutationFn: (next: (typeof locales)[number]) => setLocale(next),
+    onMutate: () => setError(null),
+    onSuccess: () => router.refresh(),
+    onError: setError,
+  });
+  const isSubmitting = formSubmitting || login.isPending;
+
   return (
     <main className="cms-login">
       <section className="cms-loginCard">
@@ -51,16 +71,8 @@ export function LoginPage() {
         <h1>{t("login.title")}</h1>
         <p className="cms-muted">{t("login.description")}</p>
         <form
-          onSubmit={handleSubmit(async (values) => {
-            setError(null);
-            try {
-              const { user } = await loginCms(values);
-              router.replace(getCmsLandingPath(user.scopes) ?? ROUTE_PATHS.DASHBOARD);
-              router.refresh();
-            } catch (error) {
-              setError(error);
-              applyFormError(error, setFieldError);
-            }
+          onSubmit={handleSubmit((values) => {
+            if (!login.isPending) login.mutate(values);
           })}
         >
           {Boolean(error) && <ErrorNotice error={error} />}
@@ -115,14 +127,11 @@ export function LoginPage() {
           popupClassName="cms-popup"
           className="w-full"
           id="cms-login-locale"
-          disabled={isSubmitting}
+          disabled={isSubmitting || language.isPending}
           value={locale}
           onValueChange={(value) => {
             const next = locales.find((item) => item === value);
-            if (next)
-              void setLocale(next)
-                .then(() => router.refresh())
-                .catch(setError);
+            if (next && next !== locale && !language.isPending) language.mutate(next);
           }}
           options={[
             { value: "vi", label: "Tiếng Việt" },

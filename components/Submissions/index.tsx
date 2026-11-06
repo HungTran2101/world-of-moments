@@ -1,14 +1,14 @@
 "use client";
 
+import { permissions } from "@/services/permission";
 import {
-  permissions,
   SUBMISSION_STATUSES,
   SUBMISSION_VALIDITIES,
   type SubmissionStatus,
   type SubmissionValidity,
   ROUTE_PATHS,
 } from "@/services/constant";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select } from "@/components/ui/select";
 import { usePublishConfirmation } from "./usePublishConfirmation";
 import Link from "next/link";
@@ -77,24 +77,40 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
     services: submissionServices,
     filterKeys: FILTER_KEYS,
   });
+  const moderation = useMutation({
+    mutationFn: ({ action, rows }: { action: string; rows: CmsSubmissionRecord[] }) => {
+      const [field, value] = action.split(":");
+      const change = field === "status"
+        ? { status: value as SubmissionStatus }
+        : { validity: value as SubmissionValidity };
+      return confirmPublish((confirmed) =>
+        bulkModerateCmsSubmissions(
+          rows.map(({ id }) => id),
+          { ...change, confirmPublish: confirmed },
+        ),
+      );
+    },
+    onSuccess: async (completed) => {
+      if (completed) {
+        await client.invalidateQueries({ queryKey: ["cms", "submissions"] });
+      }
+    },
+  });
   const detailHref = (id?: string) => {
     const query = new URLSearchParams(params);
     if (id) query.set("id", id);
     else query.delete("id");
     return `${ROUTE_PATHS.SUBMISSION_DETAIL}${query.size ? `?${query}` : ""}`;
   };
-  const deleteRow = async (id: string) => {
+  const deleteRow = (id: string) => {
     if (crud.deleteLoading || crud.fetching) return;
     if (!window.confirm(t("common.confirmDelete", { count: 1 }))) return;
     setError(null);
     setDeletingId(id);
-    try {
-      await crud.onDelete([id]);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setDeletingId(null);
-    }
+    crud.deleteRecords([id], {
+      onError: setError,
+      onSettled: () => setDeletingId(null),
+    });
   };
   const columns: Column<CmsSubmissionRecord>[] = [
     {
@@ -345,23 +361,7 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
               }))
               : []),
           ]}
-          onBulkAction={async (action, rows) => {
-            const [field, value] = action.split(":");
-            const change =
-              field === "status"
-                ? { status: value as SubmissionStatus }
-                : { validity: value as SubmissionValidity };
-            const completed = await confirmPublish((confirmed) =>
-              bulkModerateCmsSubmissions(
-                rows.map(({ id }) => id),
-                { ...change, confirmPublish: confirmed },
-              ),
-            );
-            if (!completed) return false;
-            await client.invalidateQueries({
-              queryKey: ["cms", "submissions"],
-            });
-          }}
+          onBulkAction={(action, rows) => moderation.mutateAsync({ action, rows })}
           search={crud.search}
           onSearch={crud.onSearch}
           onChangePage={crud.onChangePage}

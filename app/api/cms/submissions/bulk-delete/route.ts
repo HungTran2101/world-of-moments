@@ -1,4 +1,4 @@
-import { permissions } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/handlers/auth";
 import {

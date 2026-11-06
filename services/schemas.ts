@@ -3,11 +3,11 @@ import {
   SUBMISSION_VALIDITIES,
   DEFAULT_SUBMISSION_STATUS,
   DEFAULT_SUBMISSION_VALIDITY,
-  permissions,
   DASHBOARD_SUMMARY_PERIODS,
   DASHBOARD_TREND_PERIODS,
   DEFAULT_DASHBOARD_PERIOD,
 } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import * as yup from "yup";
 import { constants } from "@/app/api/constant";
 

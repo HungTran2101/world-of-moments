@@ -5,13 +5,13 @@ import {
   SUBMISSION_VALIDITIES,
   DEFAULT_SUBMISSION_STATUS,
   DEFAULT_SUBMISSION_VALIDITY,
-  permissions,
   ROUTE_PATHS,
 } from "@/services/constant";
+import { permissions } from "@/services/permission";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,7 @@ function SubmissionEditor({
     reset,
     handleSubmit,
     setError: setFieldError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: formSubmitting },
   } = useForm<SubmissionCreateValues>({
     resolver: yupResolver(submissionCreateSchema),
     defaultValues: {
@@ -90,6 +90,27 @@ function SubmissionEditor({
   listParams.delete("id");
   const backHref = `${ROUTE_PATHS.SUBMISSIONS}${listParams.size ? `?${listParams}` : ""}`;
   const title = t(id ? "submission.detailTitle" : "submission.createTitle");
+  const save = useMutation({
+    mutationFn: ({ values, change }: {
+      values: SubmissionCreateValues;
+      change: SubmissionUpdateValues;
+    }) => confirmPublish((confirmed) =>
+      id
+        ? updateCmsSubmission(id, { ...change, confirmPublish: confirmed })
+        : createCmsSubmission({ ...values, confirmPublish: confirmed }),
+    ),
+    onMutate: () => setError(null),
+    onSuccess: async (completed) => {
+      if (!completed) return;
+      await client.invalidateQueries({ queryKey: ["cms"] });
+      router.push(backHref);
+    },
+    onError: (error) => {
+      setError(error);
+      applyFormError(error, setFieldError);
+    },
+  });
+  const isSubmitting = formSubmitting || save.isPending;
   const weatherCode =
     query.data?.weatherCode == null ? "" : String(query.data.weatherCode);
   const weatherDescription =
@@ -139,37 +160,18 @@ function SubmissionEditor({
             <form
               id="cms-submission-form"
               className="cms-form"
-              onSubmit={handleSubmit(async (values) => {
-                if (!canSave) return;
-                setError(null);
-                try {
-                  const change: SubmissionUpdateValues = {
-                    ...(canStatus && values.status !== query.data?.status
-                      ? { status: values.status }
-                      : {}),
-                    ...(canValidity && values.validity !== query.data?.validity
-                      ? { validity: values.validity }
-                      : {}),
-                  };
-                  if (id && !change.status && !change.validity) return;
-                  const completed = await confirmPublish((confirmed) =>
-                    id
-                      ? updateCmsSubmission(id, {
-                        ...change,
-                        confirmPublish: confirmed,
-                      })
-                      : createCmsSubmission({
-                        ...values,
-                        confirmPublish: confirmed,
-                      }),
-                  );
-                  if (!completed) return;
-                  await client.invalidateQueries({ queryKey: ["cms"] });
-                  router.push(backHref);
-                } catch (error) {
-                  setError(error);
-                  applyFormError(error, setFieldError);
-                }
+              onSubmit={handleSubmit((values) => {
+                if (!canSave || save.isPending) return;
+                const change: SubmissionUpdateValues = {
+                  ...(canStatus && values.status !== query.data?.status
+                    ? { status: values.status }
+                    : {}),
+                  ...(canValidity && values.validity !== query.data?.validity
+                    ? { validity: values.validity }
+                    : {}),
+                };
+                if (id && !change.status && !change.validity) return;
+                save.mutate({ values, change });
               })}
             >
               <fieldset disabled={isSubmitting || !canSave}>

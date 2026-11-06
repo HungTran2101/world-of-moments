@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -15,8 +16,14 @@ export function GeneralPage() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const language = useMutation({
+    mutationFn: (next: (typeof locales)[number]) => setLocale(next),
+    onMutate: () => setError(null),
+    onSuccess: () => router.refresh(),
+    onError: setError,
+  });
+  const busy = language.isPending;
 
   return (
     <>
@@ -39,12 +46,7 @@ export function GeneralPage() {
               onValueChange={(value) => {
                 const next = locales.find((item) => item === value);
                 if (!next || next === locale || busy) return;
-                setBusy(true);
-                setError(null);
-                void setLocale(next)
-                  .then(() => router.refresh())
-                  .catch(setError)
-                  .finally(() => setBusy(false));
+                language.mutate(next);
               }}
               options={[
                 { value: "vi", label: "Tiếng Việt" },

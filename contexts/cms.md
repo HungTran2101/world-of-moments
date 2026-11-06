@@ -58,12 +58,14 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   the server before including authorized content. `components/shared/Route` only
   synchronizes the validated user into the store/sidebar and renders children or
   the existing localized forbidden UI.
-- Static service constants live in `services/constant.ts`: submission states/defaults,
-  dashboard periods, pagination sizes, permission catalogs, route paths/policies,
-  error codes/events and the submission-history query key. Consumers import these
-  directly. Permission helpers/types, landing-route helpers/types, query state and
-  validation schemas remain in `services/{permission,routes,query-state,schemas}.ts`.
-  The constants module has only type imports and stays safe for client consumers;
+- Fixed service values live in `services/constant.ts`: submission states/defaults,
+  dashboard periods, pagination sizes, route paths, error codes/events and the
+  submission-history query key. Consumers import these
+  directly. Permission catalogs, module definitions and route permission/landing
+  policies live with permission helpers/types in `services/permission.ts`.
+  Landing-route helpers/types, query state and validation schemas remain in
+  `services/{routes,query-state,schemas}.ts`.
+  The constants module is dependency-free and stays safe for client consumers;
   server-only API helpers stay in `app/api/_shared.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
   types: `services/cms/{accounts,roles,submissions,dashboard,auth}`, `services/future-message`,
@@ -139,9 +141,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 ## Permissions, routes, and sidebar
 
-- `services/constant.ts` exports `permissions` and `permissionModules`;
-  `services/permission.ts` exports `checkPermission(scopes, permission)`,
-  permission-object resolution and permission types.
+- `services/permission.ts` exports `permissions`, `permissionModules`,
+  `checkPermission(scopes, permission)`, permission-object resolution and permission
+  types. It also owns `ROUTES_PERMISSIONS` and `CMS_LANDING_ROUTES`.
 - Defaults: `account.show/create/update/delete` and `role.show/create/update/delete`.
 - Dashboard has only `dashboard.show`; its role-matrix row has no create/update/delete actions.
   Ordinary roles are not automatically granted it; wildcard access includes it.
@@ -152,8 +154,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `permissions.ACCOUNT_CREATE`, etc. constants. No delegation hierarchy is applied
   to ordinary accounts in this version.
 - `services/constant.ts` exports `ROUTE_PATHS` for all CMS page URLs, including login,
-  and `ROUTES_PERMISSIONS` keyed by every protected path. It imports no page
-  components. Native page files own URL matching and component selection; CMS
+  while `services/permission.ts` exports `ROUTES_PERMISSIONS` keyed by every protected
+  path. Neither module imports page components. Native page files own URL
+  matching and component selection; CMS
   navigation, breadcrumbs and redirects use the shared path constants.
 - `CmsRoutePath` is derived from the path constants; `ProtectedCmsRoutePath`
   excludes login. The factory accepts only protected paths, and the permission map
@@ -368,10 +371,31 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   uses client routing. Submissions/mutations are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
   live in `services/schemas.ts`; API payloads reuse relevant schemas. Errors are localized.
+- Client API mutations use TanStack Query `useMutation`. Success callbacks own
+  invalidation, navigation, form resets and session broadcasts; error callbacks
+  own notices and server field errors. Forms combine mutation pending state with
+  React Hook Form submission state so controls remain busy through awaited
+  success work. Table bulk execution clears selection only after success and
+  preserves it on failure or publication-confirmation cancellation. Publication
+  confirmation remains part of the mutation operation and retries only the
+  expected confirmation conflict. Row deletion reuses `useCRUDPage`'s mutation
+  and clears its initiating-row indicator in `onSettled`, after invalidation.
+  Shared mutation defaults disable retries/offline queuing and immediately remove
+  inactive mutations so credential payloads do not remain cached after unmount.
 - Detail identity comes from the URL `id`. Forms hydrate once per identity and
   preserve dirty input during background refetches.
 - Role detail matrix: Module, Show, Create, Update, Delete, Extra permissions /
   Quyền bổ sung. Default cells are checkboxes; extras are multiple selects.
+  Module `defaults` is a typed object with optional `show`, `create`, `update`
+  and `delete` permission keys. Definitions omit unavailable actions without
+  positional entries or null placeholders. Matrix columns read these named keys
+  in a fixed display order; module toggles include all defined values and extras.
+  Modules without permissions have an unchecked, disabled module toggle.
+  Each Module cell has a labeled checkbox that selects or clears all available
+  default and custom permissions for that module, preserving other modules.
+  Partial selection shows an indeterminate state; toggling it selects the whole
+  module. These checkboxes follow the same read-only/submitting guards as the
+  individual permissions, and protected system roles display them checked.
   Extra-permission selects isolate intrinsic inline sizing so selecting/removing
   tags keeps column/control widths stable; tags wrap within the available width.
 - The system role is read-only. Assigned roles cannot be deleted.
