@@ -1,5 +1,7 @@
 "use client";
 
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+
 import { ROUTE_PATHS } from "@/services/constant";
 import { permissionModules } from "@/services/permission";
 
@@ -22,7 +24,7 @@ import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import {
   applyFormError,
   ErrorNotice,
-  Field,
+  getCmsFieldErrors,
   useCmsText,
 } from "@/components/shared/Forms";
 
@@ -30,6 +32,10 @@ import {
   DEFAULT_PERMISSION_COLUMNS,
   PermissionModuleRow,
 } from "./PermissionModuleRow";
+
+const FIRST_PERMISSION_MODULE_KEY = permissionModules.find(
+  (module) => Object.values(module.defaults).some(Boolean) || module.custom.length > 0,
+)?.key;
 
 function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
   const t = useTranslations();
@@ -87,6 +93,7 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
     },
   });
   const isSubmitting = formSubmitting || save.isPending;
+  const permissionErrors = getCmsFieldErrors(errors.permissions, text);
 
   return (
     <>
@@ -134,75 +141,70 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
               })}
             >
               <fieldset disabled={!canSave || isSubmitting}>
-                <Field
-                  id="cms-role-name"
-                  label={t("role.name")}
-                  error={errors.name?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.name?.message)}>
+                  <FieldLabel htmlFor="cms-role-name" required>{t("role.name")}</FieldLabel>
                   <Input
                     id="cms-role-name"
+                    aria-required="true"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.name)}
                     aria-describedby={
-                      errors.name ? "cms-role-name-error" : undefined
+                      errors.name?.message ? "cms-role-name-error" : undefined
                     }
                     {...register("name")}
                   />
+                  <FieldError id="cms-role-name-error">
+                    {errors.name?.message && text(errors.name.message)}
+                  </FieldError>
                 </Field>
-                <h2 id="cms-permissions-label">{t("role.permissions")}</h2>
-                {errors.permissions?.message && (
-                  <p
-                    id="cms-permissions-error"
-                    className="cms-fieldError"
-                    role="alert"
-                  >
-                    {text(errors.permissions.message)}
-                  </p>
-                )}
-                <Controller
-                  name="permissions"
-                  control={control}
-                  render={({ field }) => (
-                    <div
-                      className="cms-tableScroll"
-                      role="group"
-                      aria-labelledby="cms-permissions-label"
-                      aria-describedby={
-                        errors.permissions ? "cms-permissions-error" : undefined
-                      }
-                    >
-                      <table className="cms-permissions">
-                        <thead>
-                          <tr>
-                            {[
-                              "module",
-                              ...DEFAULT_PERMISSION_COLUMNS,
-                              "extra",
-                            ].map((key) => (
-                              <th scope="col" key={key}>
-                                {t(`role.${key}`)}
-                              </th>
+                <Field data-invalid={Boolean(errors.permissions)} aria-labelledby="cms-permissions-label">
+                  <h2 id="cms-permissions-label">{t("role.permissions")}</h2>
+                  <Controller
+                    name="permissions"
+                    control={control}
+                    render={({ field }) => (
+                      <div
+                        className="cms-tableScroll"
+                        role="group"
+                        aria-labelledby="cms-permissions-label"
+                      >
+                        <table className="cms-permissions">
+                          <thead>
+                            <tr>
+                              {[
+                                "module",
+                                ...DEFAULT_PERMISSION_COLUMNS,
+                                "extra",
+                              ].map((key) => (
+                                <th scope="col" key={key}>
+                                  {t(`role.${key}`)}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {permissionModules.map((module) => (
+                              <PermissionModuleRow
+                                key={module.key}
+                                module={module}
+                                control={control}
+                                getValues={getValues}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                inputRef={module.key === FIRST_PERMISSION_MODULE_KEY ? field.ref : undefined}
+                                invalid={Boolean(errors.permissions)}
+                                errorId={permissionErrors.length > 0 ? "cms-permissions-error" : undefined}
+                                disabled={!canSave || isSubmitting}
+                                isSystem={isSystem}
+                              />
                             ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {permissionModules.map((module) => (
-                            <PermissionModuleRow
-                              key={module.key}
-                              module={module}
-                              control={control}
-                              getValues={getValues}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              disabled={!canSave || isSubmitting}
-                              isSystem={isSystem}
-                            />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                />
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  />
+                  <FieldError id="cms-permissions-error" errors={permissionErrors} />
+                </Field>
               </fieldset>
               {query.data && <RecordAudit record={query.data} />}
             </form>

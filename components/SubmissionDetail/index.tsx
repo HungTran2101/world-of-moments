@@ -1,9 +1,11 @@
 "use client";
 
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+
 import { constants } from "@/app/api/constant";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
-import { ErrorNotice, Field, applyFormError } from "@/components/shared/Forms";
+import { ErrorNotice, applyFormError, useCmsText } from "@/components/shared/Forms";
 import { Header } from "@/components/shared/Header";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import { RecordAudit } from "@/components/shared/RecordAudit";
@@ -44,6 +46,7 @@ function SubmissionEditor({
   id,
 }: CmsPageProps & { id: string | null }) {
   const t = useTranslations();
+  const text = useCmsText();
   const weather = useTranslations("weather");
   const router = useRouter();
   const params = useSearchParams();
@@ -180,10 +183,8 @@ function SubmissionEditor({
               })}
             >
               <fieldset disabled={isSubmitting || !canSave}>
-                <Field
-                  id="submission-author"
-                  label={t("submission.authorUuid")}
-                >
+                <Field className="cms-field">
+                  <FieldLabel htmlFor="submission-author">{t("submission.authorUuid")}</FieldLabel>
                   <Input
                     id="submission-author"
                     readOnly
@@ -194,52 +195,50 @@ function SubmissionEditor({
                 </Field>
                 <div className="grid grid-cols-2 gap-x-4">
                   {(["lat", "lng"] as const).map((field) => (
-                    <Field
-                      key={field}
-                      id={`submission-${field}`}
-                      label={t(`submission.${field}`)}
-                      error={errors[field]?.message}
-                    >
+                    <Field className="cms-field" key={field} data-invalid={Boolean(errors[field]?.message)}>
+                      <FieldLabel htmlFor={`submission-${field}`} required>{t(`submission.${field}`)}</FieldLabel>
                       <Input
                         id={`submission-${field}`}
+                        aria-required="true"
                         type="number"
                         step="any"
                         readOnly={Boolean(id)}
                         aria-invalid={Boolean(errors[field])}
                         aria-describedby={
-                          errors[field]
+                          errors[field]?.message
                             ? `submission-${field}-error`
                             : undefined
                         }
                         {...register(field, { valueAsNumber: true })}
                       />
+                      <FieldError id={`submission-${field}-error`}>
+                        {errors[field]?.message && text(errors[field].message)}
+                      </FieldError>
                     </Field>
                   ))}
                 </div>
-                <Field
-                  id="submission-description"
-                  label={t("submission.description")}
-                  error={errors.description?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.description?.message)}>
+                  <FieldLabel htmlFor="submission-description" required>{t("submission.description")}</FieldLabel>
                   <Textarea
                     id="submission-description"
+                    aria-required="true"
                     rows={6}
                     maxLength={constants.MAX_DESCRIPTION_LENGTH}
                     readOnly={Boolean(id)}
                     aria-invalid={Boolean(errors.description)}
                     aria-describedby={
-                      errors.description
+                      errors.description?.message
                         ? "submission-description-error"
                         : undefined
                     }
                     {...register("description")}
                   />
+                  <FieldError id="submission-description-error">
+                    {errors.description?.message && text(errors.description.message)}
+                  </FieldError>
                 </Field>
-                <Field
-                  id="submission-status"
-                  label={t("submission.status")}
-                  error={errors.status?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.status?.message)}>
+                  <FieldLabel htmlFor="submission-status" required>{t("submission.status")}</FieldLabel>
                   <Controller
                     name="status"
                     control={control}
@@ -255,9 +254,10 @@ function SubmissionEditor({
                         }}
                         aria-invalid={Boolean(errors.status)}
                         aria-describedby={
-                          errors.status ? "submission-status-error" : undefined
+                          errors.status?.message ? "submission-status-error" : undefined
                         }
                         id="submission-status"
+                        aria-required="true"
                         popupClassName="cms-popup"
                         disabled={!canStatus || !canSave || isSubmitting}
                         options={SUBMISSION_STATUSES.map((value) => ({
@@ -267,12 +267,12 @@ function SubmissionEditor({
                       />
                     )}
                   />
+                  <FieldError id="submission-status-error">
+                    {errors.status?.message && text(errors.status.message)}
+                  </FieldError>
                 </Field>
-                <Field
-                  id="submission-validity"
-                  label={t("submission.validity")}
-                  error={errors.validity?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.validity?.message)}>
+                  <FieldLabel htmlFor="submission-validity" required>{t("submission.validity")}</FieldLabel>
                   <Controller
                     name="validity"
                     control={control}
@@ -288,11 +288,12 @@ function SubmissionEditor({
                         }}
                         aria-invalid={Boolean(errors.validity)}
                         aria-describedby={
-                          errors.validity
+                          errors.validity?.message
                             ? "submission-validity-error"
                             : undefined
                         }
                         id="submission-validity"
+                        aria-required="true"
                         popupClassName="cms-popup"
                         disabled={!canValidity || !canSave || isSubmitting}
                         options={SUBMISSION_VALIDITIES.map((value) => ({
@@ -302,6 +303,9 @@ function SubmissionEditor({
                       />
                     )}
                   />
+                  <FieldError id="submission-validity-error">
+                    {errors.validity?.message && text(errors.validity.message)}
+                  </FieldError>
                 </Field>
               </fieldset>
               {query.data && (

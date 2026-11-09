@@ -1,5 +1,7 @@
 "use client";
 
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+
 import { ROUTE_PATHS } from "@/services/constant";
 import { getCmsLandingPath } from "@/services/routes";
 import { Select } from "@/components/ui/select";
@@ -16,7 +18,7 @@ import { loginCms } from "@/services/cms/auth";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
 import { loginSchema, type LoginValues } from "@/services/schemas";
-import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
+import { applyFormError, ErrorNotice, useCmsText } from "@/components/shared/Forms";
 import { Button } from "../ui/button";
 
 const LOGIN_BRAND_IMAGE_SIZE_PX = 38;
@@ -24,6 +26,7 @@ const LOGIN_BRAND_PADDING_BOTTOM_PX = 32;
 
 export function LoginPage() {
   const t = useTranslations();
+  const text = useCmsText();
   const locale = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -77,38 +80,40 @@ export function LoginPage() {
         >
           {Boolean(error) && <ErrorNotice error={error} />}
           <fieldset disabled={isSubmitting}>
-            <Field
-              id="cms-login-username"
-              label={t("account.username")}
-              error={errors.username?.message}
-            >
+            <Field className="cms-field" data-invalid={Boolean(errors.username?.message)}>
+              <FieldLabel htmlFor="cms-login-username" required>{t("account.username")}</FieldLabel>
               <Input
                 id="cms-login-username"
+                aria-required="true"
                 autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
                 aria-invalid={Boolean(errors.username)}
                 aria-describedby={
-                  errors.username ? "cms-login-username-error" : undefined
+                  errors.username?.message ? "cms-login-username-error" : undefined
                 }
                 {...register("username")}
               />
+              <FieldError id="cms-login-username-error">
+                {errors.username?.message && text(errors.username.message)}
+              </FieldError>
             </Field>
-            <Field
-              id="cms-login-password"
-              label={t("account.password")}
-              error={errors.password?.message}
-            >
+            <Field className="cms-field" data-invalid={Boolean(errors.password?.message)}>
+              <FieldLabel htmlFor="cms-login-password" required>{t("account.password")}</FieldLabel>
               <PasswordInput
                 id="cms-login-password"
+                aria-required="true"
                 visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={
-                  errors.password ? "cms-login-password-error" : undefined
+                  errors.password?.message ? "cms-login-password-error" : undefined
                 }
                 {...register("password")}
               />
+              <FieldError id="cms-login-password-error">
+                {errors.password?.message && text(errors.password.message)}
+              </FieldError>
             </Field>
             <Button
               className="cms-loginSubmit" type="submit"
@@ -119,9 +124,9 @@ export function LoginPage() {
             </Button>
           </fieldset>
         </form>
-        <label className="visually-hidden" htmlFor="cms-login-locale">
+        <FieldLabel className="visually-hidden" htmlFor="cms-login-locale">
           {t("common.language")}
-        </label>
+        </FieldLabel>
         <Select
           allowClear={false}
           popupClassName="cms-popup"

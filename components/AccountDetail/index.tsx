@@ -1,5 +1,7 @@
 "use client";
 
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+
 import { ROUTE_PATHS } from "@/services/constant";
 import { permissions } from "@/services/permission";
 import { RecordAudit } from "@/components/shared/RecordAudit";
@@ -33,7 +35,7 @@ import type { CmsPageProps } from "@/services/shared/types";
 import { Header } from "@/components/shared/Header";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
+import { applyFormError, ErrorNotice, getCmsFieldErrors, useCmsText } from "@/components/shared/Forms";
 
 function ResetPassword({
   id,
@@ -45,6 +47,7 @@ function ResetPassword({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations();
+  const text = useCmsText();
   const client = useQueryClient();
   const [error, setError] = useState<unknown>(null);
   const {
@@ -85,21 +88,23 @@ function ResetPassword({
             })}
           >
             {Boolean(error) && <ErrorNotice error={error} />}
-            <Field
-              id="cms-reset-password"
-              label={t("account.newPassword")}
-              error={errors.newPassword?.message}
-            >
+            <Field className="cms-field" data-invalid={Boolean(errors.newPassword?.message)}>
+              <FieldLabel htmlFor="cms-reset-password" required>{t("account.newPassword")}</FieldLabel>
               <PasswordInput
                 id="cms-reset-password"
+                aria-required="true"
+                disabled={isSubmitting}
                 visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.newPassword)}
                 aria-describedby={
-                  errors.newPassword ? "cms-reset-password-error" : undefined
+                  errors.newPassword?.message ? "cms-reset-password-error" : undefined
                 }
                 {...register("newPassword")}
               />
+              <FieldError id="cms-reset-password-error">
+                {errors.newPassword?.message && text(errors.newPassword.message)}
+              </FieldError>
             </Field>
             <div className="cms-formActions">
               <Dialog.Close asChild>
@@ -127,6 +132,7 @@ function AccountEditor({
   id,
 }: CmsPageProps & { id: string | null }) {
   const t = useTranslations();
+  const text = useCmsText();
   const router = useRouter();
   const params = useSearchParams();
   const client = useQueryClient();
@@ -189,6 +195,7 @@ function AccountEditor({
     },
   });
   const isSubmitting = formSubmitting || save.isPending;
+  const roleErrors = getCmsFieldErrors(errors.roleIds, text);
 
   return (
     <>
@@ -259,59 +266,59 @@ function AccountEditor({
               })}
             >
               <fieldset disabled={!canSave || isSubmitting}>
-                <Field
-                  id="cms-username"
-                  label={t("account.username")}
-                  error={errors.username?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.username?.message)}>
+                  <FieldLabel htmlFor="cms-username" required>{t("account.username")}</FieldLabel>
                   <Input
                     id="cms-username"
+                    aria-required="true"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.username)}
                     aria-describedby={
-                      errors.username ? "cms-username-error" : undefined
+                      errors.username?.message ? "cms-username-error" : undefined
                     }
                     {...register("username")}
                   />
+                  <FieldError id="cms-username-error">
+                    {errors.username?.message && text(errors.username.message)}
+                  </FieldError>
                 </Field>
-                <Field
-                  id="cms-name"
-                  label={t("account.name")}
-                  error={errors.name?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.name?.message)}>
+                  <FieldLabel htmlFor="cms-name" required>{t("account.name")}</FieldLabel>
                   <Input
                     id="cms-name"
+                    aria-required="true"
                     autoComplete="off"
                     aria-invalid={Boolean(errors.name)}
                     aria-describedby={
-                      errors.name ? "cms-name-error" : undefined
+                      errors.name?.message ? "cms-name-error" : undefined
                     }
                     {...register("name")}
                   />
+                  <FieldError id="cms-name-error">
+                    {errors.name?.message && text(errors.name.message)}
+                  </FieldError>
                 </Field>
                 {!id && (
-                  <Field
-                    id="cms-password"
-                    label={t("account.password")}
-                    error={errors.password?.message}
-                  >
+                  <Field className="cms-field" data-invalid={Boolean(errors.password?.message)}>
+                    <FieldLabel htmlFor="cms-password" required>{t("account.password")}</FieldLabel>
                     <PasswordInput
                       id="cms-password"
+                      aria-required="true"
                       visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                       autoComplete="new-password"
                       aria-invalid={Boolean(errors.password)}
                       aria-describedby={
-                        errors.password ? "cms-password-error" : undefined
+                        errors.password?.message ? "cms-password-error" : undefined
                       }
                       {...register("password")}
                     />
+                    <FieldError id="cms-password-error">
+                      {errors.password?.message && text(errors.password.message)}
+                    </FieldError>
                   </Field>
                 )}
-                <Field
-                  id="cms-roles"
-                  label={t("account.roles")}
-                  error={errors.roleIds?.message}
-                >
+                <Field className="cms-field" data-invalid={Boolean(errors.roleIds)}>
+                  <FieldLabel htmlFor="cms-roles" required>{t("account.roles")}</FieldLabel>
                   <Controller
                     name="roleIds"
                     control={control}
@@ -327,6 +334,7 @@ function AccountEditor({
                             remove: (label) => t("common.removeSelection", { label }),
                           }}
                           id="cms-roles"
+                          aria-required="true"
                           ref={field.ref}
                           onBlur={field.onBlur}
                           value={options.isPending ? [] : field.value}
@@ -342,7 +350,7 @@ function AccountEditor({
                           aria-busy={options.isPending}
                           aria-invalid={Boolean(errors.roleIds)}
                           aria-describedby={
-                            errors.roleIds ? "cms-roles-error" : undefined
+                            roleErrors.length > 0 ? "cms-roles-error" : undefined
                           }
                         />
                         {options.isPending && (
@@ -357,26 +365,36 @@ function AccountEditor({
                       </div>
                     )}
                   />
+                  <FieldError id="cms-roles-error" errors={roleErrors} />
                 </Field>
                 {options.data?.length === 0 && (
                   <p className="cms-muted">{t("account.noRoles")}</p>
                 )}
-                <label className="cms-checkboxLabel">
-                  <Controller
-                    name="isActive"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        ref={field.ref}
-                        onBlur={field.onBlur}
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked === true)}
-                        disabled={!canSave || isSubmitting}
-                      />
-                    )}
-                  />
-                  {t("account.active")}
-                </label>
+                <Field data-invalid={Boolean(errors.isActive)}>
+                  <Field orientation="horizontal" className="cms-checkboxLabel">
+                    <Controller
+                      name="isActive"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="cms-account-active"
+                          name={field.name}
+                          ref={field.ref}
+                          onBlur={field.onBlur}
+                          checked={field.value}
+                          onCheckedChange={(checked) => field.onChange(checked === true)}
+                          disabled={!canSave || isSubmitting}
+                          aria-invalid={Boolean(errors.isActive)}
+                          aria-describedby={errors.isActive?.message ? "cms-account-active-error" : undefined}
+                        />
+                      )}
+                    />
+                    <FieldLabel htmlFor="cms-account-active">{t("account.active")}</FieldLabel>
+                  </Field>
+                  <FieldError id="cms-account-active-error">
+                    {errors.isActive?.message && text(errors.isActive.message)}
+                  </FieldError>
+                </Field>
               </fieldset>
               {query.data && <RecordAudit record={query.data} />}
             </form>

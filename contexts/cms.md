@@ -481,6 +481,30 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   callback uses client routing. Submissions, mutations and sidebar toggles are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
   live in `services/schemas.ts`; API payloads reuse relevant schemas. Errors are localized.
+  Field markup uses shadcn's current `components/ui/field.tsx` primitives
+  (`Field`, `FieldLabel`, `FieldError`) directly, with native `<form>` elements,
+  registered native inputs and controllers for selects/checkboxes. The older
+  custom `components/shared/Forms` Field renderer is removed; that module only
+  contains CMS error translation, server-error mapping and request notices.
+  `getCmsFieldErrors` collects root and nested array errors for the shadcn
+  `FieldError` errors prop, which removes repeated messages before rendering.
+  Labels target control IDs; rendered localized field errors have stable IDs
+  referenced by `aria-describedby`, and invalid state is set on both the field
+  and control. The active-account checkbox also renders server validation errors.
+  Required text, coordinate and selection fields use `FieldLabel required` to
+  show a red asterisk hidden from assistive technology; their controls expose
+  `aria-required`. Boolean toggles and permission groups allow false/empty values
+  and have no required marker. Existing Yup validation behavior is preserved.
+  Permission controls share the group error description, register blur events
+  and expose the first available module checkbox as the React Hook Form focus target.
+  Reset-password inputs are disabled while their mutation is pending.
+  Chrome checks verify live login validation in EN/VI; isolated forms with mocked
+  CMS responses verify account/submission/password validation, nested role and
+  permission errors, message deduplication, permission-error focus and password-reset
+  pending/recovery behavior. No real CMS records are written by these checks.
+  Scoped ESLint/Stylelint fixes, TypeScript and a Webpack production build pass.
+  The default Turbopack build is blocked by worker port-binding restrictions in
+  the verification environment.
 - Client API mutations use TanStack Query `useMutation`. Success callbacks own
   invalidation, navigation, form resets and session broadcasts; error callbacks
   own notices and server field errors. Forms combine mutation pending state with

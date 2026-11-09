@@ -1,5 +1,7 @@
 "use client";
 
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+
 import { ROUTE_PATHS } from "@/services/constant";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -14,10 +16,11 @@ import { changeCmsPassword } from "@/services/cms/auth";
 import { Header } from "@/components/shared/Header";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import { applyFormError, ErrorNotice, Field } from "@/components/shared/Forms";
+import { applyFormError, ErrorNotice, useCmsText } from "@/components/shared/Forms";
 
 export function ChangePasswordPage() {
   const t = useTranslations();
+  const text = useCmsText();
   const client = useQueryClient();
   const router = useRouter();
   const [error, setError] = useState<unknown>(null);
@@ -90,39 +93,41 @@ export function ChangePasswordPage() {
             </p>
           )}
           <fieldset disabled={isSubmitting}>
-            <Field
-              id="cms-current-password"
-              label={t("account.currentPassword")}
-              error={errors.currentPassword?.message}
-            >
+            <Field className="cms-field" data-invalid={Boolean(errors.currentPassword?.message)}>
+              <FieldLabel htmlFor="cms-current-password" required>{t("account.currentPassword")}</FieldLabel>
               <PasswordInput
                 id="cms-current-password"
+                aria-required="true"
                 visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.currentPassword)}
                 aria-describedby={
-                  errors.currentPassword
+                  errors.currentPassword?.message
                     ? "cms-current-password-error"
                     : undefined
                 }
                 {...register("currentPassword")}
               />
+              <FieldError id="cms-current-password-error">
+                {errors.currentPassword?.message && text(errors.currentPassword.message)}
+              </FieldError>
             </Field>
-            <Field
-              id="cms-new-password"
-              label={t("account.newPassword")}
-              error={errors.newPassword?.message}
-            >
+            <Field className="cms-field" data-invalid={Boolean(errors.newPassword?.message)}>
+              <FieldLabel htmlFor="cms-new-password" required>{t("account.newPassword")}</FieldLabel>
               <PasswordInput
                 id="cms-new-password"
+                aria-required="true"
                 visibilityLabels={{ show: t("common.showPassword"), hide: t("common.hidePassword") }}
                 autoComplete="new-password"
                 aria-invalid={Boolean(errors.newPassword)}
                 aria-describedby={
-                  errors.newPassword ? "cms-new-password-error" : undefined
+                  errors.newPassword?.message ? "cms-new-password-error" : undefined
                 }
                 {...register("newPassword")}
               />
+              <FieldError id="cms-new-password-error">
+                {errors.newPassword?.message && text(errors.newPassword.message)}
+              </FieldError>
             </Field>
           </fieldset>
         </form>

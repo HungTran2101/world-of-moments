@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
+import { FieldLabel } from "@/components/ui/field";
 
 import { memo, useEffect, useId, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -57,9 +58,9 @@ export const SearchInput = memo(function SearchInput({
         submit();
       }}
     >
-      <label htmlFor={id} className="visually-hidden">
+      <FieldLabel htmlFor={id} className="visually-hidden">
         {t("common.search")}
-      </label>
+      </FieldLabel>
       <Input
         id={id}
         type="search"

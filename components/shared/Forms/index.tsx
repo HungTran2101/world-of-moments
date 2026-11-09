@@ -6,12 +6,28 @@ import { useTranslations } from "next-intl";
 import { ApiError } from "@/services/shared/errors";
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 import type { CmsErrorBody } from "@/services/shared/types";
-import type { ReactNode } from "react";
 
 export function useCmsText() {
   const t = useTranslations();
   return (message: string) =>
     t.has(message) ? t(message) : t("errors.validation");
+}
+
+export function getCmsFieldErrors(
+  error: unknown,
+  text: (message: string) => string,
+): { message: string }[] {
+  if (!error || typeof error !== "object") return [];
+  const messages: { message: string }[] = [];
+  if ("message" in error && typeof error.message === "string") {
+    messages.push({ message: text(error.message) });
+  }
+  // Lỗi mảng có thể nằm ở root hoặc từng phần tử; không duyệt ref DOM của RHF.
+  for (const [key, value] of Object.entries(error)) {
+    if (["message", "ref", "type", "types"].includes(key)) continue;
+    messages.push(...getCmsFieldErrors(value, text));
+  }
+  return messages;
 }
 
 export function applyFormError<T extends FieldValues>(
@@ -50,31 +66,6 @@ export function ErrorNotice({
         >
           {t("common.retry")}
         </Button>
-      )}
-    </div>
-  );
-}
-
-export function Field({
-  id,
-  label,
-  error,
-  children,
-}: {
-  id: string;
-  label: string;
-  error?: string;
-  children: ReactNode;
-}) {
-  const text = useCmsText();
-  return (
-    <div className="cms-field">
-      <label htmlFor={id}>{label}</label>
-      {children}
-      {error && (
-        <span id={`${id}-error`} className="cms-fieldError" role="alert">
-          {text(error)}
-        </span>
       )}
     </div>
   );

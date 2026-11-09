@@ -17,7 +17,7 @@
   font-weight: 500;
 }
 
-.cms-fieldError {
+.cms-field [data-slot="field-error"] {
   color: #b42332;
   font-size: 12px;
 }

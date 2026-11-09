@@ -1,5 +1,7 @@
 "use client";
 
+import { Field, FieldLabel } from "@/components/ui/field";
+
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -7,7 +9,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Select } from "@/components/ui/select";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { CmsPageContent } from "@/components/shared/CmsPageContent";
-import { ErrorNotice, Field } from "@/components/shared/Forms";
+import { ErrorNotice } from "@/components/shared/Forms";
 import { Header } from "@/components/shared/Header";
 import { locales } from "@/i18n/config";
 import { setLocale } from "@/services/locale";
@@ -35,7 +37,8 @@ export function GeneralPage() {
         />
         <section className="cms-form" aria-label={t("nav.general")} aria-busy={busy}>
           {Boolean(error) && <ErrorNotice error={error} />}
-          <Field id="cms-locale" label={t("common.language")}>
+          <Field className="cms-field">
+            <FieldLabel htmlFor="cms-locale">{t("common.language")}</FieldLabel>
             <Select
               allowClear={false}
               popupClassName="cms-popup"

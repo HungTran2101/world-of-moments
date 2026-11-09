@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, type Ref } from "react";
 import { useTranslations } from "next-intl";
 import { useWatch, type Control, type UseFormGetValues } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +19,9 @@ type PermissionModuleRowProps = {
   getValues: UseFormGetValues<RoleValues>;
   onChange: (permissions: string[]) => void;
   onBlur: () => void;
+  inputRef?: Ref<HTMLButtonElement>;
+  invalid: boolean;
+  errorId?: string;
   disabled: boolean;
   isSystem: boolean;
 };
@@ -29,6 +32,9 @@ export const PermissionModuleRow = memo(function PermissionModuleRow({
   getValues,
   onChange,
   onBlur,
+  inputRef,
+  invalid,
+  errorId,
   disabled,
   isSystem,
 }: PermissionModuleRowProps) {
@@ -70,6 +76,9 @@ export const PermissionModuleRow = memo(function PermissionModuleRow({
           htmlFor={`cms-role-module-${module.key}`}
         >
           <Checkbox
+            ref={inputRef}
+            aria-invalid={invalid}
+            aria-describedby={errorId}
             id={`cms-role-module-${module.key}`}
             disabled={!hasPermissions || disabled}
             checked={allChecked ? true : someChecked ? "indeterminate" : false}
@@ -90,6 +99,9 @@ export const PermissionModuleRow = memo(function PermissionModuleRow({
           <td key={action}>
             {key ? (
               <Checkbox
+                onBlur={onBlur}
+                aria-invalid={invalid}
+                aria-describedby={errorId}
                 disabled={disabled}
                 checked={isSystem || selectedPermissions.includes(key)}
                 aria-label={`${t(`modules.${module.key}`)}: ${t(`role.${action}`)}`}
@@ -106,6 +118,8 @@ export const PermissionModuleRow = memo(function PermissionModuleRow({
       <td>
         {module.custom.length > 0 ? (
           <Select
+            aria-invalid={invalid}
+            aria-describedby={errorId}
             popupClassName="cms-popup"
             multiple
             placeholder={t("common.selectPlaceholder")}
