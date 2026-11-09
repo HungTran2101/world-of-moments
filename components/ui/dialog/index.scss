@@ -2,22 +2,26 @@
   &-content {
     position: fixed;
     z-index: 51;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 
-    // Quy đổi tọa độ viewport sang điểm neo của hộp thoại, kể cả khi nội dung đổi kích thước.
-    transform-origin:
-      calc(var(--dialog-origin-x, 50vw) - 50vw + 50%) calc(var(--dialog-origin-y, 50dvh) - 50dvh + 50%);
+    // Sheet tự quản lý vị trí và chuyển động trượt thay cho hiệu ứng phóng của modal.
+    &:not([data-slot="sheet-content"]) {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
 
-    // Chỉ đổi transform khi phóng/thu để lớp kính luôn lấy được nền bản đồ trong lúc chuyển động.
-    &[data-state="open"] {
-      animation: dialog-zoom-in 500ms cubic-bezier(.31, .39, 0, 1.19) both;
-    }
+      // Quy đổi tọa độ viewport sang điểm neo của hộp thoại, kể cả khi nội dung đổi kích thước.
+      transform-origin:
+        calc(var(--dialog-origin-x, 50vw) - 50vw + 50%) calc(var(--dialog-origin-y, 50dvh) - 50dvh + 50%);
 
-    &[data-state="closed"] {
-      pointer-events: none;
-      animation: dialog-zoom-out 300ms cubic-bezier(0.78, 0.14, 0.15, 0.86) both;
+      // Chỉ đổi transform khi phóng/thu để lớp kính luôn lấy được nền bản đồ trong lúc chuyển động.
+      &[data-state="open"] {
+        animation: dialog-zoom-in 500ms cubic-bezier(.31, .39, 0, 1.19) both;
+      }
+
+      &[data-state="closed"] {
+        pointer-events: none;
+        animation: dialog-zoom-out 300ms cubic-bezier(0.78, 0.14, 0.15, 0.86) both;
+      }
     }
   }
 

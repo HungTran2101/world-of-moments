@@ -7,9 +7,9 @@ import { Brand } from "@/components/shared/Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LogOut, X } from "lucide-react";
+import { LogOut, Map } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { checkPermission } from "@/services/permission";
 import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
 import { useCmsStore } from "@/store/cmsStore";
@@ -17,53 +17,69 @@ import { logoutCms } from "@/services/cms/auth";
 import { expireCmsSession } from "@/services/shared/cms-api";
 import { ErrorNotice } from "@/components/shared/Forms";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Dialog } from "@/components/ui/dialog";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
-const CMS_MOBILE_MEDIA_QUERY = "(width <= 760px)";
+const SIDEBAR_BRAND_IMAGE_SIZE_PX = 32;
 
-export function CmsSidebar({ children }: { children: ReactNode }) {
+function CmsSidebarContent({ children }: { children: ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
   const user = useCmsStore((state) => state.user);
   const landingPath = getCmsLandingPath(user?.scopes ?? []);
-  const [open, setOpen] = useState(false);
+  const { setOpenMobile, open, isMobile } = useSidebar();
   const [error, setError] = useState<unknown>(null);
+  const closeMobile = () => setOpenMobile(false);
 
-  useEffect(() => {
-    const media = window.matchMedia(CMS_MOBILE_MEDIA_QUERY);
-    // Đóng ngăn di động khi chuyển sang desktop để bỏ khóa cuộn và giữ sidebar cố định.
-    const closeOnDesktop = () => {
-      if (!media.matches) setOpen(false);
-    };
-    media.addEventListener("change", closeOnDesktop);
-    return () => media.removeEventListener("change", closeOnDesktop);
-  }, []);
-  const renderItem = (item: SidebarItem): ReactNode => {
+  const renderItem = (item: SidebarItem, nested = false): ReactNode => {
     if (item.showRole && !checkPermission(user?.scopes ?? [], item.showRole))
       return null;
     if (item.items) {
-      const children = item.items.map(renderItem).filter(Boolean);
+      const children = item.items.map((child) => renderItem(child, true)).filter(Boolean);
       return children.length ? (
-        <details key={item.key} open>
-          <summary>{t(item.name)}</summary>
-          <ul>{children}</ul>
-        </details>
+        <SidebarGroup key={item.key}>
+          <SidebarGroupLabel>{t(item.name)}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>{children}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       ) : null;
     }
-    const active =
-      pathname === item.href || item.childRoutes?.includes(pathname);
-    return (
-      <li key={item.key}>
-        <Link
-          href={item.href!}
-          target={item.target}
-          rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-          aria-current={active ? "page" : undefined}
-          onClick={() => setOpen(false)}
-        >
-          {t(item.name)}
-        </Link>
-      </li>
+    if (!item.href) return null;
+    const active = pathname === item.href || item.childRoutes?.includes(pathname);
+    const Icon = item.icon;
+    const link = (
+      <SidebarMenuItem key={item.key}>
+        <SidebarMenuButton asChild isActive={active} tooltip={t(item.name)}>
+          <Link
+            href={item.href}
+            target={item.target}
+            rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+            aria-label={t(item.name)}
+            aria-current={active ? "page" : undefined}
+            onClick={closeMobile}
+          >
+            {Icon && <Icon aria-hidden="true" />}
+            <span>{t(item.name)}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+    return nested ? link : (
+      <SidebarGroup key={item.key}><SidebarMenu>{link}</SidebarMenu></SidebarGroup>
     );
   };
 
@@ -80,88 +96,97 @@ export function CmsSidebar({ children }: { children: ReactNode }) {
   });
   const busy = logout.isPending;
 
-  const sidebarContent = (
+  return (
     <>
-      <Link
-        href={landingPath ?? ROUTE_PATHS.DASHBOARD}
-        className="cms-sidebarBrand"
-        onClick={() => setOpen(false)}
+      <a className="cms-skip" href="#cms-main">{t("nav.skip")}</a>
+      <Sidebar
+        variant="floating"
+        collapsible="icon"
+        className="cms-sidebar cms-popup"
+        mobileTitle={t("nav.navigation")}
+        closeLabel={t("nav.closeMenu")}
       >
-        <Brand />
-      </Link>
-      <nav aria-label={t("nav.navigation")}>
-        <ul>{landingPath ? sidebarItems.map(renderItem) : null}</ul>
-      </nav>
-      <div className="cms-sidebarFooter">
-        <Link
-          className="cms-sidebarMapLink"
-          href="/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => setOpen(false)}
-        >
-          {t("nav.map")}
-        </Link>
-        <div className="cms-sidebarAccount">
-          <p className="cms-identity" title={user?.name}>{user?.name}</p>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="destructive"
-                size="icon"
-                type="button"
-                aria-label={t("nav.logout")}
-                disabled={busy}
-                loading={busy}
-                onClick={() => { if (!busy) logout.mutate(); }}
-              >
-                <LogOut aria-hidden="true" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t("nav.logout")}</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+        <SidebarHeader>
+          <Link
+            href={landingPath ?? ROUTE_PATHS.DASHBOARD}
+            className="cms-sidebarBrand"
+            aria-label="World of Moments CMS"
+            onClick={closeMobile}
+          >
+            <Brand imageSize={SIDEBAR_BRAND_IMAGE_SIZE_PX} />
+          </Link>
+        </SidebarHeader>
+        <SidebarContent>
+          <nav aria-label={t("nav.navigation")}>
+            {landingPath ? sidebarItems.map((item) => renderItem(item)) : null}
+          </nav>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="cms-sidebarFooterActions">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={t("nav.map")}>
+                  <Link
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={t("nav.map")}
+                    onClick={closeMobile}
+                  >
+                    <Map aria-hidden="true" />
+                    <span>{t("nav.map")}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            {!isMobile && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarTrigger
+                    className="cms-sidebarToggle"
+                    size="icon"
+                    aria-label={t(open ? "nav.collapseMenu" : "nav.expandMenu")}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="right" align="center">
+                  {t(open ? "nav.collapseMenu" : "nav.expandMenu")}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+          <div className="cms-sidebarAccount">
+            <p className="cms-identity" title={user?.name}>{user?.name}</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  type="button"
+                  aria-label={t("nav.logout")}
+                  disabled={busy}
+                  loading={busy}
+                  onClick={() => { if (!busy) logout.mutate(); }}
+                >
+                  <LogOut aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("nav.logout")}</TooltipContent>
+            </Tooltip>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+      <main id="cms-main" className="cms-main" tabIndex={-1}>
+        {Boolean(error) && <ErrorNotice error={error} />}
+        {children}
+      </main>
     </>
   );
+}
 
+export function CmsSidebar({ children }: { children: ReactNode }) {
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <div className="cms-shell">
-        <a className="cms-skip" href="#cms-main">
-          {t("nav.skip")}
-        </a>
-        <aside className="cms-sidebar cms-sidebarDesktop">
-          {sidebarContent}
-        </aside>
-        <main id="cms-main" className="cms-main" tabIndex={-1}>
-          {Boolean(error) && <ErrorNotice error={error} />}
-          {children}
-        </main>
-      </div>
-      <Dialog.Portal>
-        <Dialog.Overlay className="cms-sidebarOverlay" />
-        <Dialog.Content
-          id="cms-sidebar"
-          className="cms cms-sidebar cms-sidebarDrawer"
-          aria-modal="true"
-          aria-describedby={undefined}
-        >
-          <Dialog.Title className="sr-only">{t("nav.navigation")}</Dialog.Title>
-          <Dialog.Close asChild>
-            <Button
-              className="cms-sidebarClose"
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={t("nav.closeMenu")}
-            >
-              <X aria-hidden="true" />
-            </Button>
-          </Dialog.Close>
-          {sidebarContent}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <SidebarProvider className="cms-shell">
+      <CmsSidebarContent>{children}</CmsSidebarContent>
+    </SidebarProvider>
   );
 }

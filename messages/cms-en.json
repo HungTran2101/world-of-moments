@@ -55,6 +55,8 @@
     "navigation": "CMS navigation",
     "skip": "Skip to content",
     "menu": "Menu",
+    "collapseMenu": "Collapse sidebar",
+    "expandMenu": "Expand sidebar",
     "closeMenu": "Close menu",
     "submissions": "Submissions",
     "dashboard": "Dashboard"

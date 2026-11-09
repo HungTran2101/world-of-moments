@@ -55,6 +55,8 @@
     "navigation": "Điều hướng CMS",
     "skip": "Đến nội dung",
     "menu": "Menu",
+    "collapseMenu": "Thu gọn thanh điều hướng",
+    "expandMenu": "Mở rộng thanh điều hướng",
     "closeMenu": "Đóng menu",
     "submissions": "Khoảnh khắc",
     "dashboard": "Dashboard"

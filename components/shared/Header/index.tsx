@@ -1,38 +1,29 @@
 "use client";
 
-import { ChevronLeft, Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { memo, type CSSProperties, type ReactNode } from "react";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { ChevronLeft } from "lucide-react";
 
 const HeaderMenuToggle = memo(function HeaderMenuToggle() {
   const t = useTranslations();
+  const { openMobile, isMobile } = useSidebar();
+  if (!isMobile) return null;
+  const label = t(openMobile ? "nav.closeMenu" : "nav.menu");
   return (
-    <Dialog.Trigger asChild aria-controls="cms-sidebar">
-      <Button
-        className="cms-menuToggle"
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={t("nav.menu")}
-      >
-        <Menu aria-hidden="true" />
-      </Button>
-    </Dialog.Trigger>
+    <SidebarTrigger className="cms-headerToggle" aria-label={label} title={label} />
   );
 });
 
-const HeaderTitle = memo(function HeaderTitle({
-  title,
-  onBack,
-}: {
+const HeaderTitle = memo(function HeaderTitle({ title, onBack }: {
   title: string;
   onBack?: () => void;
 }) {
   const t = useTranslations();
   return (
     <div className="cms-headerTitle">
+      <HeaderMenuToggle />
       {onBack && (
         <Button
           className="cms-headerBack"
@@ -64,7 +55,6 @@ export const Header = memo(function Header({
 }) {
   return (
     <div className="cms-headerRow">
-      <HeaderMenuToggle />
       <header className="cms-header" style={style}>
         <HeaderTitle title={title} onBack={onBack} />
         <div className="cms-headerActions">{actions}</div>

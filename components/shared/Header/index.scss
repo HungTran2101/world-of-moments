@@ -2,14 +2,10 @@
   position: sticky;
   z-index: 10;
   top: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--cms-shell-gap);
 }
 
 .cms-header {
   display: flex;
-  flex: 1;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -29,7 +25,8 @@
   min-width: 0;
 }
 
-.cms-headerBack {
+.cms-headerBack,
+.cms-headerToggle {
   border: 0;
   color: var(--color-text-muted);
   transition-property: color, background-color, box-shadow;
@@ -54,17 +51,18 @@
 }
 
 @media (width <=760px) {
-  .cms-headerRow {
-
-    align-items: stretch;
-  }
-
   .cms-header {
-    min-height: 0px;
+    min-height: 48px;
+    padding-block: 6px;
   }
 
   .cms-header h1 {
     font-size: 18px;
+  }
+
+  .cms-headerToggle {
+    width: 44px;
+    height: 44px;
   }
 
   .cms-headerTitle {

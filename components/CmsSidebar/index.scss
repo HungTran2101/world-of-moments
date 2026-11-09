@@ -1,94 +1,76 @@
-/* stylelint-disable scss/dollar-variable-pattern -- Hằng số dùng UPPER_SNAKE_CASE theo quy ước dự án. */
-$CMS_DRAWER_ANIMATION_DURATION_MS: 240ms;
-$CMS_DRAWER_ANIMATION_EASING: cubic-bezier(0.22, 1, 0.36, 1);
-$CMS_DRAWER_WIDTH_PX: 288px;
-$CMS_MENU_TOUCH_TARGET_PX: 44px;
-/* stylelint-enable scss/dollar-variable-pattern */
-
 .cms-shell {
-  display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
   height: 100dvh;
+  min-height: 0;
   gap: var(--cms-shell-gap);
-  padding: var(--cms-shell-gap);
-  padding-right: 2px;
+  padding: var(--cms-shell-gap) 4px var(--cms-shell-gap) 0;
 }
 
-.cms-sidebar {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 24px 12px 18px;
-  overflow-y: auto;
+.cms-sidebar[data-slot="sidebar-container"] {
+  padding: var(--cms-shell-gap) 0 var(--cms-shell-gap) var(--cms-shell-gap);
+}
+
+.cms-sidebar [data-slot="sidebar-inner"] {
+  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--cms-panel-radius);
-  background: #fff;
   box-shadow: 2px 1px 4px rgb(20 28 40 / 10%);
 }
 
+.cms-sidebar [data-slot="sidebar-header"] {
+  padding-top: 20px;
+  padding-bottom: 16px;
+}
+
 .cms-sidebarBrand {
+  min-width: 0;
+  overflow: hidden;
   text-decoration: none !important;
+
+  .cms-brand {
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  img {
+    flex-shrink: 0;
+  }
+
+  .cms-brand>span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-.cms-sidebar ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.cms-sidebarToggle {
+  border: 0;
+
+  &:hover {
+    background: var(--color-surface-alt);
+  }
 }
 
-.cms-sidebar details {
-  margin-top: 16px;
-}
-
-.cms-sidebar summary {
-  margin: 0 10px 7px;
-  color: #7a808b;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.cms-sidebar li a {
-  display: block;
-  margin: 3px 0;
-  padding: 6px 11px;
-  border-radius: 5px;
-  color: #555e6c;
-  text-decoration: none;
-}
-
-.cms-sidebar li a[aria-current="page"] {
-  color: #20354d;
-  background: #edf1f6;
-  font-weight: 600;
-}
-
-.cms-sidebar li a:hover {
-  background: #f4f6f8;
-}
-
-.cms-sidebarFooter {
+.cms-sidebarFooterActions {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: auto;
-  padding-top: 32px;
+  align-items: center;
+  gap: 8px;
+
+  >[data-slot="sidebar-menu"] {
+    flex: 1;
+  }
+}
+
+.cms-sidebar [data-slot="sidebar-menu-button"] {
+  text-decoration: none;
 }
 
 .cms-sidebarAccount {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
-.cms-sidebarMapLink {
-  align-self: center;
-  color: var(--color-primary);
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
-.cms-sidebarFooter .cms-identity {
+.cms-sidebar .cms-identity {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -101,82 +83,56 @@ $CMS_MENU_TOUCH_TARGET_PX: 44px;
   white-space: nowrap;
 }
 
-.cms-main {
-  min-width: 0;
-  height: 100%;
-  overflow: auto;
-  padding-right: calc(var(--cms-shell-gap) - 4px);
-}
-
-.cms-menuToggle {
-  display: none !important;
-}
-
-.cms-sidebarOverlay {
-  background: rgb(20 28 40 / 35%);
-}
-
-.cms.cms-sidebarDrawer {
-  z-index: 51;
-  inset: 0 auto 0 0;
-  width: min($CMS_DRAWER_WIDTH_PX, calc(100vw - $CMS_MENU_TOUCH_TARGET_PX));
-  height: 100dvh;
-  padding: 20px 16px max(18px, env(safe-area-inset-bottom));
-  overscroll-behavior: contain;
-  border-radius: 0 var(--cms-panel-radius) var(--cms-panel-radius) 0;
-  transform: none;
-
-  &[data-state="open"] {
-    animation: cms-sidebar-slide-in $CMS_DRAWER_ANIMATION_DURATION_MS $CMS_DRAWER_ANIMATION_EASING both;
+[data-collapsible="icon"] .cms-sidebar {
+  [data-slot="sidebar-header"] {
+    align-items: center;
+    padding-block: 12px;
+    border-bottom: 1px solid var(--color-border);
   }
 
-  &[data-state="closed"] {
-    animation: cms-sidebar-slide-out $CMS_DRAWER_ANIMATION_DURATION_MS $CMS_DRAWER_ANIMATION_EASING both;
-  }
-
-  .cms-sidebarBrand {
-    padding-right: $CMS_MENU_TOUCH_TARGET_PX;
+  .cms-brand>span,
+  .cms-identity {
+    display: none;
   }
 
   .cms-brand {
-    padding-bottom: 12px;
+    gap: 0;
+  }
+
+  .cms-sidebarFooterActions {
+    flex-direction: column;
+  }
+
+  // Căn giữa cả nút và icon; chữ ẩn không được chiếm khoảng trống trong rail.
+  [data-slot="sidebar-menu"] {
+    align-items: center;
+  }
+
+  [data-slot="sidebar-menu-button"] {
+    justify-content: center;
+    gap: 0;
+
+    >span {
+      display: none;
+    }
+  }
+
+  .cms-sidebarAccount {
+    justify-content: center;
   }
 }
 
-.cms-sidebarClose {
-  position: absolute;
-  top: 12px;
-  right: 8px;
-  width: $CMS_MENU_TOUCH_TARGET_PX;
-  height: $CMS_MENU_TOUCH_TARGET_PX;
-  border: 0;
+.cms-sidebar[data-mobile="true"] [data-slot="sidebar-header"] {
+  padding-right: 52px;
 }
 
-@keyframes cms-sidebar-slide-in {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes cms-sidebar-slide-out {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cms.cms-sidebarDrawer[data-state],
-  .cms-sidebarOverlay[data-state] {
-    animation: none;
-  }
+.cms-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding-right: calc(var(--cms-shell-gap) - 4px);
 }
 
 .cms-skip {
@@ -194,32 +150,6 @@ $CMS_MENU_TOUCH_TARGET_PX: 44px;
 
 @media (width <=760px) {
   .cms-shell {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .cms button.cms-menuToggle {
-    display: inline-flex !important;
-    width: $CMS_MENU_TOUCH_TARGET_PX;
-    height: auto;
-    min-height: var(--cms-mobile-header-min-height);
-    border: 1px solid var(--color-border);
-    border-radius: var(--cms-panel-radius);
-    background: #fff;
-    box-shadow: 1px 2px 4px rgb(20 28 40 / 10%);
-  }
-
-  .cms-sidebarDesktop {
-    display: none;
-  }
-
-  .cms-sidebarFooter {
-    padding-top: 18px;
-  }
-
-  .cms-main {
-    flex: 1;
-    min-height: 0;
-    height: auto;
+    padding-left: var(--cms-shell-gap);
   }
 }

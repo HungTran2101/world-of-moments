@@ -25,6 +25,12 @@
   --radius-lg: 8px;
   --radius-md: 6px;
   --radius-sm: 4px;
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-text);
+  --sidebar-accent: var(--color-surface-alt);
+  --sidebar-accent-foreground: var(--color-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--color-ring);
   --cms-shell-gap: 10px;
   --cms-panel-radius: 12px;
 
@@ -136,7 +142,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .cms *,
   .cms *::before,
   .cms *::after,

@@ -108,9 +108,16 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Login and sidebar reuse it; `style` accepts React `CSSProperties` for custom
   root styling, `className` extends its root classes and `imageSize` controls the
   square logo size in pixels. Login supplies its larger logo and bottom padding;
-  the sidebar owns the brand link to the first permitted module and its mobile spacing override.
+  the sidebar owns the brand link to the first permitted module. When collapsed,
+  its logo stays centered above a divider while the brand title hides; the expand
+  control remains available in the footer.
 - Sidebar configuration is `components/CmsSidebar/sidebar.ts` beside its
-  rendering component, `CmsSidebar`; the public map sidebar is
+  rendering component, `CmsSidebar`. The shell composes shadcn's Radix Nova
+  `components/ui/sidebar.tsx` (provider, responsive panel, groups and menu buttons),
+  `components/ui/sheet.tsx` and `hooks/use-mobile.ts`. Only used primitives are kept.
+  Sheet composes the shared Dialog for focus/scroll management; Dialog's centered
+  zoom geometry excludes Sheet content so its own slide animation can run.
+  The public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
   `app/api/cms/{auth,accounts,roles,submissions,dashboard,nopermission}`. Shared account
@@ -252,10 +259,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   action from the database. Account pages require `ACCOUNT_SHOW`, with create,
   update, delete, and reset guarded by their corresponding permissions.
 - Sidebar configuration lives in `components/CmsSidebar/sidebar.ts`:
-  `key`, translated `name`, optional `href`, `target`, `showRole`, `childRoutes`, and `items`.
+  `key`, translated `name`, optional Lucide `icon`, `href`, `target`, `showRole`,
+  `childRoutes`, and `items`.
   Missing `showRole` is visible; child routes preserve active highlighting.
-  Map is a centered text link above the account row in the sidebar footer and
-  links to the public map at `/` in a new tab using `target="_blank"` and
+  Map is a left-aligned icon/text link beside the desktop collapse control, above
+  the account row in the sidebar footer. It links to the public map at `/` in a
+  new tab using `target="_blank"` and
   `rel="noopener noreferrer"`. Selecting it also closes the mobile sidebar.
   Its label is localized in English and Vietnamese and requires no module permission.
   Management contains Submissions. System contains Accounts, Roles, General and
@@ -326,10 +335,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 ## Layout, forms, and localization
 
 - SCSS class names start with a lowercase word (for example, `cms-shell`,
-  `cms-sidebarFooter` and `mapView-wrapper`); JSX and imperative selectors use
+  `cms-sidebarAccount` and `mapView-wrapper`); JSX and imperative selectors use
   the same names.
 
-- Persistent sidebar with logo and nested navigation. Its compact footer shows
+- Responsive shadcn Sidebar with logo and grouped navigation. Its compact footer shows
   the display name and a destructive icon-only sign-out button on the same
   row, with a localized label and tooltip. The name fills the remaining row width
   in a muted, rounded background aligned with sign-out; long names truncate with
@@ -340,19 +349,40 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Profile; the former `/cms/change-password` page is removed.
   Language selection lives on System → General and uses the existing locale
   service/cookie with immediate saving and refresh; errors are displayed inline.
-  Mobile navigation uses a separate icon-only menu button to the left of the
-  page Header, outside its bordered surface. Both share one sticky row, with the
-  title and actions inside the Header. The mobile row has a compact 48px minimum
-  height; the menu button stretches to match the Header, including when content
-  wraps. The button opens a modal drawer
-  sliding in from the left over a dimmed backdrop, without pushing page content.
-  The drawer traps focus and locks background scrolling; Escape, backdrop click,
-  the localized close button, or a navigation link closes it. Dismissal returns
-  focus to the menu trigger. Switching to desktop closes the drawer and restores the
-  persistent sidebar. Reduced-motion preferences disable the slide animation.
-  Sidebar and sticky page Header use
-  solid white surfaces, full borders and 12px corners. The viewport shell has 12px
-  outer spacing/gaps on desktop and 8px on mobile, with independent main scrolling.
+  The desktop SidebarTrigger sits in the footer, to the right of the left-aligned
+  Map link. Its shared Tooltip shows the localized collapse/expand label on hover
+  and keyboard focus in both states. When collapsed, the footer stacks Map, expand
+  and sign-out vertically in that order. The brand logo stays centered at the top,
+  separated from navigation by a divider. Every rail button and its icon share the
+  horizontal center of the sidebar panel, including navigation and footer controls.
+  Page Header back arrows retain their original navigation behavior.
+  A separate Header trigger appears only on mobile to open the Sheet.
+  Desktop navigation collapses to an icon rail with localized link tooltips;
+  brand title and display-name text hide while the logo, map and sign-out remain
+  available.
+  Group labels hide in the rail and ignore pointer events so their negative-margin
+  layout cannot cover preceding navigation buttons. Empty and unauthorized groups
+  are omitted.
+  Collapse state stays in the mounted shell's memory, independently of mobile state.
+  Cmd/Ctrl+B toggles the sidebar. Labels reflect open/closed state in EN/VI.
+  At widths up to 760px the Header trigger opens a left Sheet over a dimmed backdrop.
+  The Sheet traps focus and locks background scrolling; Escape, backdrop click,
+  the localized close button, or a navigation link closes it and restores focus
+  to the Header trigger. Switching to desktop closes the Sheet, clears scroll
+  locking and retains the desktop collapse state. Reduced motion disables animations.
+  Sidebar and sticky page Header retain solid white surfaces, borders and 12px
+  corners. The shell uses 10px outer spacing/gaps on desktop and 8px on mobile,
+  with independent main scrolling and a scrollable sidebar navigation region.
+  Local Chrome checks with temporary fixture users verify expanded/icon layouts,
+  active nested routes, permission filtering, EN/VI controls, the 760/761px boundary,
+  390px drawer width, focus trapping/restoration, navigation dismissal, desktop
+  scroll-lock cleanup, reduced motion and ordinary Modal centering. These checks
+  cover the rendered shell, not authenticated backend operations; the temporary
+  preview route is removed after verification. Follow-up checks verify the footer
+  Map/toggle row, stacked rail actions and centered button/icon geometry, restored
+  back callback and the separate mobile opener with focus restoration. Regression
+  hit-tests cover the center and all four corners of every collapsed navigation
+  link; native hover verifies Dashboard highlighting and its tooltip.
 - CMS inputs, single selects and checkboxes use shadcn primitives. Account roles
   and extra permissions use the shared controlled `Select` with `multiple`,
   composed from shadcn Combobox chips with Base UI behavior: inline label search, removable tags,
@@ -420,15 +450,16 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   Menu, retry, bulk/pagination and logout controls
   also use `Button`; `.cms-button` styling is retained only for navigation links.
   Native button markup is confined to the shared primitive implementations.
-- Each page owns its sticky Header: title left, action controls supplied through
-  the optional `actions?: ReactNode` prop on the right (not JSX children). Its optional
-  `onBack?: () => void` renders a localized, icon-only chevron button before the
-  title; without `onBack`, no back control is rendered. Account/role detail pages
-  supply callbacks to their list URLs, preserving current filters and pagination.
-  Header uses shallow memoization, with independently memoized menu and title/back
+- Each page owns its sticky Header: title and optional back arrow left, action
+  controls supplied through `actions?: ReactNode` on the right (not JSX children).
+  `onBack?: () => void` renders the localized back arrow. Account/role/submission
+  details preserve list filters and pagination in their back callbacks; password
+  change returns to Profile. Breadcrumbs retain the same parent destinations.
+  A separate mobile-only menu trigger opens the sidebar without replacing back.
+  Header uses shallow memoization, with independently memoized toggle and title/back
   sections. Fresh action JSX can rerender the outer Header while unchanged static
-  sections are skipped; action nodes, styles and callbacks remain identity-sensitive.
-  Locale changes still refresh translated controls through their context subscriptions.
+  sections are skipped; action nodes, styles and back callbacks remain identity-sensitive.
+  Locale and sidebar state changes refresh the toggle through context subscriptions.
   A shared
   `CmsPageContent` follows and wraps breadcrumbs plus the table, detail form or
   overview; the permission-denied page uses it too. It is a normal block wrapper
@@ -444,10 +475,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   fresh inline array with equal values skips rendering. Labels, links, order,
   length and current-page semantics still update when values change. Inputs are
   treated as immutable. Isolated Chrome checks with mocked services verify these
-  render skips, latest Header action/back callbacks, loading/disabled states,
+  render skips, latest Header action callbacks, loading/disabled states,
   localization and menu-dialog interaction without consumer changes.
-- Navigation uses Next.js Links, except the Header back callback button, which
-  uses client routing. Submissions/mutations are buttons.
+- Navigation uses Next.js Links, including parent breadcrumbs; the Header back
+  callback uses client routing. Submissions, mutations and sidebar toggles are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
   live in `services/schemas.ts`; API payloads reuse relevant schemas. Errors are localized.
 - Client API mutations use TanStack Query `useMutation`. Success callbacks own
