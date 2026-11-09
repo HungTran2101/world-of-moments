@@ -1,7 +1,7 @@
 "use client";
 
 import { PAGE_SIZES } from "@/services/constant";
-import { useId } from "react";
+import { memo, useId } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -20,7 +20,7 @@ export interface PaginationProps {
   className?: string;
 }
 
-export function Pagination({
+export const Pagination = memo(function Pagination({
   pagination,
   onChangePage,
   onChangePageSize,
@@ -84,4 +84,4 @@ export function Pagination({
       </label>
     </nav>
   );
-}
+});

@@ -24,7 +24,7 @@ export function readCrudQuery(
     pageSize: PAGE_SIZES.includes(inputSize as (typeof PAGE_SIZES)[number])
       ? inputSize
       : 20,
-    search: (query.get("search") || "").trim().slice(0, 200),
+    search: (query.get("search") || "").trim(),
     filters: Object.fromEntries(
       filterKeys.map((key) => [key, query.get(key) || ""]),
     ),

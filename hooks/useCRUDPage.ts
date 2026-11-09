@@ -7,7 +7,7 @@ import {
   type QueryKey,
 } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 import type { CrudListParams } from "@/services/shared/types";
 import { patchCrudQuery, readCrudQuery } from "@/services/query-state";
@@ -45,7 +45,7 @@ export function useCRUDPage<T>({
     enabled: Boolean(userId),
   });
 
-  const changeQuery = (
+  const changeQuery = useCallback((
     patch: Record<string, string | number>,
     replace = false,
   ) => {
@@ -56,7 +56,7 @@ export function useCRUDPage<T>({
     ).toString();
     const url = `${window.location.pathname}${next ? `?${next}` : ""}${window.location.hash}`;
     window.history[replace ? "replaceState" : "pushState"](null, "", url);
-  };
+  }, []);
 
   useEffect(() => {
     if (
@@ -82,12 +82,34 @@ export function useCRUDPage<T>({
     },
   });
 
+  const onChangePage = useCallback(
+    (page: number) => changeQuery({ page }),
+    [changeQuery],
+  );
+  const onChangePageSize = useCallback(
+    (pageSize: number) => changeQuery({ pageSize, page: 1 }),
+    [changeQuery],
+  );
+  const { refetch } = query;
+  const onSearch = useCallback((search: string) => {
+    const normalized = search.trim();
+    if (normalized === params.search) void refetch();
+    else changeQuery({ search: normalized, page: 1 }, true);
+  }, [params.search, refetch, changeQuery]);
+  const onChangeFilters = useCallback((filters: Record<string, string>) =>
+    changeQuery({
+      ...Object.fromEntries(
+        Object.entries(filters).filter(([key]) => filterKeys.includes(key)),
+      ),
+      page: 1,
+    }), [changeQuery, filterKeys]);
+
   return {
     list: query.data,
     currentPage: query.data?.metadata.page ?? params.page,
     currentPageSize: params.pageSize,
-    onChangePage: (page: number) => changeQuery({ page }),
-    onChangePageSize: (pageSize: number) => changeQuery({ pageSize, page: 1 }),
+    onChangePage,
+    onChangePageSize,
     onDelete: async (ids: string[]) => {
       if (ids.length) await deletion.mutateAsync([...new Set(ids)]);
     },
@@ -97,19 +119,9 @@ export function useCRUDPage<T>({
     deleteRecords: deletion.mutate,
     search: params.search,
     filters: params.filters,
-    onSearch: (search: string) => {
-      const normalized = search.trim().slice(0, 200);
-      if (normalized === params.search) void query.refetch();
-      else changeQuery({ search: normalized, page: 1 }, true);
-    },
-    onChangeFilters: (filters: Record<string, string>) =>
-      changeQuery({
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([key]) => filterKeys.includes(key)),
-        ),
-        page: 1,
-      }),
-    refetch: query.refetch,
+    onSearch,
+    onChangeFilters,
+    refetch,
     error: query.error ?? deletion.error,
   };
 }

@@ -7,8 +7,9 @@ import { GlassButton } from "@/components/ui/glass-button";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { Info, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { memo } from "react";
 
-const Attribution = () => {
+const Attribution = memo(function Attribution() {
   const t = useTranslations("map");
 
   return (
@@ -96,6 +97,6 @@ const Attribution = () => {
       </Dialog.Portal>
     </Dialog.Root>
   );
-};
+});
 
 export default Attribution;

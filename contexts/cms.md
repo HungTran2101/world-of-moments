@@ -425,6 +425,10 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `onBack?: () => void` renders a localized, icon-only chevron button before the
   title; without `onBack`, no back control is rendered. Account/role detail pages
   supply callbacks to their list URLs, preserving current filters and pagination.
+  Header uses shallow memoization, with independently memoized menu and title/back
+  sections. Fresh action JSX can rerender the outer Header while unchanged static
+  sections are skipped; action nodes, styles and callbacks remain identity-sensitive.
+  Locale changes still refresh translated controls through their context subscriptions.
   A shared
   `CmsPageContent` follows and wraps breadcrumbs plus the table, detail form or
   overview; the permission-denied page uses it too. It is a normal block wrapper
@@ -436,6 +440,12 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   content width through shared `.cms-form` styling, without page-specific width caps.
   Breadcrumbs accept `{ label, href? }[]`. Root pages begin with their own label,
   without an Overview prefix; detail pages begin with their parent list.
+  Breadcrumbs compares the navigation label and ordered item labels/hrefs, so a
+  fresh inline array with equal values skips rendering. Labels, links, order,
+  length and current-page semantics still update when values change. Inputs are
+  treated as immutable. Isolated Chrome checks with mocked services verify these
+  render skips, latest Header action/back callbacks, loading/disabled states,
+  localization and menu-dialog interaction without consumer changes.
 - Navigation uses Next.js Links, except the Header back callback button, which
   uses client routing. Submissions/mutations are buttons.
 - CMS forms use React Hook Form and `yupResolver`, including search. All schemas
@@ -501,6 +511,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - SearchInput owns draft/debounce (350 ms). Manual Search cancels debounce,
   immediately applies draft, and refreshes unchanged search. URL navigation cancels
   stale drafts/timers. Defaults may be omitted from the URL.
+- CMS search trims surrounding whitespace without an application-level character
+  limit. The input, URL parsing, CRUD hook and form/API schemas preserve the full
+  trimmed search value.
 - Empty results have one empty page. Server clamps out-of-range pages; the hook
   synchronizes the URL after deletion. Pagination metadata stays inside `metadata`.
 
@@ -581,6 +594,36 @@ page 1 after a page-size change.
   during horizontal scrolling, including when the table has a fixed header.
   Selected rows use the CMS secondary background across all cells, including
   fixed selection and Actions cells; deselecting restores the normal background.
+- Each row's data cells are memoized separately from its controlled checkbox and
+  selected-row background. Selection changes reuse cell content; selection lookups
+  use Sets instead of repeated array scans. Accounts, Roles and Submissions keep
+  columns and their action callbacks stable across selection changes, while locale,
+  URL, permission and loading changes still refresh the affected content. Callers
+  must replace changed records/columns rather than mutate them in place; row-index
+  changes also invalidate cached cells.
+  An isolated Chrome fixture using production React profiling and 100 mocked
+  records verified zero cell-renderer calls per selection toggle, down from
+  900/600/500 for Submissions/Accounts/Roles. Select-all, disabled rows, row
+  highlighting, fetching/deletion guards, URL resets, locale, record replacement
+  and reordering were checked without live CMS writes.
+- Selection remains controlled by each page. Table memoizes eligible records/keys,
+  the selected-key Set, selected records/keys and available bulk actions. Memoized
+  row checkboxes receive stable handlers that read the latest committed controlled
+  selection; an unchanged checkbox skips rendering. Select All renders when its
+  checked, indeterminate, disabled or localized label changes.
+  SearchInput and Pagination are memoized; `useCRUDPage` keeps search, filter and
+  pagination callbacks stable. Submissions memoizes its filter elements and bulk
+  actions; Roles supplies a stable checkbox-eligibility callback. The bulk-action
+  dropdown is memoized separately from the selected count and Execute button,
+  which still reflect selection immediately. Locale, URL, permissions, action
+  options and pending states remain dependencies rather than being ignored by
+  custom memo comparators.
+  Isolated headless Chrome checks with the real CRUD hook and mocked services
+  verify that a second row selection renders only that row's checkbox, while
+  unchanged Select All, row content, search/filters, pagination and bulk dropdown
+  are skipped. Bulk cancellation/failure preserves selection/action; success
+  clears selection. Navigation resets, current-value handlers, locale/permission
+  changes and filter/search/pagination interactions were also verified.
 - Optional `bulkAction: { action, label, disabled? }[]` and
   `onBulkAction(action, selectedRecords): void | boolean | Promise<void | boolean>`.
 - Optional `onBulkDelete(selectedRowKeys): Promise<void>`; only its presence adds

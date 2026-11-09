@@ -13,7 +13,7 @@ import { Select } from "@/components/ui/select";
 import { usePublishConfirmation } from "./usePublishConfirmation";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Eye, MapPin, Trash2 } from "lucide-react";
 import { useCRUDPage } from "@/hooks/useCRUDPage";
@@ -43,6 +43,7 @@ import {
 const FILTER_KEYS = ["status", "validity"] as const;
 
 const ACTION_COLUMN_WIDTH_PX = 150;
+const FILTER_WIDTH_PX = 200;
 
 const VALIDITY_BADGE_COLORS = {
   valid: "success",
@@ -102,14 +103,15 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
       }
     },
   });
-  const detailHref = (id?: string) => {
-    const query = new URLSearchParams(params);
+  const { deleteLoading, fetching, deleteRecords, filters, onChangeFilters } = crud;
+  const detailHref = useCallback((id?: string) => {
+    const query = new URLSearchParams(context);
     if (id) query.set("id", id);
     else query.delete("id");
     return `${ROUTE_PATHS.SUBMISSION_DETAIL}${query.size ? `?${query}` : ""}`;
-  };
-  const deleteRow = async (id: string) => {
-    if (confirmingDeleteRef.current || crud.deleteLoading || crud.fetching) return;
+  }, [context]);
+  const deleteRow = useCallback(async (id: string) => {
+    if (confirmingDeleteRef.current || deleteLoading || fetching) return;
     confirmingDeleteRef.current = true;
     try {
       const confirmed = await modal.confirm({
@@ -122,15 +124,15 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
       if (!confirmed) return;
       setError(null);
       setDeletingId(id);
-      crud.deleteRecords([id], {
+      deleteRecords([id], {
         onError: setError,
         onSettled: () => setDeletingId(null),
       });
     } finally {
       confirmingDeleteRef.current = false;
     }
-  };
-  const columns: Column<CmsSubmissionRecord>[] = [
+  }, [deleteLoading, fetching, modal, t, deleteRecords]);
+  const columns = useMemo<Column<CmsSubmissionRecord>[]>(() => [
     {
       key: "description",
       title: t("submission.description"),
@@ -259,7 +261,7 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
                     type="button"
                     aria-label={t("common.delete")}
                     loading={deletingId === record.id}
-                    disabled={crud.deleteLoading || crud.fetching}
+                    disabled={deleteLoading || fetching}
                     onClick={() => void deleteRow(record.id)}
                   >
                     <Trash2 aria-hidden="true" />
@@ -272,7 +274,72 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
         </div>
       ),
     },
-  ];
+  ], [t, detailHref, permission.delete, deletingId, deleteLoading, fetching, deleteRow]);
+
+  const extraTools = useMemo(() => (
+    <>
+      <div className="cms-searchFilter">
+        <label htmlFor={`${filterId}-status`}>{t("submission.status")}</label>
+        <Select
+          id={`${filterId}-status`}
+          popupClassName="cms-popup"
+          aria-label={t("submission.status")}
+          labels={{ clear: `${t("common.clearSelection")}: ${t("submission.status")}` }}
+          placeholder={t("submission.allStatuses")}
+          value={filters.status}
+          onValueChange={(status) =>
+            onChangeFilters({
+              status,
+            })
+          }
+          style={{
+            width: FILTER_WIDTH_PX
+          }}
+          options={SUBMISSION_STATUSES.map((value) => ({
+            value,
+            label: t(`submission.statuses.${value}`),
+          }))}
+        />
+      </div>
+      <div className="cms-searchFilter">
+        <label htmlFor={`${filterId}-validity`}>{t("submission.validity")}</label>
+        <Select
+          id={`${filterId}-validity`}
+          popupClassName="cms-popup"
+          aria-label={t("submission.validity")}
+          labels={{ clear: `${t("common.clearSelection")}: ${t("submission.validity")}` }}
+          placeholder={t("submission.allValidities")}
+          value={filters.validity}
+          style={{
+            width: FILTER_WIDTH_PX
+          }}
+          onValueChange={(validity) =>
+            onChangeFilters({
+              validity,
+            })
+          }
+          options={SUBMISSION_VALIDITIES.map((value) => ({
+            value,
+            label: t(`submission.validities.${value}`),
+          }))}
+        />
+      </div>
+    </>
+  ), [filterId, t, filters.status, filters.validity, onChangeFilters]);
+  const bulkActions = useMemo(() => [
+    ...(canStatus
+      ? SUBMISSION_STATUSES.map((value) => ({
+        action: `status:${value}`,
+        label: t(`submission.actions.${value}`),
+      }))
+      : []),
+    ...(canValidity
+      ? SUBMISSION_VALIDITIES.map((value) => ({
+        action: `validity:${value}`,
+        label: t(`submission.actions.${value}`),
+      }))
+      : []),
+  ], [canStatus, canValidity, t]);
 
   return (
     <>
@@ -315,77 +382,15 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
               totalPages: 1,
             }
           }
-          extraTools={
-            <>
-              <div className="cms-searchFilter">
-                <label htmlFor={`${filterId}-status`}>{t("submission.status")}</label>
-                <Select
-                  id={`${filterId}-status`}
-                  popupClassName="cms-popup"
-                  aria-label={t("submission.status")}
-                  labels={{ clear: `${t("common.clearSelection")}: ${t("submission.status")}` }}
-                  placeholder={t("submission.allStatuses")}
-                  value={crud.filters.status}
-                  onValueChange={(status) =>
-                    crud.onChangeFilters({
-                      status,
-                    })
-                  }
-                  style={{
-                    width: 200
-                  }}
-                  options={SUBMISSION_STATUSES.map((value) => ({
-                    value,
-                    label: t(`submission.statuses.${value}`),
-                  }))}
-                />
-              </div>
-              <div className="cms-searchFilter">
-                <label htmlFor={`${filterId}-validity`}>{t("submission.validity")}</label>
-                <Select
-                  id={`${filterId}-validity`}
-                  popupClassName="cms-popup"
-                  aria-label={t("submission.validity")}
-                  labels={{ clear: `${t("common.clearSelection")}: ${t("submission.validity")}` }}
-                  placeholder={t("submission.allValidities")}
-                  value={crud.filters.validity}
-                  style={{
-                    width: 200
-                  }}
-                  onValueChange={(validity) =>
-                    crud.onChangeFilters({
-                      validity,
-                    })
-                  }
-                  options={SUBMISSION_VALIDITIES.map((value) => ({
-                    value,
-                    label: t(`submission.validities.${value}`),
-                  }))}
-                />
-              </div>
-            </>
-          }
-          bulkAction={[
-            ...(canStatus
-              ? SUBMISSION_STATUSES.map((value) => ({
-                action: `status:${value}`,
-                label: t(`submission.actions.${value}`),
-              }))
-              : []),
-            ...(canValidity
-              ? SUBMISSION_VALIDITIES.map((value) => ({
-                action: `validity:${value}`,
-                label: t(`submission.actions.${value}`),
-              }))
-              : []),
-          ]}
+          extraTools={extraTools}
+          bulkAction={bulkActions}
           onBulkAction={(action, rows) => moderation.mutateAsync({ action, rows })}
           search={crud.search}
           onSearch={crud.onSearch}
           onChangePage={crud.onChangePage}
           onChangePageSize={crud.onChangePageSize}
           loading={crud.loading}
-          fetching={crud.fetching}
+          fetching={fetching}
           error={crud.error}
           onRetry={() => void crud.refetch()}
           navigationKey={context}

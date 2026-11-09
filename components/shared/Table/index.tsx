@@ -8,7 +8,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import type { PaginationMetadata } from "@/services/shared/pagination";
 import { Pagination } from "@/components/shared/Pagination";
@@ -16,6 +26,8 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { ErrorNotice } from "@/components/shared/Forms";
 
 const SCROLL_EDGE_TOLERANCE_PX = 1;
+const EMPTY_SELECTED_ROW_KEYS: string[] = [];
+const EMPTY_BULK_ACTIONS: BulkAction[] = [];
 
 export interface Column<T> {
   key: string;
@@ -42,7 +54,7 @@ export interface TableScroll {
   y?: number | string;
 }
 
-function SelectAll({
+const SelectAll = memo(function SelectAll({
   checked,
   indeterminate,
   disabled,
@@ -52,7 +64,7 @@ function SelectAll({
   checked: boolean;
   indeterminate: boolean;
   disabled: boolean;
-  onChange: () => void;
+  onChange: (checked: boolean) => void;
   label: string;
 }) {
   return (
@@ -60,10 +72,109 @@ function SelectAll({
       aria-label={label}
       checked={indeterminate ? "indeterminate" : checked}
       disabled={disabled}
-      onCheckedChange={onChange}
+      onCheckedChange={(value) => onChange(value === true)}
     />
   );
+});
+
+const RowCheckbox = memo(function RowCheckbox({
+  rowKeyValue,
+  checked,
+  disabled,
+  label,
+  onChange,
+}: {
+  rowKeyValue: string;
+  checked: boolean;
+  disabled: boolean;
+  label: string;
+  onChange: (key: string, checked: boolean) => void;
+}) {
+  return (
+    <Checkbox
+      aria-label={label}
+      checked={checked}
+      disabled={disabled}
+      onCheckedChange={(value) => onChange(rowKeyValue, value === true)}
+    />
+  );
+});
+
+const BulkActionSelect = memo(function BulkActionSelect({
+  id,
+  action,
+  actions,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  action: string;
+  actions: BulkAction[];
+  disabled: boolean;
+  onChange: (action: string) => void;
+}) {
+  const t = useTranslations();
+  return (
+    <>
+      <label className="visually-hidden" htmlFor={id}>
+        {t("common.bulkAction")}
+      </label>
+      <Select
+        labels={{ clear: t("common.clearSelection") }}
+        popupClassName="cms-popup"
+        id={id}
+        value={action}
+        className={action === "delete" ? "text-destructive" : undefined}
+        disabled={disabled}
+        onValueChange={onChange}
+        placeholder={t("common.bulkAction")}
+        options={actions.map((item) => ({
+          value: item.action,
+          label: item.label,
+          disabled: item.disabled,
+          variant: item.action === "delete" ? "destructive" : "default",
+        }))}
+      />
+    </>
+  );
+});
+
+function TableRowCellsContent<T extends object>({
+  row,
+  index,
+  columns,
+}: {
+  row: T;
+  index: number;
+  columns: Column<T>[];
+}) {
+  return (
+    <>
+      {columns.map((column) => {
+        const value = column.dataIndex ? row[column.dataIndex] : undefined;
+        return (
+          <td
+            key={column.key}
+            style={{ textAlign: column.align }}
+            className={column.fixed === "right" ? "cms-fixedRight" : undefined}
+          >
+            {column.render
+              ? column.render(value, row, index)
+              : value == null
+                ? "—"
+                : String(value)}
+            {column.fixed === "right" && (
+              <span className="cms-fixedColumnShadow" aria-hidden="true" />
+            )}
+          </td>
+        );
+      })}
+    </>
+  );
 }
+
+// Tách ô dữ liệu khỏi lựa chọn để đổi checkbox không dựng lại nội dung và nút thao tác.
+const TableRowCells = memo(TableRowCellsContent) as typeof TableRowCellsContent;
 
 export function Table<T extends object>({
   scroll,
@@ -77,7 +188,7 @@ export function Table<T extends object>({
   onChangePage,
   onChangePageSize,
   selection,
-  bulkAction = [],
+  bulkAction = EMPTY_BULK_ACTIONS,
   onBulkAction,
   onBulkDelete,
   loading = false,
@@ -114,6 +225,12 @@ export function Table<T extends object>({
   const [action, setAction] = useState("");
   const [bulkError, setBulkError] = useState<unknown>(null);
   const [listAction, setListAction] = useState<"search" | "retry" | null>(null);
+  const selectionRef = useRef(selection);
+
+  useLayoutEffect(() => {
+    // Handler ổn định đọc lựa chọn đã commit mới nhất, tránh giữ khóa cũ khi memo bỏ qua render.
+    selectionRef.current = selection;
+  }, [selection]);
 
   useEffect(() => () => modal.destroyAll(), [modal, navigationKey]);
 
@@ -146,18 +263,28 @@ export function Table<T extends object>({
     // Bỏ thao tác khi tải xong hoặc chuyển sang URL đã có dữ liệu mới trong cache.
     if (!fetching) setListAction(null);
   }, [fetching, navigationKey]);
-  const keyOf = (record: T) => String(record[rowKey]);
-  const eligible = datasource.filter(
-    (row) => !selection?.getCheckboxProp?.(row).disabled,
+  const keyOf = useCallback((record: T) => String(record[rowKey]), [rowKey]);
+  const selectionEnabled = Boolean(selection);
+  const selectedRowKeys = selection?.selectedRowKeys ?? EMPTY_SELECTED_ROW_KEYS;
+  const getCheckboxProp = selection?.getCheckboxProp;
+  const selectedKeySet = useMemo(() => new Set(selectedRowKeys), [selectedRowKeys]);
+  const eligible = useMemo(
+    () => selectionEnabled
+      ? datasource.filter((row) => !getCheckboxProp?.(row).disabled)
+      : [],
+    [datasource, selectionEnabled, getCheckboxProp],
   );
-  const selectedRows = eligible.filter((row) =>
-    selection?.selectedRowKeys.includes(keyOf(row)),
+  const eligibleKeys = useMemo(() => eligible.map(keyOf), [eligible, keyOf]);
+  const selectedRows = useMemo(
+    () => eligible.filter((row) => selectedKeySet.has(keyOf(row))),
+    [eligible, selectedKeySet, keyOf],
   );
-  const selectedKeys = selectedRows.map(keyOf);
-  const actions: BulkAction[] = [
+  const selectedKeys = useMemo(() => selectedRows.map(keyOf), [selectedRows, keyOf]);
+  const hasBulkDelete = Boolean(onBulkDelete);
+  const actions = useMemo<BulkAction[]>(() => [
     ...bulkAction.filter((item) => item.action !== "delete"),
-    ...(onBulkDelete ? [{ action: "delete", label: t("common.delete") }] : []),
-  ];
+    ...(hasBulkDelete ? [{ action: "delete", label: t("common.delete") }] : []),
+  ], [bulkAction, hasBulkDelete, t]);
   const activeAction = actions.find((item) => item.action === action);
   const canExecute = Boolean(
     selection &&
@@ -167,11 +294,28 @@ export function Table<T extends object>({
     (action === "delete" ? onBulkDelete : onBulkAction),
   );
 
-  const select = (keys: string[]) =>
-    selection?.onChange(
+  const select = useCallback((keys: string[]) => {
+    const keysToSelect = new Set(keys);
+    selectionRef.current?.onChange(
       keys,
-      datasource.filter((row) => keys.includes(keyOf(row))),
+      datasource.filter((row) => keysToSelect.has(keyOf(row))),
     );
+  }, [datasource, keyOf]);
+  const handleRowSelection = useCallback((key: string, checked: boolean) => {
+    const currentSelection = selectionRef.current;
+    if (!currentSelection) return;
+    select(checked
+      ? [...new Set([...currentSelection.selectedRowKeys, key])]
+      : currentSelection.selectedRowKeys.filter((selectedKey) => selectedKey !== key));
+  }, [select]);
+  const handleSelectAll = useCallback(
+    (checked: boolean) => select(checked ? eligibleKeys : []),
+    [select, eligibleKeys],
+  );
+  const handleSearch = useCallback((value: string) => {
+    setListAction("search");
+    onSearch(value);
+  }, [onSearch]);
   const execution = useMutation({
     mutationFn: async ({ action, keys, rows }: {
       action: string;
@@ -224,33 +368,18 @@ export function Table<T extends object>({
         <SearchInput
           extraTools={extraTools}
           value={search}
-          onSearch={(value) => {
-            setListAction("search");
-            onSearch(value);
-          }}
+          onSearch={handleSearch}
           loading={fetching && listAction === "search"}
           navigationKey={navigationKey}
         />
         {selection && (
           <div className="cms-bulk">
-            <label className="visually-hidden" htmlFor={`${id}-action`}>
-              {t("common.bulkAction")}
-            </label>
-            <Select
-              labels={{ clear: t("common.clearSelection") }}
-              popupClassName="cms-popup"
+            <BulkActionSelect
               id={`${id}-action`}
-              value={action}
-              className={action === "delete" ? "text-destructive" : undefined}
+              action={action}
+              actions={actions}
               disabled={executing}
-              onValueChange={setAction}
-              placeholder={t("common.bulkAction")}
-              options={actions.map((item) => ({
-                value: item.action,
-                label: item.label,
-                disabled: item.disabled,
-                variant: item.action === "delete" ? "destructive" : "default",
-              }))}
+              onChange={setAction}
             />
             <Button
               variant={action === "delete" ? "destructive" : "primary"}
@@ -316,13 +445,7 @@ export function Table<T extends object>({
                       selectedRows.length < eligible.length
                     }
                     disabled={!eligible.length || executing || fetching}
-                    onChange={() =>
-                      select(
-                        selectedRows.length === eligible.length
-                          ? []
-                          : eligible.map(keyOf),
-                      )
-                    }
+                    onChange={handleSelectAll}
                   />
                   <span className="cms-fixedColumnShadow" aria-hidden="true" />
                 </th>
@@ -367,59 +490,25 @@ export function Table<T extends object>({
               datasource.map((row, index) => (
                 <tr
                   key={keyOf(row)}
-                  data-state={selection?.selectedRowKeys.includes(keyOf(row)) ? "selected" : undefined}
+                  data-state={selectedKeySet.has(keyOf(row)) ? "selected" : undefined}
                 >
                   {selection && (
                     <td className="cms-selection">
-                      <Checkbox
-                        aria-label={t("common.selectRow", { key: keyOf(row) })}
-                        checked={selection.selectedRowKeys.includes(keyOf(row))}
+                      <RowCheckbox
+                        rowKeyValue={keyOf(row)}
+                        label={t("common.selectRow", { key: keyOf(row) })}
+                        checked={selectedKeySet.has(keyOf(row))}
                         disabled={
-                          selection.getCheckboxProp?.(row).disabled ||
+                          Boolean(getCheckboxProp?.(row).disabled) ||
                           executing ||
                           fetching
                         }
-                        onCheckedChange={(checked) =>
-                          select(
-                            checked === true
-                              ? [
-                                ...new Set([
-                                  ...selection.selectedRowKeys,
-                                  keyOf(row),
-                                ]),
-                              ]
-                              : selection.selectedRowKeys.filter(
-                                (key) => key !== keyOf(row),
-                              ),
-                          )
-                        }
+                        onChange={handleRowSelection}
                       />
                       <span className="cms-fixedColumnShadow" aria-hidden="true" />
                     </td>
                   )}
-                  {columns.map((column) => {
-                    const value = column.dataIndex
-                      ? row[column.dataIndex]
-                      : undefined;
-                    return (
-                      <td
-                        key={column.key}
-                        style={{ textAlign: column.align }}
-                        className={
-                          column.fixed === "right"
-                            ? "cms-fixedRight"
-                            : undefined
-                        }
-                      >
-                        {column.render
-                          ? column.render(value, row, index)
-                          : value == null
-                            ? "—"
-                            : String(value)}
-                        {column.fixed === "right" && <span className="cms-fixedColumnShadow" aria-hidden="true" />}
-                      </td>
-                    );
-                  })}
+                  <TableRowCells row={row} index={index} columns={columns} />
                 </tr>
               ))
             )}

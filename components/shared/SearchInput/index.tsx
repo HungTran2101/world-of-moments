@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { memo, useEffect, useId, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { searchSchema } from "@/services/schemas";
 
-export function SearchInput({
+export const SearchInput = memo(function SearchInput({
   value,
   onSearch,
   navigationKey,
@@ -63,7 +63,6 @@ export function SearchInput({
       <Input
         id={id}
         type="search"
-        maxLength={200}
         placeholder={t("common.searchPlaceholder")}
         {...searchField}
         onChange={(event) => {
@@ -80,4 +79,4 @@ export function SearchInput({
       </Button>
     </form>
   );
-}
+});

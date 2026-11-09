@@ -3,7 +3,7 @@
 import { ROUTE_PATHS } from "@/services/constant";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Eye, Trash2 } from "lucide-react";
 import { useCRUDPage } from "@/hooks/useCRUDPage";
@@ -44,14 +44,15 @@ export function AccountsPage({ permission }: CmsPageProps) {
     queryKey: ["cms", "accounts"],
     services: accountServices,
   });
-  const detailHref = (id?: string) => {
-    const query = new URLSearchParams(params);
+  const { deleteLoading, fetching, deleteRecords } = crud;
+  const detailHref = useCallback((id?: string) => {
+    const query = new URLSearchParams(context);
     if (id) query.set("id", id);
     else query.delete("id");
     return `${ROUTE_PATHS.ACCOUNT_DETAIL}${query.size ? `?${query}` : ""}`;
-  };
-  const deleteRow = async (id: string) => {
-    if (confirmingDeleteRef.current || crud.deleteLoading || crud.fetching) return;
+  }, [context]);
+  const deleteRow = useCallback(async (id: string) => {
+    if (confirmingDeleteRef.current || deleteLoading || fetching) return;
     confirmingDeleteRef.current = true;
     try {
       const confirmed = await modal.confirm({
@@ -64,15 +65,15 @@ export function AccountsPage({ permission }: CmsPageProps) {
       if (!confirmed) return;
       setError(null);
       setDeletingId(id);
-      crud.deleteRecords([id], {
+      deleteRecords([id], {
         onError: setError,
         onSettled: () => setDeletingId(null),
       });
     } finally {
       confirmingDeleteRef.current = false;
     }
-  };
-  const columns: Column<CmsAccountRecord>[] = [
+  }, [deleteLoading, fetching, modal, t, deleteRecords]);
+  const columns = useMemo<Column<CmsAccountRecord>[]>(() => [
     {
       key: "username",
       title: t("account.username"),
@@ -137,7 +138,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
                     type="button"
                     aria-label={t("common.delete")}
                     loading={deletingId === record.id}
-                    disabled={crud.deleteLoading || crud.fetching}
+                    disabled={deleteLoading || fetching}
                     onClick={() => void deleteRow(record.id)}
                   >
                     <Trash2 aria-hidden="true" />
@@ -150,7 +151,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
         </div>
       ),
     },
-  ];
+  ], [t, detailHref, permission.delete, deletingId, deleteLoading, fetching, deleteRow]);
 
   return (
     <>
@@ -199,7 +200,7 @@ export function AccountsPage({ permission }: CmsPageProps) {
           onChangePage={crud.onChangePage}
           onChangePageSize={crud.onChangePageSize}
           loading={crud.loading}
-          fetching={crud.fetching}
+          fetching={fetching}
           error={crud.error}
           onRetry={() => void crud.refetch()}
           navigationKey={context}

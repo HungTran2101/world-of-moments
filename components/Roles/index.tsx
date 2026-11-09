@@ -3,7 +3,7 @@
 import { ROUTE_PATHS } from "@/services/constant";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Eye, Trash2 } from "lucide-react";
 import { useCRUDPage } from "@/hooks/useCRUDPage";
@@ -28,6 +28,8 @@ const roleServices = {
   deleteService: (ids: string[]) => deleteCmsRoles(ids),
 };
 
+const getRoleCheckboxProp = (record: CmsRoleRecord) => ({ disabled: record.isSystem });
+
 export function RolesPage({ permission }: CmsPageProps) {
   const t = useTranslations();
   const [modal, contextHolder] = useModal();
@@ -43,14 +45,15 @@ export function RolesPage({ permission }: CmsPageProps) {
     queryKey: ["cms", "roles"],
     services: roleServices,
   });
-  const detailHref = (id?: string) => {
-    const query = new URLSearchParams(params);
+  const { deleteLoading, fetching, deleteRecords } = crud;
+  const detailHref = useCallback((id?: string) => {
+    const query = new URLSearchParams(context);
     if (id) query.set("id", id);
     else query.delete("id");
     return `${ROUTE_PATHS.ROLE_DETAIL}${query.size ? `?${query}` : ""}`;
-  };
-  const deleteRow = async (id: string) => {
-    if (confirmingDeleteRef.current || crud.deleteLoading || crud.fetching) return;
+  }, [context]);
+  const deleteRow = useCallback(async (id: string) => {
+    if (confirmingDeleteRef.current || deleteLoading || fetching) return;
     confirmingDeleteRef.current = true;
     try {
       const confirmed = await modal.confirm({
@@ -63,15 +66,15 @@ export function RolesPage({ permission }: CmsPageProps) {
       if (!confirmed) return;
       setError(null);
       setDeletingId(id);
-      crud.deleteRecords([id], {
+      deleteRecords([id], {
         onError: setError,
         onSettled: () => setDeletingId(null),
       });
     } finally {
       confirmingDeleteRef.current = false;
     }
-  };
-  const columns: Column<CmsRoleRecord>[] = [
+  }, [deleteLoading, fetching, modal, t, deleteRecords]);
+  const columns = useMemo<Column<CmsRoleRecord>[]>(() => [
     { key: "name", title: t("role.name"), dataIndex: "name" },
     {
       key: "permissions",
@@ -122,7 +125,7 @@ export function RolesPage({ permission }: CmsPageProps) {
                     type="button"
                     aria-label={t("common.delete")}
                     loading={deletingId === record.id}
-                    disabled={record.isSystem || crud.deleteLoading || crud.fetching}
+                    disabled={record.isSystem || deleteLoading || fetching}
                     onClick={() => void deleteRow(record.id)}
                   >
                     <Trash2 aria-hidden="true" />
@@ -135,7 +138,7 @@ export function RolesPage({ permission }: CmsPageProps) {
         </div>
       ),
     },
-  ];
+  ], [t, detailHref, permission.delete, deletingId, deleteLoading, fetching, deleteRow]);
 
   return (
     <>
@@ -184,7 +187,7 @@ export function RolesPage({ permission }: CmsPageProps) {
           onChangePage={crud.onChangePage}
           onChangePageSize={crud.onChangePageSize}
           loading={crud.loading}
-          fetching={crud.fetching}
+          fetching={fetching}
           error={crud.error}
           onRetry={() => void crud.refetch()}
           navigationKey={context}
@@ -194,7 +197,7 @@ export function RolesPage({ permission }: CmsPageProps) {
                   selectedRowKeys:
                     selection.context === context ? selection.keys : [],
                   onChange: (keys) => setSelection({ context, keys }),
-                  getCheckboxProp: (record) => ({ disabled: record.isSystem }),
+                  getCheckboxProp: getRoleCheckboxProp,
                 }
               : undefined
           }

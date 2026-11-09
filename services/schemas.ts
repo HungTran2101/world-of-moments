@@ -62,7 +62,7 @@ export const accountEditorSchema = accountUpdateSchema.shape({
     .when("$creating", { is: true, then: () => password() }),
 });
 export const searchSchema = yup.object({
-  search: yup.string().trim().max(200).defined(),
+  search: yup.string().trim().defined(),
 });
 export const roleSchema = yup.object({
   name: name(),
@@ -91,7 +91,7 @@ export const deleteSchema = yup.object({ ids: recordIds() }).strict();
 export const listSchema = yup.object({
   page: yup.number().integer().min(1).max(1_000_000).default(1),
   pageSize: yup.number().oneOf([10, 20, 50, 100]).default(20),
-  search: yup.string().trim().max(200).default(""),
+  search: yup.string().trim().default(""),
 });
 
 const dashboardTimeZone = () => yup.string().required().test(
