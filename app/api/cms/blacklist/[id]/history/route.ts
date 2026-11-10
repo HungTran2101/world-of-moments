@@ -1,6 +1,7 @@
 import { requireCmsSession } from "@/handlers/auth";
 import { cmsJson, CmsHttpError, withCmsRequest } from "@/handlers/http";
 import { serializeBlacklistEvent } from "@/lib/blacklistSerialization";
+import { pruneBlacklistEvents } from "@/lib/blacklistRetention";
 import { prisma } from "@/lib/prisma";
 import { permissions } from "@/services/permission";
 import { listSchema } from "@/services/schemas";
@@ -21,6 +22,7 @@ export async function GET(request: Request, context: RouteContext<"/api/cms/blac
       abortEarly: false,
       stripUnknown: true
     });
+    await pruneBlacklistEvents();
     const result = await prisma.$transaction(async tx => {
       if (!(await tx.submissionBlacklist.findUnique({
         where: {

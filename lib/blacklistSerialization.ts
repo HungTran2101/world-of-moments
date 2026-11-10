@@ -19,15 +19,16 @@ export function serializeBlacklistEvent(event: BlacklistEvent, now: Date): CmsBl
 export function serializeBlacklist(record: SubmissionBlacklist & {
   events: BlacklistEvent[];
 }, now: Date): CmsBlacklistRecord {
-  const latestEvent = serializeBlacklistEvent(record.events[0], now);
+  const latestEvent = record.events[0] ? serializeBlacklistEvent(record.events[0], now) : null;
   const isActive = record.scope !== "legacy" && record.isActive && (!record.expiresAt || record.expiresAt > now);
+  const endReason = latestEvent?.endReason ?? record.endReason ?? (record.expiresAt && record.expiresAt <= now ? "expired" : null);
   return {
     id: record.id,
     scope: record.scope,
     targetId: record.targetId,
     ip: record.ip,
     isActive,
-    status: record.scope === "legacy" ? "legacy" : isActive ? "active" : latestEvent.endReason === "expired" ? "expired" : "revoked",
+    status: record.scope === "legacy" ? "legacy" : isActive ? "active" : endReason === "expired" ? "expired" : "revoked",
     expiresAt: record.expiresAt?.toISOString() ?? null,
     blacklistCount: record.blacklistCount,
     lastBlockedAt: record.lastBlockedAt.toISOString(),

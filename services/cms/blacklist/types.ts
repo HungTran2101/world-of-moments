@@ -24,7 +24,7 @@ export interface CmsBlacklistRecord {
   blacklistCount: number;
   lastBlockedAt: string;
   createdAt: string;
-  latestEvent: CmsBlacklistEvent;
+  latestEvent: CmsBlacklistEvent | null;
 }
 
 export interface CmsBlacklistSummary {

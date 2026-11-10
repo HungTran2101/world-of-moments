@@ -1263,6 +1263,14 @@ reassigning their owners. Existing moderation/visibility rules still apply.
   preserving IDs/history. Scopes are browser/network/legacy. Events retain the IP,
   creation/expiry/end time, end reason and manual moderator-name snapshot. Expiry is
   recognized by timestamps before cleanup. A later ban closes the expired event.
+- Ended blacklist events are retained for 90 days after `endedAt`, or after
+  `expiresAt` when an expired event has not been closed yet. Older ended events
+  are deleted during submission protection and authorized blacklist list/history
+  requests; there is no background scheduler. Active events are never pruned.
+  Target rows and lifetime `blacklistCount` remain unchanged. List DTOs allow
+  `latestEvent: null` after all events have been pruned; the CMS preserves the
+  target status and shows empty revocation details in that case. Historical IP
+  search only covers retained events and the target row's latest IP.
 - Browser-blocked and network-banned submission errors include the requesting
   browser's verified `browserId` (nullable when no valid cookie exists) and the
   public support address from `NEXT_PUBLIC_ERROR_REPORT_EMAIL`. They never expose
@@ -1298,6 +1306,9 @@ reassigning their owners. Existing moderation/visibility rules still apply.
   The history dialog uses the shared `Table` with `hiddenToolbar`, including its
   loading/error/empty states, retry and controlled pagination; page-size changes
   reset history to page 1.
+  Its EN/VI description explains the 90-day retention after revocation/expiry,
+  preservation of active blocks and the unchanged lifetime block count. Revocation
+  confirmations describe the same retention window.
   History tables share the `.cms-tableScroll` cell spacing, header backgrounds and
   minimum width even when the dialog is portaled outside `.cms`; narrow screens
   scroll the table horizontally within the dialog.
@@ -1329,6 +1340,8 @@ counters. It does not remove blacklist records or event history. The obsolete ta
 was verified empty in development before removal. Applied migration files are kept
 unchanged so existing databases and fresh installations share the same history.
 These migrations are applied to development; production is not deployed.
+`20261110030000_blacklist_event_retention` adds indexes for event end/expiry cleanup;
+deploy it before enabling retention on an existing database.
 
 Before VPS deployment, configure the signing secret and HTTPS. Bind Next.js to
 loopback (for example `pnpm start --hostname 127.0.0.1`), exposing only the reverse

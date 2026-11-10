@@ -4,6 +4,7 @@ import { cmsJson, withCmsRequest } from "@/handlers/http";
 import { prisma } from "@/lib/prisma";
 import { activeBlacklistWhere } from "@/lib/submissionProtection";
 import { serializeBlacklist } from "@/lib/blacklistSerialization";
+import { pruneBlacklistEvents } from "@/lib/blacklistRetention";
 import { permissions } from "@/services/permission";
 import { blacklistListSchema } from "@/services/schemas";
 import type { PaginatedResponse } from "@/services/shared/pagination";
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
       stripUnknown: true
     });
     const now = new Date();
+    await pruneBlacklistEvents(now);
     const state: Prisma.SubmissionBlacklistWhereInput = params.status === "active" ? activeBlacklistWhere(params.scope, now) : params.status === "expired" ? {
       scope: "network",
       expiresAt: {

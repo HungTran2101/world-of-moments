@@ -58,5 +58,7 @@ model BlacklistEvent {
 
   @@index([blacklistId, createdAt])
   @@index([ip])
+  @@index([endedAt])
+  @@index([expiresAt])
   @@map("ip_blacklist_events")
 }

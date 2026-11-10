@@ -2,6 +2,7 @@ import "server-only";
 import type { BlacklistScope, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { constants } from "@/app/api/constant";
+import { pruneBlacklistEvents } from "@/lib/blacklistRetention";
 
 type ActiveScope = Exclude<BlacklistScope, "legacy">;
 
@@ -89,6 +90,7 @@ async function createBlock(tx: Prisma.TransactionClient, scope: ActiveScope, tar
 
 export async function checkSubmissionProtection(ip: string, clientId: string | null) {
   const cleanupTime = new Date();
+  await pruneBlacklistEvents(cleanupTime);
   await prisma.submissionClientLimit.deleteMany({
     where: {
       expiresAt: {

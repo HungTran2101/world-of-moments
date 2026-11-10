@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Modal, useModal } from "@/components/ui/modal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { constants } from "@/app/api/constant";
 
 const FILTER_KEYS = ["status", "scope"] as const;
 const SCOPES = ["browser", "network"] as const;
@@ -105,6 +106,9 @@ function BlacklistHistory({
       title={t("blacklist.historyTitle", {
         ip: target
       })}
+      description={t("blacklist.historyRetention", {
+        days: constants.BLACKLIST_EVENT_RETENTION_DAYS
+      })}
       onCancel={onClose}
       closeLabel={t("common.close")}
       footer={null}
@@ -169,7 +173,13 @@ export function BlacklistPage({
     enabled: Boolean(userId)
   });
   const revocation = useMutation({
-    mutationFn: (row: CmsBlacklistRecord) => revokeCmsBlacklist(row.id, row.latestEvent.id),
+    mutationFn: ({
+      id,
+      eventId
+    }: {
+      id: string;
+      eventId: string;
+    }) => revokeCmsBlacklist(id, eventId),
     onSuccess: async () => {
       await Promise.all([client.invalidateQueries({
         queryKey: ["cms", "blacklist"]
@@ -194,19 +204,23 @@ export function BlacklistPage({
     isPending
   } = revocation;
   const revoke = useCallback(async (row: CmsBlacklistRecord) => {
-    if (confirming.current || isPending || !row.isActive) return;
+    if (confirming.current || isPending || !row.isActive || !row.latestEvent) return;
     confirming.current = true;
     try {
       const target = row.scope === "browser" ? row.targetId : row.ip;
       const confirmed = await modal.confirm({
         title: t("blacklist.revoke"),
         content: t("blacklist.confirmRevoke", {
-          ip: target
+          ip: target,
+          days: constants.BLACKLIST_EVENT_RETENTION_DAYS
         }),
         okText: t("blacklist.revoke"),
         cancelText: t("common.cancel")
       });
-      if (confirmed) mutate(row);
+      if (confirmed) mutate({
+        id: row.id,
+        eventId: row.latestEvent.id
+      });
     } finally {
       confirming.current = false;
     }
@@ -248,11 +262,11 @@ export function BlacklistPage({
   }] : []), {
     key: "revokedAt",
     title: t("blacklist.revokedAt"),
-    render: (_, row) => <DateCell value={row.latestEvent.revokedAt} />
+    render: (_, row) => <DateCell value={row.latestEvent?.revokedAt ?? null} />
   }, {
     key: "revokedBy",
     title: t("blacklist.revokedBy"),
-    render: (_, row) => row.latestEvent.revokedBy ?? "—"
+    render: (_, row) => row.latestEvent?.revokedBy ?? "—"
   }, {
     key: "createdAt",
     title: t("common.createdAt"),
@@ -284,7 +298,7 @@ export function BlacklistPage({
             {t("blacklist.history")}
           </TooltipContent>
         </Tooltip>
-        {canRevoke && row.isActive && (
+        {canRevoke && row.isActive && row.latestEvent && (
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="inline-flex">
