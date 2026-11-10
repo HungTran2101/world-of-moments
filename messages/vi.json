@@ -109,7 +109,8 @@
     "nextPage": "Trang sau",
     "pageIndicator": "Trang {page} / {totalPages}",
     "pageNumber": "Trang {page}",
-    "unpublished": "Suy nghĩ của bạn đang được xem xét lại nhóe."
+    "unpublished": "Suy nghĩ của bạn đang được xem xét lại nhóe.",
+    "identityError": "Vui lòng cho phép cookie để xem khoảnh khắc của mình, hoặc thử lại nếu kết nối bị gián đoạn."
   },
   "weather": {
     "attribution": "Thời tiết từ Open-Meteo",
@@ -147,6 +148,19 @@
     "mapUnavailable": "Thế giới vẫn đang dần hiện ra. Bạn hãy chờ bản đồ một chút rồi thử lại nhé.",
     "unexpected": "Khoảnh khắc yên bình này vừa bị gián đoạn một chút. Bạn hãy thử lại hoặc tải lại trang để tiếp tục nhé.",
     "windowError": "Góc nhỏ này cần một khởi đầu mới. Bạn hãy tải lại trang rồi thử lại nhé.",
-    "unhandledPromise": "Mọi thứ vừa lỡ nhịp một chút. Bạn hãy thử lại hoặc tải lại trang nhé."
+    "unhandledPromise": "Mọi thứ vừa lỡ nhịp một chút. Bạn hãy thử lại hoặc tải lại trang nhé.",
+    "browserBlocked": "Trình duyệt này đã bị chặn gửi suy nghĩ do gửi quá nhiều lần liên tiếp. Bạn vẫn có thể khám phá bản đồ và xem khoảnh khắc của mình.",
+    "browserBlockedTitle": "Không thể gửi suy nghĩ",
+    "networkBanned": "Kết nối của bạn đang tạm ngừng do lượng yêu cầu quá lớn. Vui lòng thử lại sau.",
+    "networkBannedTitle": "Có gì mờ ám rồi á",
+    "cookiesRequired": "Vui lòng cho phép cookie của trang này để gửi suy nghĩ và xem khoảnh khắc của mình.",
+    "blockedContactNote": "Nếu bạn nghĩ có sự nhầm lẫn thì hãy liên hệ qua mail: <email>{address}</email>",
+    "browserIdLabel": "Mã trình duyệt",
+    "browserIdUnavailable": "Không có thông tin",
+    "copyBrowserId": "Sao chép mã trình duyệt",
+    "browserIdCopied": "Đã sao chép mã trình duyệt.",
+    "browserIdCopyFailed": "Không thể sao chép. Vui lòng chọn và sao chép mã thủ công.",
+    "blockAppealSubject": "Yêu cầu xem xét gỡ chặn",
+    "blockAppealBody": "Xin chào,\n\nTôi nghĩ việc chặn gửi suy nghĩ có thể là nhầm lẫn.\n\nMã chặn: {code}\nMã trình duyệt: {browserId}\n\nVui lòng kiểm tra giúp tôi. Xin cảm ơn."
   }
 }

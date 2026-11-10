@@ -9,8 +9,9 @@ activity or popularity.
 
 ## Always-on product rules
 
-- Preserve the public anonymous identity model. Public visitors use only a UUID
-  stored in browser LocalStorage. CMS-only accounts and database-backed sessions
+- Preserve the public anonymous identity model. Public visitors use a server-issued
+  signed HttpOnly cookie for anonymous ownership and browser abuse protection;
+  never trust client-supplied author UUIDs. CMS-only accounts and database-backed sessions
   are isolated under `/cms` and `/api/cms`; never apply them to the public map.
 - Do not introduce social mechanics such as likes, comments, followers, feeds,
   rankings, popularity metrics, or intrusive notifications.

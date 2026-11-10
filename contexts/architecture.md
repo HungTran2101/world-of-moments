@@ -70,7 +70,7 @@ Map cleanup removes request/listener/animation work, overlays, layers, sources, 
 
 Submission Module
 
-SubmissionForm accepts a description of up to 600 characters and requires a placed pin. The service sends description, lat, lng, and author_uuid; the server fetches weather before saving. There is no title input in the current flow.
+SubmissionForm accepts a description of up to 600 characters and requires a placed pin. The service sends description, lat and lng; ownership comes from the verified signed cookie; the server fetches weather before saving. There is no title input in the current flow.
 
 usePinStore holds draft coordinates. useSubmissionMapStore exposes the map operations needed by the form; MapView retains ownership of the map lifecycle.
 
@@ -150,7 +150,7 @@ Implemented submission Route Handlers:
 
 POST /api/submissions
 
-Validates description (1–600 characters), coordinates, and author_uuid. The form trims descriptions before sending. A successful create fetches weather, stores the row, and returns it with status 201. Creation is limited to one attempt per IP per 30-second rolling window; invalid attempts also consume the limit.
+Validates description (1–600 characters) and coordinates, deriving ownership from the signed cookie. The form trims descriptions before sending. A successful create fetches weather, stores the row, and returns it with status 201. Creation is limited to one attempt per signed browser identity per 30-second rolling window; invalid attempts consume the limit. Ten rejected retries in five minutes blacklist the browser. A separate 300-attempts/minute IP cap triggers a six-hour network ban. See `contexts/cms.md` for persistence and CMS management.
 
 GET /api/submissions
 
@@ -161,7 +161,7 @@ Invalid bounds return 400. The query has no fixed row cap, and public positions 
 
 GET /api/submissions/history
 
-Requires a valid x-author-uuid header and accepts search and page parameters (page defaults to 1). Returns a page of matching thoughts, newest first with an ID tie-breaker, as `{ items, metadata: { page, pageSize, total, totalPages } }`. All current and future paginated list APIs use this envelope and the shared `PaginatedResponse<T>` / `PaginationMetadata` types in `services/shared/pagination.ts`. Requested pages beyond the available range are clamped to the last page; an empty history has one empty page. Every page is filtered by the supplied UUID; description search is case-insensitive. Responses are private/no-store and omit author_uuid. This follows the existing local UUID ownership model, without accounts or sessions.
+Requires a valid signed visitor cookie and accepts search and page parameters (page defaults to 1). Returns a page of matching thoughts, newest first with an ID tie-breaker, as `{ items, metadata: { page, pageSize, total, totalPages } }`. All current and future paginated list APIs use this envelope and the shared `PaginatedResponse<T>` / `PaginationMetadata` types in `services/shared/pagination.ts`. Requested pages beyond the available range are clamped to the last page; an empty history has one empty page. Every page is filtered by the verified cookie owner; description search is case-insensitive. Responses are private/no-store and omit author_uuid. This uses anonymous cookie ownership, without public accounts or CMS sessions.
 
 GET /api/submissions/:id
 
@@ -171,11 +171,11 @@ Returns id, description, lat, lng, weather_summary, and weather_code; returns 40
 
 PATCH /api/submissions/:id
 
-Supports description changes with author_uuid in the request body. It compares the supplied UUID with the stored author_uuid, returning 403 on mismatch and 404 when missing.
+Supports description changes with ownership from the signed cookie. It compares the verified owner ID with the stored author_uuid, returning 403 on mismatch and 404 when missing.
 
 DELETE /api/submissions/:id
 
-Checks x-author-uuid against the stored author_uuid and returns 204 after deletion. These mutation handlers are implemented without connected edit/delete UI.
+Checks the verified cookie owner against the stored author_uuid and returns 204 after deletion. These mutation handlers are implemented without connected edit/delete UI.
 
 POST /api/locale
 
@@ -283,7 +283,7 @@ In-memory, per-process rolling-window rate limiting by the first x-forwarded-for
 
 Zod validation for create/update payloads and viewport bounds, plus the description length limit.
 
-Author UUID comparison for public update/delete. Public identity remains a browser-local UUID. Internal CMS accounts and database-backed sessions are isolated under `/cms` and `/api/cms`; see `contexts/cms.md` for the CMS contracts.
+Author UUID comparison for public update/delete. Public identity is a server-issued signed HttpOnly cookie, separate from CMS authentication. Internal CMS accounts and database-backed sessions are isolated under `/cms` and `/api/cms`; see `contexts/cms.md` for the CMS contracts.
 
 Public submission GET routes explicitly select safe fields. Create/update responses return the saved row to the caller.
 
@@ -304,7 +304,7 @@ in CMS. See contexts/cms.md for API, warning and permission contracts.
 
 Pins and direct thought GETs require published status. A valid submission is visible
 to everyone; a non-valid published submission is visible only to its existing local
-UUID owner via x-author-uuid. Invalid/missing UUID headers confer no extra access.
+cookie owner via a verified signed HttpOnly cookie. Invalid/missing cookies confer no extra access; client UUID headers/body fields confer none.
 These reads are private/no-store and vary on identity and compression headers.
 UUID changes refresh visible positions without recreating the map. History retains
 all owned states; unpublished entries cannot navigate to map details.

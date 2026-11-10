@@ -109,7 +109,8 @@
     "nextPage": "Next page",
     "pageIndicator": "Page {page} of {totalPages}",
     "pageNumber": "Page {page}",
-    "unpublished": "Your thought hasn't found its place yet."
+    "unpublished": "Your thought hasn't found its place yet.",
+    "identityError": "Please allow cookies to access your moments, or try again if the connection was interrupted."
   },
   "weather": {
     "attribution": "Weather by Open-Meteo",
@@ -147,6 +148,19 @@
     "mapUnavailable": "The world is still coming into view. Give the map a moment, then try again.",
     "unexpected": "Something interrupted this quiet moment. Please try again, or reload the page to begin afresh.",
     "windowError": "This little corner of the world needs a fresh start. Please reload the page and try again.",
-    "unhandledPromise": "That moment didn't quite come together. Please try again, or reload the page."
+    "unhandledPromise": "That moment didn't quite come together. Please try again, or reload the page.",
+    "browserBlocked": "Submissions from this browser have been blocked after repeated attempts. You can still explore the map and view your moments.",
+    "browserBlockedTitle": "Submissions blocked",
+    "networkBanned": "This connection is temporarily paused because of unusually high submission traffic. Please try again later.",
+    "networkBannedTitle": "Something is sussy here",
+    "cookiesRequired": "Please allow cookies for this site to save thoughts and access your moments.",
+    "blockedContactNote": "If you think this is a mistake, please contact us at: <email>{address}</email>",
+    "browserIdLabel": "Browser ID",
+    "browserIdUnavailable": "Unavailable",
+    "copyBrowserId": "Copy browser ID",
+    "browserIdCopied": "Browser ID copied.",
+    "browserIdCopyFailed": "Could not copy. Please select and copy the ID manually.",
+    "blockAppealSubject": "Request to review a submission block",
+    "blockAppealBody": "Hello,\n\nI think my submission block may be a mistake.\n\nBlock code: {code}\nBrowser ID: {browserId}\n\nPlease review it. Thank you."
   }
 }

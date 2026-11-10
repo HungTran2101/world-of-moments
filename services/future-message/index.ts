@@ -1,19 +1,17 @@
-import { apiRequest, type ApiRequestOptions } from "@/services/shared/api";
+import { type ApiRequestOptions } from "@/services/shared/api";
+import { visitorRequest } from "@/services/shared/visitor-api";
 import type { CreateFutureMessagePayload, FutureMessage } from "./types";
 
-export function listFutureMessages(authorUuid: string, options?: ApiRequestOptions) {
-  return apiRequest<FutureMessage[]>("/api/future-message", {
-    ...options,
-    headers: {
-      "x-author-uuid": authorUuid,
-    },
+export function listFutureMessages(options?: ApiRequestOptions) {
+  return visitorRequest<FutureMessage[]>("/api/future-message", {
+    ...options
   });
 }
 
 export function createFutureMessage(payload: CreateFutureMessagePayload, options?: ApiRequestOptions) {
-  return apiRequest<FutureMessage>("/api/future-message", {
+  return visitorRequest<FutureMessage>("/api/future-message", {
     ...options,
     method: "POST",
-    body: payload,
+    body: payload
   });
 }

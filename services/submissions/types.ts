@@ -19,12 +19,10 @@ export interface CreateSubmissionPayload {
   description: string;
   lat: number;
   lng: number;
-  author_uuid: string;
 }
 
 export interface UpdateSubmissionPayload {
   description?: string;
-  author_uuid: string;
 }
 
 export interface SubmissionHistoryItem extends Submission {
@@ -33,3 +31,8 @@ export interface SubmissionHistoryItem extends Submission {
 }
 
 export type SubmissionHistoryPage = PaginatedResponse<SubmissionHistoryItem>;
+
+export interface SubmissionBlockSupport {
+  browserId: string | null;
+  contactMail: string | null;
+}

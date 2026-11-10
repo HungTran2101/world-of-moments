@@ -54,6 +54,16 @@ export interface TableScroll {
   y?: number | string;
 }
 
+type TableToolbarProps = {
+  hiddenToolbar?: false;
+  search: string;
+  onSearch: (value: string) => void;
+} | {
+  hiddenToolbar: true;
+  search?: string;
+  onSearch?: (value: string) => void;
+};
+
 const SelectAll = memo(function SelectAll({
   checked,
   indeterminate,
@@ -183,8 +193,9 @@ export function Table<T extends object>({
   columns,
   rowKey,
   pagination,
-  search,
+  search = "",
   onSearch,
+  hiddenToolbar = false,
   onChangePage,
   onChangePageSize,
   selection,
@@ -203,8 +214,6 @@ export function Table<T extends object>({
   columns: Column<T>[];
   rowKey: keyof T & string;
   pagination: PaginationMetadata;
-  search: string;
-  onSearch: (value: string) => void;
   onChangePage: (page: number) => void;
   onChangePageSize: (pageSize: number) => void;
   selection?: TableSelection<T>;
@@ -216,7 +225,7 @@ export function Table<T extends object>({
   error?: unknown;
   onRetry?: () => void;
   navigationKey: string;
-}) {
+} & TableToolbarProps) {
   const t = useTranslations();
   const [modal, contextHolder] = useModal();
   const id = useId();
@@ -314,7 +323,7 @@ export function Table<T extends object>({
   );
   const handleSearch = useCallback((value: string) => {
     setListAction("search");
-    onSearch(value);
+    onSearch?.(value);
   }, [onSearch]);
   const execution = useMutation({
     mutationFn: async ({ action, keys, rows }: {
@@ -364,40 +373,42 @@ export function Table<T extends object>({
       className="cms-tableSection"
       aria-busy={loading || fetching || executing}
     >
-      <div className="cms-tableToolbar">
-        <SearchInput
-          extraTools={extraTools}
-          value={search}
-          onSearch={handleSearch}
-          loading={fetching && listAction === "search"}
-          navigationKey={navigationKey}
-        />
-        {selection && (
-          <div className="cms-bulk">
-            <BulkActionSelect
-              id={`${id}-action`}
-              action={action}
-              actions={actions}
-              disabled={executing}
-              onChange={setAction}
-            />
-            <Button
-              variant={action === "delete" ? "destructive" : "primary"}
-              className="h-10"
-              type="button"
-              disabled={!canExecute || fetching}
-              onClick={() => void execute()}
-              aria-label={t(executing ? "common.executing" : "common.execute")}
-              loading={executing}
-            >
-              {t("common.execute")}
-            </Button>
-            <span className="cms-muted" role="status">
-              {t("common.selected", { count: selectedKeys.length })}
-            </span>
-          </div>
-        )}
-      </div>
+      {!hiddenToolbar && (
+        <div className="cms-tableToolbar">
+          <SearchInput
+            extraTools={extraTools}
+            value={search}
+            onSearch={handleSearch}
+            loading={fetching && listAction === "search"}
+            navigationKey={navigationKey}
+          />
+          {selection && (
+            <div className="cms-bulk">
+              <BulkActionSelect
+                id={`${id}-action`}
+                action={action}
+                actions={actions}
+                disabled={executing}
+                onChange={setAction}
+              />
+              <Button
+                variant={action === "delete" ? "destructive" : "primary"}
+                className="h-10"
+                type="button"
+                disabled={!canExecute || fetching}
+                onClick={() => void execute()}
+                aria-label={t(executing ? "common.executing" : "common.execute")}
+                loading={executing}
+              >
+                {t("common.execute")}
+              </Button>
+              <span className="cms-muted" role="status">
+                {t("common.selected", { count: selectedKeys.length })}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
       {(Boolean(error) || Boolean(bulkError)) && (
         <ErrorNotice
           error={bulkError || error}

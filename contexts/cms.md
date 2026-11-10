@@ -2,14 +2,14 @@
 
 This is the maintained CMS specification and implementation reference. Read it
 before changing CMS behavior and update the affected contracts/status in the same
-task. Public map visitors retain their anonymous LocalStorage UUID identity.
+task. Public map visitors use a separate anonymous signed HttpOnly cookie identity.
 
 ## Scope and architecture
 
 - Internal CMS only: `/cms` and `/api/cms`.
 - Next.js App Router, Better Auth hosted in Next.js, Neon PostgreSQL through the
   existing Prisma client, TanStack Query, Zustand, React Hook Form and Yup.
-- Modules: submissions, accounts and roles. Exports are deferred. There are no
+- Modules: submissions, browser/network blacklist, accounts and roles. Exports are deferred. There are no
   social logins, public registration, or email recovery.
 - Use a restrained, readable interface with shared spacing, controls and subtle
   transitions. No glass dashboard styling or decorative statistics panels.
@@ -19,7 +19,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/General`, `components/Login`,
   `components/Dashboard`, `components/Profile`, `components/RoleDetail`, `components/Roles`,
-  `components/Submissions` and `components/SubmissionDetail`. Styles are colocated in
+  `components/Submissions`, `components/Blacklist` and `components/SubmissionDetail`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
   entry, `styles/import.scss`, so public routes do not download CMS component CSS.
@@ -57,6 +57,9 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   enabled and OK focused. Titles/icons and button labels are customizable;
   callers supply localized text (generic defaults are English). Closed entries
   remain through Dialog's exit animation and are then removed.
+  Shared dialog positioning/zoom excludes Sheets through a zero-specificity
+  `:where()` condition, so custom panels such as public HistoryPanel retain their
+  own positioning and slide/reduced-motion rules regardless of stylesheet order.
   Animation origin detection is entirely internal to Modal/Dialog. Openings during
   mouse activation use that click's viewport coordinates; keyboard and independent
   programmatic openings use the center. Deferred timer/API openings use the center
@@ -120,7 +123,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   The public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
-  `app/api/cms/{auth,accounts,roles,submissions,dashboard,nopermission}`. Shared account
+  `app/api/cms/{auth,accounts,roles,submissions,blacklist,dashboard,nopermission}`. Shared account
   selection/serialization/role validation, submission serialization/moderation helpers
   and dashboard calendar SQL live in the server-only `app/api/_shared.ts`.
 - Server-only session/auth configuration and HTTP utilities remain in
@@ -144,7 +147,7 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   The constants module is dependency-free and stays safe for client consumers;
   server-only API helpers stay in `app/api/_shared.ts`.
 - Each request module has `index.ts` for service functions and `types.ts` for its
-  types: `services/cms/{accounts,roles,submissions,dashboard,auth}`, `services/future-message`,
+  types: `services/cms/{accounts,roles,submissions,blacklist,dashboard,auth}`, `services/future-message`,
   `services/submissions`, and `services/locale`. Types are imported directly from
   the module's `/types` path, separately from runtime functions.
 - CMS UI imports named service functions instead of calling `cmsRequest`,
@@ -249,11 +252,11 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
   `undefined` (session-only access), subject to the no-page-access rule below.
 - Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
-- `getCmsLandingPath` centralizes landing priority: Dashboard, Submissions, Accounts,
-  then Roles, using each module's show permission. Login, authenticated login-page
+- `getCmsLandingPath` centralizes landing priority: Dashboard, Submissions, IP blacklist,
+  Accounts, then Roles, using each module's show permission. Login, authenticated login-page
   visits, the sidebar brand and `/cms` without Dashboard access use that destination.
   Other unauthorized module URLs retain the forbidden view.
-- If none of those four show permissions is available (including action-only roles),
+- If none of those five show permissions is available (including action-only roles),
   all protected pages omit their content on the server and show
   "Contact your supervisor for permissions view" (localized in Vietnamese).
   The sidebar retains branding, identity and sign-out, with no page/map links or
@@ -605,6 +608,11 @@ loading, error/retry, and a navigation key for search synchronization. Optional
 `extraTools?: ReactNode` is forwarded into SearchInput between its search input and
 Search button. A bulk handler returning `false` preserves selection and action
 after cancellation.
+
+`hiddenToolbar` defaults to `false`. Setting it to `true` omits the complete
+search/extra-tools/bulk-action toolbar and makes `search`/`onSearch` optional.
+The table, loading/empty/error states, retry control and pagination remain visible.
+Normal list pages continue requiring search props when the toolbar is shown.
 
 Optional `scroll?: TableScroll` follows Antd-style dimensions: `x` accepts a pixel
 number, CSS width string (including `"max-content"`), or `true` for intrinsic width;
@@ -1151,9 +1159,9 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   published + valid for everyone; published + any validity for the matching local
   author UUID. Unpublished records are excluded for everyone and return 404 on
   direct detail access. CMS session identity never changes public ownership.
-- Public browsing sends an existing UUID through `x-author-uuid` without creating
-  one. Missing/malformed headers act as anonymous visitors. Personalized GETs use
-  private/no-store caching and vary on Accept-Encoding and x-author-uuid while
+- Public browsing uses a verified signed visitor cookie. Missing/invalid cookies
+  act as anonymous visitors; UUID headers confer no access. Personalized GETs use
+  private/no-store caching and vary on Accept-Encoding and Cookie while
   retaining Brotli/gzip compression, viewport bounds and date-line handling.
 - Public DTOs omit creator/updater names, author UUID and exact timestamps.
   Owner history retains all states and exact creation time, includes status, and
@@ -1188,3 +1196,205 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 - Temporary records/scripts, test-server processes and automation browser surfaces
   are removed after validation. The development server is restarted on port 3000
   with the regenerated Prisma client.
+
+
+## Signed-cookie identity and blacklist management
+
+Public anonymous identity is now one server-issued signed HttpOnly cookie, separate
+from Better Auth CMS authentication. The LocalStorage UUID and `x-author-uuid`/body
+ownership credentials are retired. This is an intentional product change: browsers
+start fresh, and old submissions/future messages remain stored without importing or
+reassigning their owners. Existing moderation/visibility rules still apply.
+
+### Cookie and ownership contract
+
+- `POST /api/submissions/client-token` validates Origin and initializes/renews a
+  host-only cookie (`__Host-wom-visitor` in production; `wom-visitor` in development).
+  It is HttpOnly, SameSite=Lax, Secure in production, and lasts one renewable year.
+  Valid renewal preserves its random server-generated owner ID. The JSON response
+  is only `{ cacheKey }`, an HMAC value with a separate purpose from token signing.
+- `SUBMISSION_CLIENT_COOKIE_SECRET` must be independent from Better Auth, at least
+  32 random characters, stable across restarts and shared across app instances.
+  `SUBMISSION_PUBLIC_ORIGIN` optionally overrides the server's trusted origin at
+  runtime; otherwise it uses the build-configured `NEXT_PUBLIC_APP_URL`.
+  Missing configuration fails issuance/submission with generic 503. Do not rotate
+  this secret casually: losing it invalidates existing anonymous identities.
+- Ownership of public submissions/history/edit/delete and future-message scaffolding
+  comes only from the verified cookie. Client UUID headers/body fields confer no
+  access. The existing database owner columns and CMS UUID display remain internal.
+  Public response DTOs omit owner identifiers; exact timestamps remain private.
+- Reads without a valid cookie can browse normal published/valid thoughts. Private
+  operations require a cookie and return 401 `SUBMISSION_IDENTITY_REQUIRED`; this
+  error never logs out CMS. Public mutations reject untrusted Origin, including DELETE.
+- The public app initializes identity without gating anonymous map browsing. Private
+  queries use the opaque cache key; changes cancel/remove old private queries and
+  reload owner-sensitive pins/detail without rebuilding the map. Focus/visibility
+  and BroadcastChannel coordinate tabs; Web Locks serialize first-time issuance
+  where available. Only a change notification is broadcast, never credentials.
+- Owned requests reuse the initialized identity, including POST/PATCH/DELETE;
+  submissions do not refresh `client-token` before each mutation. Only a 401 with
+  `SUBMISSION_IDENTITY_REQUIRED` triggers identity renewal and one request retry,
+  because these handlers reject before any write. A second identity rejection is
+  surfaced as a cookie requirement and clears the cached identity. Other failures
+  (generic 401, blocked browser/network, validation, server/network errors) are not
+  retried. Cancellation prevents renewal/retry when the caller has aborted.
+- Cookie refusal explains the requirement while retaining drafts. Clearing cookies
+  loses access to previous private history and yields a fresh browser identity.
+  Signing prevents forgery, not deliberate cookie deletion. No legacy import exists.
+
+### Abuse policy and persistence
+
+- Browser cooldown: one admitted attempt per rolling 30 seconds, including malformed
+  JSON/content. Rejected retries do not extend that cooldown. Ten rate-limited
+  retries in five minutes block that browser until CMS revocation, across IP changes.
+- Network safety cap: 300 incoming submission attempts in a rolling minute are
+  allowed through this layer; attempt 301 creates a six-hour IP ban. Invalid-cookie,
+  malformed-body and browser-blocked attempts count too. Origin-denied requests and
+  cookie bootstrap are rejected/excluded before this counter. The network ban is
+  deliberately shared by all browsers on that IP.
+- Active network bans take precedence and return 429 `SUBMISSION_NETWORK_BANNED`
+  with remaining Retry-After seconds. Browser blocks return 403
+  `SUBMISSION_BROWSER_BLOCKED`; ordinary cooldown is 429. All reject before weather
+  and submission writes. Requests during a ban do not extend it or add events.
+- Browser/network locks use PostgreSQL transaction-scoped advisory locks, always
+  network before browser. Temporary counters are cleaned on expiry. Unique target
+  keys and the one-open-event partial index protect concurrent creation.
+- `SubmissionBlacklist` and `BlacklistEvent` map to the original blacklist tables,
+  preserving IDs/history. Scopes are browser/network/legacy. Events retain the IP,
+  creation/expiry/end time, end reason and manual moderator-name snapshot. Expiry is
+  recognized by timestamps before cleanup. A later ban closes the expired event.
+- Browser-blocked and network-banned submission errors include the requesting
+  browser's verified `browserId` (nullable when no valid cookie exists) and the
+  public support address from `NEXT_PUBLIC_ERROR_REPORT_EMAIL`. They never expose
+  the cookie or its signature. Other responses continue omitting owner identifiers. Both error
+  dialogs display the full ID with an accessible copy control and inline feedback.
+  When `NEXT_PUBLIC_ERROR_REPORT_EMAIL` is set at build time, a small EN/VI appeal
+  note links to a prefilled mailto containing the browser ID and stable block code
+  (`SUBMISSION_BROWSER_BLOCKED` or `SUBMISSION_NETWORK_BANNED`).
+  Without an address, the email note is hidden. No new identity/bootstrap request
+  is made by the dialog.
+- Bans restrict new thought submission. Browsing/private history and independent
+  ownership operations remain available. Future-message ownership is migrated;
+  its pre-existing submission throttle is otherwise unchanged.
+
+### CMS tabs, summary and revocation
+
+- `/cms/blacklist` defaults to Browser blocks. Temporary network bans is the second
+  tab. `blacklist.show` governs both lists/history/summary; custom `blacklist.revoke`
+  governs revocation. Existing ordinary roles are not automatically granted access.
+- Browser rows show the full browser ID, latest blocked IP, status and lifetime count.
+  History titles and revocation confirmations also show the full browser ID.
+  Network rows show IP, status, expiry and lifetime count. IP search includes event
+  history. Created at remains immediately before centered Actions; all timestamps
+  use `formatDateTime`. URL state retains scope/status/search/page/pageSize.
+  Status tools follow Submissions: memoized `extraTools`, shared `cms-searchFilter`
+  with a label above a 200px Select, and the existing responsive toolbar styles.
+- GET `/api/cms/blacklist` accepts scope browser/network and status
+  active/revoked/expired/all (expired is network-only). Both tabs default to All;
+  an omitted or empty API status also defaults to All. Network All also exposes old
+  IP-only records with a Legacy label; these are read-only and never enforced.
+- GET `/api/cms/blacklist/:id/history` paginates events. Both list endpoints use
+  `{ items, metadata: { page, pageSize, total, totalPages } }`.
+  The history dialog uses the shared `Table` with `hiddenToolbar`, including its
+  loading/error/empty states, retry and controlled pagination; page-size changes
+  reset history to page 1.
+  History tables share the `.cms-tableScroll` cell spacing, header backgrounds and
+  minimum width even when the dialog is portaled outside `.cms`; narrow screens
+  scroll the table horizontally within the dialog.
+- GET `/api/cms/blacklist/summary` returns
+  `{ activeBrowserBlocks: number, activeNetworkBans: number }`. Counts are distinct
+  active targets, never historical totals; revoked, expired and legacy records are
+  excluded. Search/filters/page/scope do not affect this global summary. Responses
+  are private/no-store, and require `blacklist.show` independently.
+- Both tab counts load immediately, including zero. Pending/failed initial queries
+  show loading/unavailable rather than zero. Background refresh retains old counts,
+  with an error notice/retry on failure. Revocation synchronizes both lists,
+  summary and history through query invalidation. There is no blacklist polling
+  timer or focus/visibility refresh; expiry alone does not automatically refresh
+  the displayed counts.
+- POST `/api/cms/blacklist/:id/revoke` accepts `{ eventId }`, requires trusted Origin
+  and `blacklist.revoke`, and follows confirmation. It invalidates both lists, summary
+  and history. Browser revoke resets only its browser counter; network revoke resets
+  only its IP counter. A stale/already-ended event cannot revoke a newer block.
+  Unknown/foreign event is 409; unknown record is 404; legacy revoke is 409.
+
+### Migration and future VPS setup
+
+Apply pending migrations in order, regenerate Prisma and restart application
+processes. `20261110000000_submission_ip_blacklist` creates the original storage;
+`20261110010000_signed_browser_identity` archives old permanent IP blocks without
+losing history. `20261110020000_remove_legacy_submission_ip_limit` removes the unused
+`SubmissionIpLimit` model/table, whose counter was replaced by the browser/network
+counters. It does not remove blacklist records or event history. The obsolete table
+was verified empty in development before removal. Applied migration files are kept
+unchanged so existing databases and fresh installations share the same history.
+These migrations are applied to development; production is not deployed.
+
+Before VPS deployment, configure the signing secret and HTTPS. Bind Next.js to
+loopback (for example `pnpm start --hostname 127.0.0.1`), exposing only the reverse
+proxy ports. The direct Nginx edge must overwrite incoming client-IP headers:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+See [Nginx proxy_set_header](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header).
+Only a single valid, normalized `X-Real-IP` is trusted. Missing/invalid production IP
+returns 503; development may use loopback when absent. `X-Forwarded-For` is ignored
+for this public protection. If adding a CDN before Nginx, first configure trusted
+real-IP restoration for that provider. Verify HTTPS cookie attributes, overwritten
+spoofed headers, distinct real clients, and that the Next.js port is private.
+
+
+### Signed-identity verification
+
+- Ten native cookie/database regression checks pass, including shared-IP browser
+  independence, cross-IP browser blocking, concurrent creation, independent
+  cooldown/retry expiry, six-hour network expiry, stale revocation and another
+  process reading the same persisted block.
+- The production-mode HTTP suite passes 68 assertions for cookie attributes,
+  renewal, ownership isolation, UUID spoof rejection, private DTOs, browser/network
+  policy, CMS permissions/Origin, summary counts, historical IP search and stale
+  revocation. It also verifies cookie ownership of future-message scaffolding.
+- Browser checks cover EN/VI browser-block messages and preserved drafts, the
+  Vietnamese network-ban message, CMS desktop/390px layout, both badges before
+  visiting the network tab, lifetime count versus active-target count, history
+  pagination and revoke cancellation/success. Summary outage tests use injected
+  failed responses: initial failure
+  displays Unavailable, background failure retains previous counts, Retry recovers.
+  Cookie refusal is simulated by withholding cookie issuance in bootstrap; the
+  real submission endpoint rejects with 401 and the draft/map remain usable.
+- The proxy client IP was supplied by the test harness; no real VPS is provisioned.
+  The public map retains its existing Chrome WebGL buffer performance warning.
+  No application console warnings/errors were observed on the final CMS page.
+- Scoped ESLint auto-fixes, repository lint, Prisma validation/generation,
+  TypeScript and the Webpack production build pass. No stylesheets were changed.
+  Temporary accounts, records, testing servers and browser surfaces are removed;
+  the existing development server is restarted with the new Prisma client/secret.
+
+### Blocked-submission support verification
+
+- Real 403 browser-block and 429 network-ban responses render the support note,
+  verified browser ID and prefilled email on the 390px public page. EN/VI labels,
+  preserved drafts and released submission controls are verified. The configured
+  test email uses an `.invalid` domain; no email was sent.
+- Mailto parsing verifies the complete ID, plus-address recipient and actual
+  message newlines. Clipboard success/failure is simulated in the isolated test
+  browser. Injected missing metadata disables copying and hides the email note;
+  ordinary cooldown errors have no support section.
+- Two focused support-helper tests, scoped ESLint/Stylelint fixes, TypeScript and
+  the Webpack production build pass. Temporary database fixtures, test scripts,
+  the dedicated production-mode test server and automation browser are removed.
+
+Run native checks with:
+`RUN_VISITOR_DB_TESTS=1 node --env-file=.env.development --conditions=react-server --import tsx --test tests/visitor-protection.test.ts`.
+
+Run HTTP checks against a dedicated production server using the development DB,
+with `SUBMISSION_PUBLIC_ORIGIN` and `CMS_AUTH_URL` matching its URL:
+`RUN_VISITOR_HTTP_TESTS=1 VISITOR_TEST_BASE_URL=http://localhost:3100 node --env-file=.env.development --import tsx --test tests/visitor-http.test.ts`.
+The opt-in tests use randomized documentation IPs and remove their own fixtures.

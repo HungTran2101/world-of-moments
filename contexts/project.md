@@ -43,8 +43,8 @@ Current Implementation
 Implementation boundaries
 
 - Public map reads return only positions or public thought details; they omit author UUIDs and exact timestamps.
-- The update and delete APIs exist and check the supplied author UUID against the stored UUID. Author edit/delete controls are not connected to the current page.
-- `HistoryPanel` is a presentational component accepting supplied items; it is not mounted on the home page and there is no author-history loading flow.
+- The update and delete APIs exist and check the verified cookie owner against the stored owner. Author edit/delete controls are not connected to the current page.
+- `HistoryPanel` loads the current cookie owner’s paginated private history from the map toolbar.
 - The future-message model, service, and create/list endpoints exist as scaffolding. The send/unlock experience is not connected to the current page. The future-message plan above is unchanged.
 - Marker refreshes follow viewport changes or a local submission. There is no live subscription for thoughts submitted by other visitors.
 
@@ -52,7 +52,7 @@ Identity Model
 
 The public map has no authentication system. Internal CMS authentication is separate and documented in `contexts/cms.md`.
 
-Users are identified by a locally stored UUID in LocalStorage.
+Users are identified by a server-issued random identifier in a signed HttpOnly cookie. The server verifies ownership; client UUIDs are not accepted. The cookie is separate from CMS authentication.
 
 Purpose (including planned author tools):
 
@@ -60,7 +60,7 @@ associate submissions with the same browser
 allow editing or deleting personal posts
 provide a private personal history
 
-If the user clears storage or changes device, a new identity is created.
+If the user clears cookies, loses an expired cookie or changes browser/device, a new identity is created and previous private history is no longer accessible. This migration starts fresh; existing records are retained without importing LocalStorage identities.
 
 Atmosphere Concept
 

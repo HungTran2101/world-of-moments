@@ -3,8 +3,8 @@
     position: fixed;
     z-index: 51;
 
-    // Sheet tự quản lý vị trí và chuyển động trượt thay cho hiệu ứng phóng của modal.
-    &:not([data-slot="sheet-content"]) {
+    // Sheet tự quản lý chuyển động; :where giữ specificity thấp để panel riêng ghi đè được.
+    &:not(:where([data-slot="sheet-content"])) {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);

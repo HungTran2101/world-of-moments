@@ -40,7 +40,8 @@
     "updatedAt": "Updated at",
     "updatedBy": "Updated by",
     "createdBy": "Created by",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "close": "Close"
   },
   "nav": {
     "profile": "Profile",
@@ -59,7 +60,8 @@
     "expandMenu": "Expand sidebar",
     "closeMenu": "Close menu",
     "submissions": "Submissions",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "blacklist": "Blacklist"
   },
   "login": {
     "title": "Sign in",
@@ -105,7 +107,8 @@
     "account": "Accounts",
     "role": "Roles",
     "submission": "Submissions",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "blacklist": "Blacklist"
   },
   "permissionNames": {
     "account": {
@@ -114,6 +117,9 @@
     "submission": {
       "updateSubmissionStatus": "Change publication status",
       "updateSubmissionValidity": "Change validity"
+    },
+    "blacklist": {
+      "revoke": "Revoke blocks"
     }
   },
   "validation": {
@@ -210,5 +216,32 @@
     "date": "Date",
     "month": "Month",
     "submissions": "Submissions"
+  },
+  "blacklist": {
+    "ip": "IP address",
+    "status": "Status",
+    "active": "Active",
+    "revoked": "Revoked",
+    "all": "All",
+    "count": "Times blacklisted",
+    "lastBlockedAt": "Latest block",
+    "blockedAt": "Blocked at",
+    "revokedAt": "Revoked at",
+    "revokedBy": "Revoked by",
+    "history": "Block history",
+    "historyTitle": "Block history: {ip}",
+    "revoke": "Revoke block",
+    "confirmRevoke": "Revoke the block for {ip}? Its history will be preserved.",
+    "browserTab": "Browser blocks",
+    "networkTab": "Temporary network bans",
+    "browserId": "Browser ID",
+    "latestIp": "Latest blocked IP",
+    "expiresAt": "Expires at",
+    "endedAt": "Ended at",
+    "endReason": "End reason",
+    "expired": "Expired",
+    "legacy": "Legacy IP block",
+    "migrated": "Archived during migration",
+    "unavailable": "Unavailable"
   }
 }

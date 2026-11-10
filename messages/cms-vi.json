@@ -40,7 +40,8 @@
     "updatedAt": "Ngày cập nhật",
     "updatedBy": "Người cập nhật",
     "createdBy": "Người tạo",
-    "unknown": "--"
+    "unknown": "--",
+    "close": "Đóng"
   },
   "nav": {
     "profile": "Hồ sơ",
@@ -59,7 +60,8 @@
     "expandMenu": "Mở rộng thanh điều hướng",
     "closeMenu": "Đóng menu",
     "submissions": "Khoảnh khắc",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "blacklist": "Danh sách chặn"
   },
   "login": {
     "title": "Đăng nhập",
@@ -105,7 +107,8 @@
     "account": "Tài khoản",
     "role": "Vai trò",
     "submission": "Khoảnh khắc",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "blacklist": "Danh sách chặn"
   },
   "permissionNames": {
     "account": {
@@ -114,6 +117,9 @@
     "submission": {
       "updateSubmissionStatus": "Đổi trạng thái công bố",
       "updateSubmissionValidity": "Đổi độ hợp lệ"
+    },
+    "blacklist": {
+      "revoke": "Thu hồi chặn"
     }
   },
   "validation": {
@@ -210,5 +216,32 @@
     "date": "Ngày",
     "month": "Tháng",
     "submissions": "Khoảnh khắc"
+  },
+  "blacklist": {
+    "ip": "Địa chỉ IP",
+    "status": "Trạng thái",
+    "active": "Đang chặn",
+    "revoked": "Đã thu hồi",
+    "all": "Tất cả",
+    "count": "Số lần bị chặn",
+    "lastBlockedAt": "Lần chặn gần nhất",
+    "blockedAt": "Thời điểm chặn",
+    "revokedAt": "Thời điểm thu hồi",
+    "revokedBy": "Người thu hồi",
+    "history": "Lịch sử chặn",
+    "historyTitle": "Lịch sử chặn: {ip}",
+    "revoke": "Thu hồi chặn",
+    "confirmRevoke": "Thu hồi chặn cho {ip}? Lịch sử chặn vẫn được giữ lại.",
+    "browserTab": "Trình duyệt bị chặn",
+    "networkTab": "Mạng bị chặn tạm thời",
+    "browserId": "Mã trình duyệt",
+    "latestIp": "IP bị chặn gần nhất",
+    "expiresAt": "Hết hạn lúc",
+    "endedAt": "Kết thúc lúc",
+    "endReason": "Lý do kết thúc",
+    "expired": "Đã hết hạn",
+    "legacy": "Chặn IP cũ",
+    "migrated": "Lưu trữ khi chuyển đổi",
+    "unavailable": "Chưa có dữ liệu"
   }
 }
