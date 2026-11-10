@@ -1244,9 +1244,11 @@ reassigning their owners. Existing moderation/visibility rules still apply.
 
 ### Abuse policy and persistence
 
-- Browser cooldown: one admitted attempt per rolling 30 seconds, including malformed
-  JSON/content. Rejected retries do not extend that cooldown. Ten rate-limited
-  retries in five minutes block that browser until CMS revocation, across IP changes.
+- Browser cooldown: one admitted attempt per rolling minute, including malformed
+  JSON/content. Rejected retries do not extend that cooldown. More than ten
+  rate-limited retries in a rolling minute block that browser until CMS revocation,
+  across IP changes: retries 1–10 return 429; retry 11 creates the browser block
+  and returns 403. Rejections at least one minute old no longer count.
 - Network safety cap: 300 incoming submission attempts in a rolling minute are
   allowed through this layer; attempt 301 creates a six-hour IP ban. Invalid-cookie,
   malformed-body and browser-blocked attempts count too. Origin-denied requests and

@@ -150,7 +150,7 @@ Implemented submission Route Handlers:
 
 POST /api/submissions
 
-Validates description (1–600 characters) and coordinates, deriving ownership from the signed cookie. The form trims descriptions before sending. A successful create fetches weather, stores the row, and returns it with status 201. Creation is limited to one attempt per signed browser identity per 30-second rolling window; invalid attempts consume the limit. Ten rejected retries in five minutes blacklist the browser. A separate 300-attempts/minute IP cap triggers a six-hour network ban. See `contexts/cms.md` for persistence and CMS management.
+Validates description (1–600 characters) and coordinates, deriving ownership from the signed cookie. The form trims descriptions before sending. A successful create fetches weather, stores the row, and returns it with status 201. Creation is limited to one attempt per signed browser identity per rolling minute; invalid attempts consume the limit. More than ten rejected retries in a rolling minute blacklist the browser on retry 11. A separate 300-attempts/minute IP cap triggers a six-hour network ban on attempt 301. See `contexts/cms.md` for persistence and CMS management.
 
 GET /api/submissions
 
@@ -279,7 +279,7 @@ Security
 
 Implemented protections:
 
-In-memory, per-process rolling-window rate limiting by the first x-forwarded-for IP for creation routes. Submission creation uses the constants in app/api/constant.ts (one attempt per 30 seconds). This is not a shared limit across server instances.
+Submission creation uses PostgreSQL-backed rolling-window protection shared across application instances: one admitted attempt per signed browser identity per minute, a browser block after more than ten rejected retries in one minute, and a six-hour IP ban after more than 300 attempts in one minute. IP protection trusts the proxy-overwritten X-Real-IP header. Future-message creation separately retains its in-memory, per-process limiter keyed by the first X-Forwarded-For IP; that limiter is not shared across instances. See `contexts/cms.md` for submission protection and proxy requirements.
 
 Zod validation for create/update payloads and viewport bounds, plus the description length limit.
 

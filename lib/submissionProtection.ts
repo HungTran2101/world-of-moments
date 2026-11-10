@@ -175,7 +175,7 @@ export async function checkSubmissionProtection(ip: string, clientId: string | n
     const rejectedAt = (state?.rejectedAt ?? []).filter(time => now.getTime() - time.getTime() < constants.SUBMISSION_ABUSE_WINDOW_MS);
     const limited = state && now.getTime() - state.lastAllowedAt.getTime() < constants.RATE_LIMIT_WINDOW_MS;
     if (limited) rejectedAt.push(now);
-    if (rejectedAt.length >= constants.SUBMISSION_ABUSE_MAX_RETRIES) {
+    if (rejectedAt.length > constants.SUBMISSION_ABUSE_MAX_RETRIES) {
       await createBlock(tx, "browser", clientId, ip, now, null);
       await tx.submissionClientLimit.deleteMany({
         where: {
