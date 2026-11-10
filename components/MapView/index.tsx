@@ -14,7 +14,7 @@ import type { Map as MapLibreMap, Point } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import MapLoading from "./MapLoading";
+import MapLoading from "@/components/shared/MapLoading";
 import { createSpaceScene } from "./spaceScene";
 import { getSpaceMinZoom, SPACE_DETAIL_MIN_ZOOM } from "./spaceStyle";
 import {
@@ -518,7 +518,7 @@ export default function MapView() {
           </div>
         </RefractiveGlass>
       )}
-      {showLoader && <MapLoading />}
+      {showLoader && <MapLoading isExiting={mapReady} />}
       <ThoughtModal
         open={thoughtModalOpen}
         submissionId={selectedSubmissionId}

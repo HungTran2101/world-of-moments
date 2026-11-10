@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/store/systemStore";
 import Image from "next/image";
 import { CSSProperties } from "react";
 
@@ -119,23 +118,19 @@ const cloudAssets = [
   "/assets/clouds/cloud_10.webp",
 ];
 
-// Trộn một lần bằng Fisher–Yates để không phải thử lại khi chọn trùng ảnh mây.
-const cloudAssetOrder = cloudAssets.map((_, index) => index);
-for (let index = cloudAssetOrder.length - 1; index > 0; index--) {
-  const randomIndex = Math.floor(Math.random() * (index + 1));
-  [cloudAssetOrder[index], cloudAssetOrder[randomIndex]] = [cloudAssetOrder[randomIndex], cloudAssetOrder[index]];
+interface MapLoadingProps {
+  children?: React.ReactNode;
+  isExiting?: boolean;
 }
 
-const MapLoading = ({ children }: { children?: React.ReactNode }) => {
-  const mapReady = useSystemStore((state) => state.mapReady);
-
+const MapLoading = ({ children, isExiting = false }: MapLoadingProps) => {
   return (
     <div
-      className={cn("mapView-loader", mapReady && "is-exiting")}
-      aria-hidden={mapReady}
+      className={cn("mapLoading", isExiting && "is-exiting")}
+      aria-hidden={isExiting}
     >
-      {children ? <div className="relative z-10">{children}</div> : null}
-      <div className="mapView-loaderSky" />
+      {children ? <div className="mapLoading-content">{children}</div> : null}
+      <div className="mapLoading-sky" />
       {clouds.map((cloud, index) => {
         const cloudStyle = {
           top: cloud.top,
@@ -150,12 +145,13 @@ const MapLoading = ({ children }: { children?: React.ReactNode }) => {
         return (
           <Image
             key={index}
-            src={cloudAssets[cloudAssetOrder[index]]}
+            // Thứ tự mây cố định để nền SSR và lần hydrate đầu tiên luôn khớp nhau.
+            src={cloudAssets[index]}
             alt=""
             aria-hidden="true"
             width={500}
             height={500}
-            className={`mapView-loaderCloud mapView-loaderCloud--${cloud.depth}`}
+            className={`mapLoading-cloud mapLoading-cloud--${cloud.depth}`}
             style={cloudStyle}
             loading="eager"
           />

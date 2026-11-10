@@ -10,7 +10,7 @@ import { GlassButton } from "@/components/ui/glass-button";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components//ui/tooltip";
 import { Locale } from "@/i18n/config";
-import MapLoading from "@/components/MapView/MapLoading";
+import MapLoading from "@/components/shared/MapLoading";
 
 interface ErrorFallbackProps {
   error: Error & { digest?: string };

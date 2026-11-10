@@ -217,6 +217,14 @@ task. Public map visitors retain their anonymous LocalStorage UUID identity.
 
 ## Permissions, routes, and sidebar
 
+- Unmatched public and `/cms` URLs share the root `app/not-found.tsx` view,
+  outside the authenticated CMS shell. The localized 404 uses
+  `components/shared/MapLoading` as its cloud background and offers only a return
+  to the public map at `/`. No session is required to view the 404. The shared
+  background owns its styles and has no map-store dependency: only MapView passes
+  `isExiting` to fade it before unmounting; 404 and error views stay visible.
+  Clouds are clipped by the background; only its content layer can scroll on
+  short screens, so cloud scaling does not create scrollbars.
 - `services/permission.ts` exports `permissions`, `permissionModules`,
   `checkPermission(scopes, permission)`, permission-object resolution and permission
   types. It also owns `ROUTES_PERMISSIONS` and `CMS_LANDING_ROUTES`.

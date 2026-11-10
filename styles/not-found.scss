@@ -1,0 +1,60 @@
+.notFound {
+  display: grid;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  place-items: center;
+  color: #2b2a35;
+  font-family: var(--font-mitr), sans-serif;
+
+  &-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 32rem);
+    padding: clamp(1.75rem, 6vw, 3rem);
+    border-radius: 2rem;
+    text-align: center;
+  }
+
+  &-brand {
+    color: #666aa0;
+    font-family: var(--font-lemonada), sans-serif;
+    font-size: 2rem;
+  }
+
+  &-code {
+    margin-block: 1rem;
+    color: #666aa0;
+    font-family: var(--font-lemonada), sans-serif;
+    font-size: 6rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.06em;
+    text-shadow: 0 0.25rem 2rem rgb(124 127 178 / 16%);
+  }
+
+  h1 {
+    font-size: clamp(1.25rem, 5vw, 1.625rem);
+    text-wrap: balance;
+  }
+
+  &-description {
+    max-width: 32ch;
+    margin-block: 1rem 2rem;
+    color: #51607f;
+    text-wrap: pretty;
+  }
+
+  &-action {
+    min-height: 3rem;
+    height: auto;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    white-space: normal;
+  }
+
+  a:focus-visible {
+    outline: 2px solid #515581;
+    outline-offset: 5px;
+  }
+}

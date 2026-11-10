@@ -71,6 +71,11 @@
       "dismiss": "Mình hiểu rồi"
     }
   },
+  "notFound": {
+    "title": "Bạn đi lạc mất rồi :(",
+    "description": "Không tìm thấy trang bạn muốn xem. Hãy theo những đám mây về nơi quen thuộc nhé.",
+    "backToMap": "Trở lại bản đồ"
+  },
   "errorBoundary": {
     "title": "Ôi thôi chết, đã có lỗi ngoài ý muốn xảy ra :(",
     "description": "Xin lỗi vì đã làm gián đoạn trải nghiệm chia sẻ của bạn. Bạn hãy thử lại hoặc báo lỗi để mình khắc phục sớm nhất có thể nhé!",

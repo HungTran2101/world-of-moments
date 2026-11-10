@@ -71,6 +71,11 @@
       "dismiss": "I understand"
     }
   },
+  "notFound": {
+    "title": "This page drifted out of view",
+    "description": "We couldn't find this page. Follow the clouds back to a familiar place.",
+    "backToMap": "Back to the map"
+  },
   "errorBoundary": {
     "title": "Oh no! We hit an unexpected problem :(",
     "description": "The page ran into an error we could not recover from automatically. Please try again, or send us the details so we can fix it.",
