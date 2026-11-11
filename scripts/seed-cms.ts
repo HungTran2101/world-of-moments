@@ -11,24 +11,16 @@ async function main() {
   const { prisma } = await import("../lib/prisma");
   try {
     const passwordInput = process.env.CMS_INITIAL_ADMIN_PASSWORD;
-    if (
-      !passwordInput ||
-      passwordInput.length < 8 ||
-      passwordInput.length > 128
-    )
-      throw new Error(
-        "Set CMS_INITIAL_ADMIN_PASSWORD (8–128 characters) before seeding.",
-      );
+    if (!passwordInput || passwordInput.length < 8 || passwordInput.length > 128)
+      throw new Error("Set CMS_INITIAL_ADMIN_PASSWORD (8–128 characters) before seeding.");
     const password = await hashPassword(passwordInput);
     const result = await prisma.$transaction(async (tx) => {
       const existing = await tx.user.findUnique({
         where: { username: "admin" },
       });
       if (existing) {
-        if (!existing.isSystem)
-          throw new Error(
-            "Username admin is already occupied by a non-system account.",
-          );
+        if (!existing.isSystem || existing.kind !== "cms")
+          throw new Error("Username admin is already occupied by a non-system account.");
         return "CMS admin already exists; credentials were preserved.";
       }
       const role = await tx.cmsRole.create({
@@ -42,6 +34,7 @@ async function main() {
       await tx.user.create({
         data: {
           id,
+          kind: "cms",
           username: "admin",
           name: "Administrator",
           email: `${id}@cms.invalid`,

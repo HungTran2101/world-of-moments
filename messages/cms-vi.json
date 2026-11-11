@@ -61,7 +61,7 @@
     "closeMenu": "Đóng menu",
     "submissions": "Khoảnh khắc",
     "dashboard": "Dashboard",
-    "blacklist": "Danh sách chặn"
+    "clientUsers": "Người dùng bản đồ"
   },
   "login": {
     "title": "Đăng nhập",
@@ -108,7 +108,7 @@
     "role": "Vai trò",
     "submission": "Khoảnh khắc",
     "dashboard": "Dashboard",
-    "blacklist": "Danh sách chặn"
+    "clientUser": "Người dùng bản đồ"
   },
   "permissionNames": {
     "account": {
@@ -118,8 +118,9 @@
       "updateSubmissionStatus": "Đổi trạng thái công bố",
       "updateSubmissionValidity": "Đổi độ hợp lệ"
     },
-    "blacklist": {
-      "revoke": "Thu hồi chặn"
+    "clientUser": {
+      "changeStatus": "Đổi trạng thái người dùng bản đồ",
+      "revokeBan": "Thu hồi lệnh cấm người dùng bản đồ"
     }
   },
   "validation": {
@@ -132,7 +133,8 @@
     "invalidRoles": "Vui lòng chọn vai trò hợp lệ, không phải vai trò hệ thống.",
     "differentPassword": "Vui lòng chọn mật khẩu khác mật khẩu hiện tại.",
     "descriptionMax": "Sử dụng tối đa 600 ký tự.",
-    "coordinates": "Vui lòng nhập tọa độ hợp lệ."
+    "coordinates": "Vui lòng nhập tọa độ hợp lệ.",
+    "email": "Nhập địa chỉ email hợp lệ."
   },
   "errors": {
     "unauthorized": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
@@ -217,32 +219,44 @@
     "month": "Tháng",
     "submissions": "Khoảnh khắc"
   },
-  "blacklist": {
-    "ip": "Địa chỉ IP",
+  "clientUser": {
+    "email": "Email",
+    "password": "Mật khẩu",
     "status": "Trạng thái",
-    "active": "Đang chặn",
-    "revoked": "Đã thu hồi",
-    "all": "Tất cả",
-    "count": "Số lần bị chặn",
-    "lastBlockedAt": "Lần chặn gần nhất",
-    "blockedAt": "Thời điểm chặn",
-    "revokedAt": "Thời điểm thu hồi",
-    "revokedBy": "Người thu hồi",
-    "history": "Lịch sử chặn",
-    "historyTitle": "Lịch sử chặn: {ip}",
-    "historyRetention": "Lịch sử được lưu trong {days} ngày sau khi thu hồi hoặc hết hạn, sau đó tự động xóa. Các lần chặn đang hiệu lực vẫn được giữ lại và tổng số lần bị chặn không thay đổi.",
-    "revoke": "Thu hồi chặn",
-    "confirmRevoke": "Thu hồi chặn cho {ip}? Lịch sử chặn sẽ được lưu trong {days} ngày sau khi thu hồi.",
-    "browserTab": "Trình duyệt bị chặn",
-    "networkTab": "Mạng bị chặn tạm thời",
-    "browserId": "Mã trình duyệt",
-    "latestIp": "IP bị chặn gần nhất",
-    "expiresAt": "Hết hạn lúc",
-    "endedAt": "Kết thúc lúc",
-    "endReason": "Lý do kết thúc",
-    "expired": "Đã hết hạn",
-    "legacy": "Chặn IP cũ",
-    "migrated": "Lưu trữ khi chuyển đổi",
-    "unavailable": "Chưa có dữ liệu"
+    "statuses": {
+      "unverified": "Chưa xác minh",
+      "verified": "Đã xác minh",
+      "suspended": "Tạm đình chỉ",
+      "banned": "Đã cấm"
+    },
+    "allStatuses": "Tất cả trạng thái",
+    "suspendedUntil": "Đình chỉ đến",
+    "suspensionCount": "Số lần đình chỉ",
+    "system": "Hệ thống",
+    "createTitle": "Tạo người dùng bản đồ",
+    "detailTitle": "Chi tiết người dùng bản đồ",
+    "changeStatus": "Đổi trạng thái tài khoản",
+    "confirmStatus": "Áp dụng hạn chế này? Lần đình chỉ thứ ba sẽ chuyển thành cấm.",
+    "revokeBan": "Thu hồi lệnh cấm",
+    "confirmRevoke": "Khôi phục tài khoản về đã xác minh? Lượt gửi hiện tại sẽ được giữ nguyên.",
+    "emailError": "Tài khoản đã được tạo nhưng chưa gửi được email xác minh. Người dùng có thể đăng nhập để gửi lại.",
+    "id": "Mã tài khoản",
+    "emailVerified": "Email đã xác minh",
+    "yes": "Có",
+    "no": "Không",
+    "verificationSendCount": "Số lượt gửi email xác minh đã dùng",
+    "verificationLastSentAt": "Lần gửi xác minh gần nhất",
+    "verificationDeadline": "Hạn xác minh",
+    "dailySubmissions": "Số suy nghĩ gửi hôm nay",
+    "lastSubmittedAt": "Lần gửi suy nghĩ gần nhất",
+    "recentRejectedAttempts": "Số lần gửi bị từ chối gần đây",
+    "errors": {
+      "emailExists": "Email này đã có tài khoản.",
+      "notFound": "Không tìm thấy người dùng bản đồ.",
+      "statusConflict": "Trạng thái tài khoản đã thay đổi. Tài khoản bị cấm chỉ có thể khôi phục bằng thao tác thu hồi lệnh cấm.",
+      "verificationPermanent": "Không thể gỡ xác minh email.",
+      "unauthorized": "Tài khoản chưa xác minh này đã hết hạn.",
+      "emailFailed": "Chưa gửi được email xác minh."
+    }
   }
 }

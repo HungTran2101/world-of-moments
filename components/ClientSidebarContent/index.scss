@@ -1,0 +1,140 @@
+.clientSidebarContent {
+  &-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-block: 1.5rem;
+    color: var(--color-text);
+    line-height: 1.75;
+
+    h1 {
+      color: var(--primary-color-dark);
+      font-family: var(--font-lemonada), serif;
+      font-size: 1.4rem;
+      line-height: 1.7;
+      text-wrap: balance;
+    }
+
+    small {
+      color: var(--color-text-muted);
+      font-size: 0.8rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    [role='alert'] {
+      color: var(--color-error);
+      font-size: 0.85rem;
+    }
+  }
+
+  &-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-input-bg);
+      color: var(--color-text);
+      font: inherit;
+
+      &:focus-visible {
+        outline: 2px solid var(--secondary-color);
+        outline-offset: 3px;
+      }
+    }
+  }
+
+  &-password {
+    position: relative;
+
+    input {
+      padding-right: 3rem;
+    }
+
+    button {
+      position: absolute;
+      inset: 0 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      color: var(--primary-color-dark);
+      cursor: pointer;
+    }
+  }
+
+  &-link {
+    align-self: flex-start;
+    min-height: 44px;
+    color: var(--primary-color-dark);
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    cursor: pointer;
+  }
+
+  &-account {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+
+    span {
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &-notice > svg {
+    width: 36px;
+    height: 36px;
+    color: var(--secondary-color);
+    stroke-width: 1.25;
+  }
+
+  &-guidance {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+    font-size: 0.9rem;
+    color: var(--primary-color);
+
+    h2,
+    h3 {
+      color: var(--secondary-color);
+      text-wrap: balance;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: 1rem;
+    }
+
+    blockquote {
+      padding-left: 0.875rem;
+      color: var(--secondary-color);
+      border-left: 2px solid var(--primary-color);
+      font-style: italic;
+      line-height: 1.5;
+    }
+  }
+}

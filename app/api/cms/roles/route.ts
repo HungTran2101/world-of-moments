@@ -1,8 +1,8 @@
 import { permissions } from "@/services/permission";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { listSchema, roleSchema } from "@/services/schemas";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 import type { CmsRoleRecord } from "@/services/cms/roles/types";

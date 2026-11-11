@@ -1,8 +1,8 @@
 import { permissions } from "@/services/permission";
 import { accountSelect, serializeAccount, assertRoles } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@prisma/client";
@@ -23,6 +23,7 @@ export async function GET(request: Request) {
     );
     const where: Prisma.UserWhereInput = {
       isSystem: false,
+      kind: "cms",
       ...(params.search
         ? {
             OR: [
@@ -60,11 +61,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return withCmsRequest(request, async () => {
     const actor = await requireCmsSession(request.headers, permissions.ACCOUNT_CREATE);
-    const {
-      password: plain,
-      roleIds,
-      ...data
-    } = await parseBody(request, accountCreateSchema);
+    const { password: plain, roleIds, ...data } = await parseBody(request, accountCreateSchema);
     const password = await hashPassword(plain);
     const userId = randomUUID();
     const user = await prisma.$transaction(async (tx) => {
@@ -72,6 +69,7 @@ export async function POST(request: Request) {
       return tx.user.create({
         data: {
           ...data,
+          kind: "cms",
           updatedBy: actor.name,
           id: userId,
           email: `${userId}@cms.invalid`,

@@ -8,7 +8,17 @@ export type AppErrorStatus = ApiErrorStatus | RuntimeErrorStatus;
 
 export type AppErrorSource = "api" | "runtime" | "unknown";
 
-export type ErrorMessageKey = "browserBlocked" | "networkBanned" | "cookiesRequired" | "invalidSubmission" | "rateLimited" | "submissionFailed" | "refreshFailed" | "network" | "storage" | "mapUnavailable" | "unexpected" | "windowError" | "unhandledPromise";
+export type ErrorMessageKey =
+  | "invalidSubmission"
+  | "rateLimited"
+  | "submissionFailed"
+  | "refreshFailed"
+  | "network"
+  | "storage"
+  | "mapUnavailable"
+  | "unexpected"
+  | "windowError"
+  | "unhandledPromise";
 
 export interface AppError {
   name: string;
@@ -53,7 +63,10 @@ function getErrorMessage(error: unknown) {
 }
 
 // Chuan hoa moi loai loi ve cung mot shape de provider/modal xu ly tap trung.
-export function toAppError(error: unknown, overrides: Partial<Omit<AppError, "timestamp">> = {}): AppError {
+export function toAppError(
+  error: unknown,
+  overrides: Partial<Omit<AppError, "timestamp">> = {},
+): AppError {
   if (error instanceof ApiError) {
     return {
       name: error.name,
@@ -64,7 +77,7 @@ export function toAppError(error: unknown, overrides: Partial<Omit<AppError, "ti
       stack: error.stack,
       cause: error.cause,
       timestamp: Date.now(),
-      ...overrides
+      ...overrides,
     };
   }
   if (error instanceof Error) {
@@ -76,7 +89,7 @@ export function toAppError(error: unknown, overrides: Partial<Omit<AppError, "ti
       stack: error.stack,
       cause: error.cause,
       timestamp: Date.now(),
-      ...overrides
+      ...overrides,
     };
   }
   return {
@@ -86,6 +99,6 @@ export function toAppError(error: unknown, overrides: Partial<Omit<AppError, "ti
     source: "unknown",
     details: error,
     timestamp: Date.now(),
-    ...overrides
+    ...overrides,
   };
 }

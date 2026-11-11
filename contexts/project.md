@@ -4,7 +4,7 @@ A map-based anonymous reflection web application where people can leave small th
 
 The product focuses on quiet reflection rather than social interaction. Users can explore messages scattered across the planet and occasionally receive something written by their past self.
 
-There are no accounts, followers, notifications, likes, or popularity metrics.
+Client accounts privately authorize writing and personal history. There are no followers, notifications, likes, or popularity metrics.
 
 The experience should feel atmospheric, calm, and visually beautiful.
 
@@ -33,7 +33,7 @@ Current Implementation
 - The home page mounts a 2D MapLibre map, a writing sidebar, the title, and a language selector.
 - Zooming out smoothly reveals a satellite globe with an atmospheric rim and stars. Zooming back in restores the themed map and its labels without replacing the map or clearing a draft pin.
 - Clicking an empty map location places or moves the writing pin. The form accepts a description of up to 600 characters; a title is not part of the current submission flow.
-- Submitting creates the browser UUID if needed, saves the thought with weather context, and animates a thought bubble toward the selected pin. Refreshed markers are revealed after the bubble arrives, and the map zooms to show the submitted thought outside the clustering threshold.
+- Submitting requires a verified client account, saves the thought with weather context, and animates a thought bubble toward the selected pin. Refreshed markers are revealed after the bubble arrives, and the map zooms to show the submitted thought outside the clustering threshold.
 - Map positions load for the current viewport after the camera stops. Nearby thoughts are clustered in the browser; clicking a cluster zooms into it.
 - Clicking an individual thought opens a dialog that loads its description and weather on demand, with loading, retry, and not-found states.
 - English and Vietnamese are available, with Vietnamese as the default. The selected language is remembered in a cookie.
@@ -43,24 +43,27 @@ Current Implementation
 Implementation boundaries
 
 - Public map reads return only positions or public thought details; they omit author UUIDs and exact timestamps.
-- The update and delete APIs exist and check the verified cookie owner against the stored owner. Author edit/delete controls are not connected to the current page.
-- `HistoryPanel` loads the current cookie owner’s paginated private history from the map toolbar.
-- The future-message model, service, and create/list endpoints exist as scaffolding. The send/unlock experience is not connected to the current page. The future-message plan above is unchanged.
+- Submitted content and coordinates cannot be edited. Authors can delete their own thoughts from history; CMS deletion requires its delete permission.
+- `HistoryPanel` loads the signed-in account’s paginated private history from the map toolbar.
+- Future messages remain disabled. Their old create/list handlers, anonymous-identity bootstrap, services, cookies and limiter have been removed. The existing model/data are retained until the new client-account-based flow is implemented; no future-message UI is connected.
 - Marker refreshes follow viewport changes or a local submission. There is no live subscription for thoughts submitted by other visitors.
 
 Identity Model
 
-The public map has no authentication system. Internal CMS authentication is separate and documented in `contexts/cms.md`.
+Anyone can browse the map. Writing requires email/password registration and email
+verification through Resend. Client and CMS accounts share auth tables with strict
+account-kind isolation and separate HttpOnly session cookies. Thoughts remain anonymous
+to public readers. Existing anonymous thoughts remain unclaimed; deleting a client
+account keeps its thoughts on the map without ownership.
 
-Users are identified by a server-issued random identifier in a signed HttpOnly cookie. The server verifies ownership; client UUIDs are not accepted. The cookie is separate from CMS authentication.
+The submission sidebar contains login/registration, verification, eligibility notices,
+or the writing form. Verified accounts can leave three thoughts per hosting day with
+a five-minute pause between them. Repeated attempts beyond these limits lead to
+seven-day suspensions and a ban on the third trigger. Public notices do not expose the
+quota or cooldown duration. See `contexts/client-auth.md` for the complete contract.
 
-Purpose (including planned author tools):
-
-associate submissions with the same browser
-allow editing or deleting personal posts
-provide a private personal history
-
-If the user clears cookies, loses an expired cookie or changes browser/device, a new identity is created and previous private history is no longer accessible. This migration starts fresh; existing records are retained without importing LocalStorage identities.
+The signed anonymous visitor-identity flow is removed. Future messages must use
+client-account authentication when reimplemented; active thoughts already use it.
 
 Atmosphere Concept
 
@@ -79,7 +82,7 @@ raw weather data
 
 inside their private history.
 
-This private-history view is not connected yet. The existing `HistoryPanel` displays supplied descriptions, weather summaries, and rounded coordinates; it does not currently render exact timestamps or raw weather records.
+The existing `HistoryPanel` displays account-owned descriptions, localized weather summaries and exact creation timestamps. Raw weather records are not displayed.
 
 Product Philosophy
 

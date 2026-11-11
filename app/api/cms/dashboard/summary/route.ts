@@ -2,8 +2,8 @@ import { permissions } from "@/services/permission";
 import { DASHBOARD_PERIOD_DAYS } from "@/services/constant";
 import { dashboardCalendarBounds } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, withCmsRequest } from "@/app/api/_handlers/http";
 import { dashboardSummarySchema } from "@/services/schemas";
 import type { DashboardSummary } from "@/services/cms/dashboard/types";
 

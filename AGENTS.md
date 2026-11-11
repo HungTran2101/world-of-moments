@@ -9,10 +9,17 @@ activity or popularity.
 
 ## Always-on product rules
 
-- Preserve the public anonymous identity model. Public visitors use a server-issued
-  signed HttpOnly cookie for anonymous ownership and browser abuse protection;
-  never trust client-supplied author UUIDs. CMS-only accounts and database-backed sessions
-  are isolated under `/cms` and `/api/cms`; never apply them to the public map.
+- Keep map browsing public and thoughts anonymous in public responses. Creating a
+  thought requires a verified client account with a database-backed cookie session.
+  CMS/client accounts share tables but have separate kinds, secrets, cookies and checks.
+  Never trust client-supplied ownership IDs. Future messages remain disabled; their
+  old anonymous-identity routes, services and cookie flow are removed. Any future
+  implementation must use client-account authentication. Preserve existing storage
+  until its account-ownership redesign is explicitly implemented.
+- Submitted thought content and coordinates are immutable. Authors may delete their
+  own thoughts; CMS deletion requires `submission.delete`. CMS moderation remains separate.
+- Development schema changes use `prisma db push` and Prisma generation. Do not add
+  migration files or database-reset flows. Preserve unrelated records when removing tables.
 - Do not introduce social mechanics such as likes, comments, followers, feeds,
   rankings, popularity metrics, or intrusive notifications.
 - Never expose author identities or exact timestamps in public responses. Exact
@@ -88,6 +95,7 @@ Read only the documents relevant to the task:
 
 - Product behavior and philosophy: `contexts/project.md`
 - System structure and technical boundaries: `contexts/architecture.md`
+- Client authentication, ownership, limits and cleanup: `contexts/client-auth.md`
 - Planned phases and feature priority: `contexts/roadmap.md`
 - General repository overview and setup: `README.md`
 - CMS architecture, contracts, setup, and implementation status: `contexts/cms.md`

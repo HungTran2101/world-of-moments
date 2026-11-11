@@ -2,8 +2,11 @@ import { ROUTE_PATHS } from "@/services/constant";
 import type { ProtectedCmsRoutePath } from "@/services/routes";
 
 export const permissions = {
-  BLACKLIST_SHOW: "blacklist.show",
-  BLACKLIST_REVOKE: "blacklist.revoke",
+  CLIENT_USER_SHOW: "clientUser.show",
+  CLIENT_USER_CREATE: "clientUser.create",
+  CLIENT_USER_DELETE: "clientUser.delete",
+  CLIENT_USER_CHANGE_STATUS: "clientUser.changeStatus",
+  CLIENT_USER_REVOKE_BAN: "clientUser.revokeBan",
   DASHBOARD_SHOW: "dashboard.show",
   SUBMISSION_SHOW: "submission.show",
   SUBMISSION_CREATE: "submission.create",
@@ -18,11 +21,13 @@ export const permissions = {
   ROLE_SHOW: "role.show",
   ROLE_CREATE: "role.create",
   ROLE_UPDATE: "role.update",
-  ROLE_DELETE: "role.delete"
+  ROLE_DELETE: "role.delete",
 } as const;
 export type PermissionKey = (typeof permissions)[keyof typeof permissions];
 
-export type DefaultPermissions = Partial<Record<"show" | "create" | "update" | "delete", PermissionKey>>;
+export type DefaultPermissions = Partial<
+  Record<"show" | "create" | "update" | "delete", PermissionKey>
+>;
 
 export type PermissionRules = DefaultPermissions & {
   custom?: PermissionKey[];
@@ -42,73 +47,85 @@ export interface PagePermission {
   custom: string[];
 }
 
-export const permissionModules: readonly PermissionModule[] = [{
-  key: "dashboard",
-  defaults: {
-    show: permissions.DASHBOARD_SHOW
+export const permissionModules: readonly PermissionModule[] = [
+  {
+    key: "dashboard",
+    defaults: {
+      show: permissions.DASHBOARD_SHOW,
+    },
+    custom: [],
   },
-  custom: []
-}, {
-  key: "submission",
-  defaults: {
-    show: permissions.SUBMISSION_SHOW,
-    create: permissions.SUBMISSION_CREATE,
-    delete: permissions.SUBMISSION_DELETE
+  {
+    key: "submission",
+    defaults: {
+      show: permissions.SUBMISSION_SHOW,
+      create: permissions.SUBMISSION_CREATE,
+      delete: permissions.SUBMISSION_DELETE,
+    },
+    custom: [permissions.SUBMISSION_UPDATE_STATUS, permissions.SUBMISSION_UPDATE_VALIDITY],
   },
-  custom: [permissions.SUBMISSION_UPDATE_STATUS, permissions.SUBMISSION_UPDATE_VALIDITY]
-}, {
-  key: "blacklist",
-  defaults: {
-    show: permissions.BLACKLIST_SHOW
+  {
+    key: "clientUser",
+    defaults: {
+      show: permissions.CLIENT_USER_SHOW,
+      create: permissions.CLIENT_USER_CREATE,
+      delete: permissions.CLIENT_USER_DELETE,
+    },
+    custom: [permissions.CLIENT_USER_CHANGE_STATUS, permissions.CLIENT_USER_REVOKE_BAN],
   },
-  custom: [permissions.BLACKLIST_REVOKE]
-}, {
-  key: "account",
-  defaults: {
-    show: permissions.ACCOUNT_SHOW,
-    create: permissions.ACCOUNT_CREATE,
-    update: permissions.ACCOUNT_UPDATE,
-    delete: permissions.ACCOUNT_DELETE
+  {
+    key: "account",
+    defaults: {
+      show: permissions.ACCOUNT_SHOW,
+      create: permissions.ACCOUNT_CREATE,
+      update: permissions.ACCOUNT_UPDATE,
+      delete: permissions.ACCOUNT_DELETE,
+    },
+    custom: [permissions.ACCOUNT_RESET_PASSWORD],
   },
-  custom: [permissions.ACCOUNT_RESET_PASSWORD]
-}, {
-  key: "role",
-  defaults: {
-    show: permissions.ROLE_SHOW,
-    create: permissions.ROLE_CREATE,
-    update: permissions.ROLE_UPDATE,
-    delete: permissions.ROLE_DELETE
+  {
+    key: "role",
+    defaults: {
+      show: permissions.ROLE_SHOW,
+      create: permissions.ROLE_CREATE,
+      update: permissions.ROLE_UPDATE,
+      delete: permissions.ROLE_DELETE,
+    },
+    custom: [],
   },
-  custom: []
-}];
+];
 const ACCOUNT_PERMISSION_RULES: PermissionRules = {
   show: permissions.ACCOUNT_SHOW,
   create: permissions.ACCOUNT_CREATE,
   update: permissions.ACCOUNT_UPDATE,
   delete: permissions.ACCOUNT_DELETE,
-  custom: [permissions.ACCOUNT_RESET_PASSWORD]
+  custom: [permissions.ACCOUNT_RESET_PASSWORD],
 };
 const ROLE_PERMISSION_RULES: PermissionRules = {
   show: permissions.ROLE_SHOW,
   create: permissions.ROLE_CREATE,
   update: permissions.ROLE_UPDATE,
-  delete: permissions.ROLE_DELETE
+  delete: permissions.ROLE_DELETE,
 };
 const SUBMISSION_PERMISSION_RULES: PermissionRules = {
   show: permissions.SUBMISSION_SHOW,
   create: permissions.SUBMISSION_CREATE,
   delete: permissions.SUBMISSION_DELETE,
-  custom: [permissions.SUBMISSION_UPDATE_STATUS, permissions.SUBMISSION_UPDATE_VALIDITY]
+  custom: [permissions.SUBMISSION_UPDATE_STATUS, permissions.SUBMISSION_UPDATE_VALIDITY],
+};
+const CLIENT_USER_PERMISSION_RULES: PermissionRules = {
+  show: permissions.CLIENT_USER_SHOW,
+  create: permissions.CLIENT_USER_CREATE,
+  delete: permissions.CLIENT_USER_DELETE,
+  custom: [permissions.CLIENT_USER_CHANGE_STATUS, permissions.CLIENT_USER_REVOKE_BAN],
 };
 export const ROUTES_PERMISSIONS = {
-  [ROUTE_PATHS.BLACKLIST]: {
-    show: permissions.BLACKLIST_SHOW,
-    custom: [permissions.BLACKLIST_REVOKE]
-  },
+  [ROUTE_PATHS.CLIENT_USERS]: CLIENT_USER_PERMISSION_RULES,
+  [ROUTE_PATHS.CLIENT_USER_DETAIL]: CLIENT_USER_PERMISSION_RULES,
   [ROUTE_PATHS.SUBMISSIONS]: SUBMISSION_PERMISSION_RULES,
   [ROUTE_PATHS.SUBMISSION_DETAIL]: SUBMISSION_PERMISSION_RULES,
   [ROUTE_PATHS.DASHBOARD]: {
-    show: permissions.DASHBOARD_SHOW
+    show: permissions.DASHBOARD_SHOW,
   },
   [ROUTE_PATHS.ACCOUNTS]: ACCOUNT_PERMISSION_RULES,
   [ROUTE_PATHS.ACCOUNT_DETAIL]: ACCOUNT_PERMISSION_RULES,
@@ -116,20 +133,29 @@ export const ROUTES_PERMISSIONS = {
   [ROUTE_PATHS.ROLE_DETAIL]: ROLE_PERMISSION_RULES,
   [ROUTE_PATHS.CHANGE_PASSWORD]: undefined,
   [ROUTE_PATHS.PROFILE]: undefined,
-  [ROUTE_PATHS.GENERAL]: undefined
+  [ROUTE_PATHS.GENERAL]: undefined,
 } satisfies Record<ProtectedCmsRoutePath, PermissionRules | undefined>;
-export const CMS_LANDING_ROUTES = [[ROUTE_PATHS.DASHBOARD, permissions.DASHBOARD_SHOW], [ROUTE_PATHS.SUBMISSIONS, permissions.SUBMISSION_SHOW], [ROUTE_PATHS.BLACKLIST, permissions.BLACKLIST_SHOW], [ROUTE_PATHS.ACCOUNTS, permissions.ACCOUNT_SHOW], [ROUTE_PATHS.ROLES, permissions.ROLE_SHOW]] as const;
+export const CMS_LANDING_ROUTES = [
+  [ROUTE_PATHS.DASHBOARD, permissions.DASHBOARD_SHOW],
+  [ROUTE_PATHS.SUBMISSIONS, permissions.SUBMISSION_SHOW],
+  [ROUTE_PATHS.CLIENT_USERS, permissions.CLIENT_USER_SHOW],
+  [ROUTE_PATHS.ACCOUNTS, permissions.ACCOUNT_SHOW],
+  [ROUTE_PATHS.ROLES, permissions.ROLE_SHOW],
+] as const;
 export function checkPermission(scopes: readonly string[], permission: string): boolean {
   return scopes.includes("*") || scopes.includes(permission);
 }
 
-export function resolvePermission(scopes: readonly string[], rules?: PermissionRules): PagePermission {
+export function resolvePermission(
+  scopes: readonly string[],
+  rules?: PermissionRules,
+): PagePermission {
   const wildcard = scopes.includes("*");
   return {
     show: !rules?.show || checkPermission(scopes, rules.show),
     create: wildcard || !rules || Boolean(rules.create && checkPermission(scopes, rules.create)),
     update: wildcard || !rules || Boolean(rules.update && checkPermission(scopes, rules.update)),
     delete: wildcard || !rules || Boolean(rules.delete && checkPermission(scopes, rules.delete)),
-    custom: (rules?.custom ?? []).filter(permission => checkPermission(scopes, permission))
+    custom: (rules?.custom ?? []).filter((permission) => checkPermission(scopes, permission)),
   };
 }

@@ -1,31 +1,32 @@
-import { CLIENT_SUBMISSION_ACTOR } from "@/services/constant";
-import { submissionViewer, visibleSubmissionWhere, SUBMISSION_PRIVATE_HEADERS } from "@/lib/submissionModeration";
-import { constants } from "@/app/api/constant";
+import {
+  submissionViewer,
+  visibleSubmissionWhere,
+  SUBMISSION_PRIVATE_HEADERS,
+} from "@/lib/submissionModeration";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { identityRequired, trustedPublicOrigin, originDenied } from "@/lib/submissionIdentity";
+import { requireClientSession } from "@/app/api/_handlers/clientAuth";
+import { withClientRequest } from "@/app/api/_handlers/clientHttp";
+import { readClient } from "@/lib/clientAccounts";
+import { ClientHttpError } from "@/lib/clientErrors";
 import { compressedJson } from "@/lib/compressedJson";
 
-const UpdateSchema = z.object({
-  description: z.string().min(1).max(constants.MAX_DESCRIPTION_LENGTH).optional()
-});
-
 // GET /api/submissions/:id
-export async function GET(request: NextRequest, {
-  params
-}: {
-  params: Promise<{
-    id: string;
-  }>;
-}) {
-  const {
-    id
-  } = await params;
+export async function GET(
+  request: NextRequest,
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+    }>;
+  },
+) {
+  const { id } = await params;
   const submission = await prisma.submission.findFirst({
     where: {
       id,
-      ...visibleSubmissionWhere(submissionViewer(request))
+      ...visibleSubmissionWhere(await submissionViewer(request)),
     },
     select: {
       id: true,
@@ -34,129 +35,38 @@ export async function GET(request: NextRequest, {
       lat: true,
       lng: true,
       weather_summary: true,
-      weather_code: true
-    }
+      weather_code: true,
+    },
   });
   if (!submission) {
-    return NextResponse.json({
-      error: "Not found"
-    }, {
-      status: 404,
-      headers: SUBMISSION_PRIVATE_HEADERS
-    });
+    return NextResponse.json(
+      {
+        error: "Not found",
+      },
+      {
+        status: 404,
+        headers: SUBMISSION_PRIVATE_HEADERS,
+      },
+    );
   }
   return compressedJson(submission, request, SUBMISSION_PRIVATE_HEADERS);
 }
 
-// PATCH /api/submissions/:id
-export async function PATCH(request: NextRequest, {
-  params
-}: {
-  params: Promise<{
-    id: string;
-  }>;
-}) {
-  if (!trustedPublicOrigin(request)) return originDenied();
-  const author_uuid = submissionViewer(request);
-  if (!author_uuid) return identityRequired();
-  const {
-    id
-  } = await params;
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({
-      error: "Invalid JSON body"
-    }, {
-      status: 400
+// Không có PATCH: nội dung và tọa độ không thay đổi sau khi gửi.
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  return withClientRequest(request, async () => {
+    const user = await requireClientSession(request.headers);
+    const { id } = await params;
+    const removed = await prisma.$transaction(async (tx) => {
+      const current = await readClient(tx, user.id);
+      if (!current) return false;
+      const result = await tx.submission.deleteMany({ where: { id, clientUserId: user.id } });
+      return result.count > 0;
     });
-  }
-  const parsed = UpdateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({
-      error: parsed.error.issues
-    }, {
-      status: 422
-    });
-  }
-  const updates = parsed.data;
-  const existing = await prisma.submission.findUnique({
-    where: {
-      id
-    }
-  });
-  if (!existing) return NextResponse.json({
-    error: "Not found"
-  }, {
-    status: 404
-  });
-  if (existing.author_uuid !== author_uuid) {
-    return NextResponse.json({
-      error: "Forbidden"
-    }, {
-      status: 403
-    });
-  }
-  const updated = await prisma.submission.update({
-    where: {
-      id
-    },
-    data: {
-      ...updates,
-      updatedBy: CLIENT_SUBMISSION_ACTOR
-    },
-    select: {
-      id: true,
-      description: true,
-      lat: true,
-      lng: true,
-      weather_summary: true,
-      weather_code: true
-    }
-  });
-  return NextResponse.json(updated, {
-    headers: SUBMISSION_PRIVATE_HEADERS
-  });
-}
-
-// DELETE /api/submissions/:id
-export async function DELETE(request: NextRequest, {
-  params
-}: {
-  params: Promise<{
-    id: string;
-  }>;
-}) {
-  const {
-    id
-  } = await params;
-  if (!trustedPublicOrigin(request)) return originDenied();
-  const author_uuid = submissionViewer(request);
-  if (!author_uuid) return identityRequired();
-  const existing = await prisma.submission.findUnique({
-    where: {
-      id
-    }
-  });
-  if (!existing) return NextResponse.json({
-    error: "Not found"
-  }, {
-    status: 404
-  });
-  if (existing.author_uuid !== author_uuid) {
-    return NextResponse.json({
-      error: "Forbidden"
-    }, {
-      status: 403
-    });
-  }
-  await prisma.submission.delete({
-    where: {
-      id
-    }
-  });
-  return new NextResponse(null, {
-    status: 204
+    if (!removed) throw new ClientHttpError(404, "notFound");
+    return new NextResponse(null, { status: 204, headers: SUBMISSION_PRIVATE_HEADERS });
   });
 }

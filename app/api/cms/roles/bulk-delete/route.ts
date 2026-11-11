@@ -1,7 +1,7 @@
 import { permissions } from "@/services/permission";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { deleteSchema } from "@/services/schemas";
 
 export const runtime = "nodejs";

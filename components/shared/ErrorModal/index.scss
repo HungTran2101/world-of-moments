@@ -32,49 +32,4 @@
     color: var(--color-text-muted);
     line-height: 1.7;
   }
-
-  &-support {
-    margin: 0rem 0 0.5rem;
-    color: var(--color-text-muted);
-    font-size: 0.75rem;
-    line-height: 1.6;
-  }
-
-  &-contactNote {
-    margin-bottom: 1rem;
-
-    a {
-      overflow-wrap: anywhere;
-      color: var(--color-button-blue);
-      text-decoration: underline;
-      text-underline-offset: 0.15em;
-    }
-  }
-
-  &-browserId {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  &-browserIdLabel {
-    font-weight: 500;
-  }
-
-  &-browserIdValue {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-width: 0;
-
-    code {
-      min-width: 0;
-      overflow-wrap: anywhere;
-      user-select: all;
-    }
-  }
-
-  &-copyStatus {
-    min-height: 1.6em;
-  }
 }

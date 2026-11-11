@@ -21,18 +21,9 @@ export interface CreateSubmissionPayload {
   lng: number;
 }
 
-export interface UpdateSubmissionPayload {
-  description?: string;
-}
-
 export interface SubmissionHistoryItem extends Submission {
   status: SubmissionStatus;
   created_at: string;
 }
 
 export type SubmissionHistoryPage = PaginatedResponse<SubmissionHistoryItem>;
-
-export interface SubmissionBlockSupport {
-  browserId: string | null;
-  contactMail: string | null;
-}

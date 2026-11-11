@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, withCmsRequest } from "@/app/api/_handlers/http";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";

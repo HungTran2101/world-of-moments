@@ -11,7 +11,11 @@
     "lint:script": "eslint \"**/*.tsx\" --fix",
     "lint:style": "stylelint \"**/*.scss\" --fix",
     "prisma:generate": "prisma generate",
-    "cms:seed": "node --import tsx scripts/seed-cms.ts"
+    "cms:seed": "node --import tsx scripts/seed-cms.ts",
+    "db:push": "prisma db push",
+    "client-users:cleanup": "node --conditions=react-server --import tsx scripts/cleanup-client-users.ts",
+    "test:client": "node --env-file=.env.development --conditions=react-server --import tsx --test tests/client-auth.integration.test.ts",
+    "test:client:http": "node --env-file=.env.development --conditions=react-server --import tsx --test tests/client-http.integration.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

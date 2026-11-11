@@ -1,13 +1,23 @@
 "use client";
 
-import { useVisitorCacheKey } from "@/hooks/useVisitorIdentity";
+import { useClientSession } from "@/components/ClientSession";
 import { Dialog } from "@/components/ui/dialog";
 import { GlassButton } from "@/components/ui/glass-button";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError } from "@/services/shared/errors";
 import { getSubmissionById } from "@/services/submissions";
 import type { Submission } from "@/services/submissions/types";
-import { ArrowLeft, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSun, Snowflake, Sun } from "lucide-react";
+import {
+  ArrowLeft,
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSun,
+  Snowflake,
+  Sun,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -22,46 +32,48 @@ interface ThoughtModalProps {
   onReturnFocus: () => void;
 }
 
-function WeatherIcon({
-  code
-}: {
-  code: number;
-}) {
+function WeatherIcon({ code }: { code: number }) {
   const props = {
     size: 20,
     strokeWidth: 1.5,
-    "aria-hidden": true
+    "aria-hidden": true,
   } as const;
   if (code === 0) return <Sun {...props} />;
   if (code === 1 || code === 2) return <CloudSun {...props} />;
   if (code === 45 || code === 48) return <CloudFog {...props} />;
   if (code >= 51 && code <= 57) return <CloudDrizzle {...props} />;
-  if (code >= 71 && code <= 77 || code === 85 || code === 86) return <Snowflake {...props} />;
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return <Snowflake {...props} />;
   if (code >= 95) return <CloudLightning {...props} />;
   if (code >= 61 && code <= 82) return <CloudRain {...props} />;
   return <Cloud {...props} />;
 }
 
-type DetailState = {
-  id: string;
-  status: "loading";
-} | {
-  id: string;
-  status: "ready";
-  submission: Submission;
-} | {
-  id: string;
-  status: "error";
-  notFound: boolean;
-};
+type DetailState =
+  | {
+      id: string;
+      identityKey: string;
+      status: "loading";
+    }
+  | {
+      id: string;
+      identityKey: string;
+      status: "ready";
+      submission: Submission;
+    }
+  | {
+      id: string;
+      identityKey: string;
+      status: "error";
+      notFound: boolean;
+    };
 
 export default function ThoughtModal({
   open,
   submissionId,
   onOpenChange,
-  onReturnFocus
+  onReturnFocus,
 }: ThoughtModalProps) {
-  const identityKey = useVisitorCacheKey();
+  const identityKey = useClientSession().user?.id ?? "guest";
   const t = useTranslations("popup");
   const weather = useTranslations("weather");
   const [detail, setDetail] = useState<DetailState | null>(null);
@@ -71,40 +83,51 @@ export default function ThoughtModal({
     const controller = new AbortController();
     setDetail({
       id: submissionId,
-      status: "loading"
+      identityKey,
+      status: "loading",
     });
     // Mỗi lần chọn suy nghĩ chỉ tải chi tiết của ID đó; hủy phản hồi khi đóng hoặc chọn ID khác.
     void getSubmissionById(submissionId, {
-      signal: controller.signal
-    }).then(submission => {
-      if (controller.signal.aborted) return;
-      // Dùng tọa độ bài đã tải để URL luôn mở lại đúng nơi, kể cả khi mở từ marker hoặc bài vừa gửi.
-      const url = new URL(window.location.href);
-      url.searchParams.set("thought", submission.id);
-      url.searchParams.set("lat", String(submission.lat));
-      url.searchParams.set("lng", String(submission.lng));
-      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-      setDetail({
-        id: submissionId,
-        status: "ready",
-        submission
+      signal: controller.signal,
+    })
+      .then((submission) => {
+        if (controller.signal.aborted) return;
+        // Dùng tọa độ bài đã tải để URL luôn mở lại đúng nơi, kể cả khi mở từ marker hoặc bài vừa gửi.
+        const url = new URL(window.location.href);
+        url.searchParams.set("thought", submission.id);
+        url.searchParams.set("lat", String(submission.lat));
+        url.searchParams.set("lng", String(submission.lng));
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+        setDetail({
+          id: submissionId,
+          identityKey,
+          status: "ready",
+          submission,
+        });
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setDetail({
+          id: submissionId,
+          identityKey,
+          status: "error",
+          notFound: error instanceof ApiError && error.status === 404,
+        });
       });
-    }).catch((error: unknown) => {
-      if (controller.signal.aborted) return;
-      setDetail({
-        id: submissionId,
-        status: "error",
-        notFound: error instanceof ApiError && error.status === 404
-      });
-    });
     return () => controller.abort();
   }, [open, submissionId, retry, identityKey]);
-  const currentDetail = detail?.id === submissionId ? detail : null;
+  const currentDetail =
+    detail?.id === submissionId && detail.identityKey === identityKey ? detail : null;
   const submission = currentDetail?.status === "ready" ? currentDetail.submission : null;
   const loading = !currentDetail || currentDetail.status === "loading";
   const weatherKey = submission?.weather_code == null ? "" : String(submission.weather_code);
   // Ưu tiên câu thời tiết theo ngôn ngữ hiện tại; chỉ dùng mô tả từ API khi mã chưa có bản dịch.
-  const atmosphere = weatherKey && weather.has(weatherKey) ? weather(weatherKey) : submission?.weather_summary;
+  const atmosphere =
+    weatherKey && weather.has(weatherKey) ? weather(weatherKey) : submission?.weather_summary;
   return (
     <Dialog.Root
       key={submissionId}
@@ -120,9 +143,9 @@ export default function ThoughtModal({
             //   '--blur-size': '10px',
             // } as CSSProperties}
             // Chỉ chặn thao tác tự đóng của dialog, không chặn sự kiện chuột kéo bản đồ.
-            onInteractOutside={event => event.preventDefault()}
-            onEscapeKeyDown={event => event.preventDefault()}
-            onCloseAutoFocus={event => {
+            onInteractOutside={(event) => event.preventDefault()}
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => {
               // Ghim WebGL không có Dialog.Trigger; trả focus về canvas để tiếp tục khám phá bản đồ.
               event.preventDefault();
               if (!open) onReturnFocus();
@@ -135,9 +158,7 @@ export default function ThoughtModal({
                 alt=""
                 sizes="44px"
               />
-              <Dialog.Title className="thoughtModal-title">
-                {t("title")}
-              </Dialog.Title>
+              <Dialog.Title className="thoughtModal-title">{t("title")}</Dialog.Title>
             </div>
 
             <Dialog.Description
@@ -147,17 +168,19 @@ export default function ThoughtModal({
             >
               {loading ? (
                 <>
-                  <span className="visually-hidden">
-                    {t("loading")}
-                  </span>
+                  <span className="visually-hidden">{t("loading")}</span>
                   <LoadingDots color="var(--secondary-color)" />
                 </>
-              ) : currentDetail?.status === "error" ? t(currentDetail.notFound ? "notFound" : "loadError") : <TextTyping text={submission?.description || ''} />}
+              ) : currentDetail?.status === "error" ? (
+                t(currentDetail.notFound ? "notFound" : "loadError")
+              ) : (
+                <TextTyping text={submission?.description || ""} />
+              )}
             </Dialog.Description>
             {currentDetail?.status === "error" && !currentDetail.notFound && (
               <GlassButton
                 type="button"
-                onClick={() => setRetry(value => value + 1)}
+                onClick={() => setRetry((value) => value + 1)}
               >
                 {t("retry")}
               </GlassButton>
@@ -166,9 +189,7 @@ export default function ThoughtModal({
             <div className="thoughtModal-footer">
               <p className="thoughtModal-weather">
                 <WeatherIcon code={Number(weatherKey || -1)} />
-                <span>
-                  {atmosphere}
-                </span>
+                <span>{atmosphere}</span>
               </p>
               <div className="thoughtModal-actions">
                 {atmosphere && (

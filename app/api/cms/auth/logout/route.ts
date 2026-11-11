@@ -1,5 +1,5 @@
-import { getAuth, requireCmsSession } from "@/handlers/auth";
-import { cmsJson, withCmsRequest } from "@/handlers/http";
+import { getAuth, requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, withCmsRequest } from "@/app/api/_handlers/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

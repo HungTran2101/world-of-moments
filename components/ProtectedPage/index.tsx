@@ -5,8 +5,8 @@ import { ROUTES_PERMISSIONS, resolvePermission } from "@/services/permission";
 import { cache, type ComponentType } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireCmsSession } from "@/handlers/auth";
-import { CmsHttpError } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { CmsHttpError } from "@/app/api/_handlers/http";
 import { CmsRoute } from "@/components/shared/Route";
 
 import { getCmsLandingPath, type ProtectedCmsRoutePath } from "@/services/routes";

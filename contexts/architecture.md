@@ -70,14 +70,14 @@ Map cleanup removes request/listener/animation work, overlays, layers, sources, 
 
 Submission Module
 
-SubmissionForm accepts a description of up to 600 characters and requires a placed pin. The service sends description, lat and lng; ownership comes from the verified signed cookie; the server fetches weather before saving. There is no title input in the current flow.
+SubmissionForm accepts a description of up to 600 characters and requires a placed pin. The service sends description, lat and lng; ownership comes from the verified client account session; the server fetches weather before saving. There is no title input in the current flow.
 
 usePinStore holds draft coordinates. useSubmissionMapStore exposes the map operations needed by the form; MapView retains ownership of the map lifecycle.
 
 During submission, the writing pin is hidden and map interactions are paused while the bubble flies. A successful save clears the draft, refreshes viewport positions, and reveals them after arrival. The map then zooms beyond the clustering threshold while preserving a closer existing zoom. A failed save preserves the draft and pin; a refresh failure after saving is reported separately.
 
 Client API writes use TanStack Query `useMutation`. Public submission preparation
-runs in `onMutate`; its `onSuccess` invalidates UUID-scoped history and completes
+runs in `onMutate`; its `onSuccess` invalidates account-scoped history and completes
 the existing bubble/marker/camera sequence. `onError` keeps stage-specific errors,
 and `onSettled` releases the map and restores focus. Unmount still aborts the
 request/animation and releases the map independently. Locale mutations refresh
@@ -87,7 +87,12 @@ Errors are handled through the shared ErrorProvider/ErrorModal and Next.js route
 
 History Module
 
-The toolbar opens a non-modal, viewport-height HistoryPanel with toolbar-matching top and bottom margins on the right, wrapped in RefractiveGlass. Shared Radix dialog behavior handles Escape and focus restoration; CSS slide entry/exit respects reduced motion. Its title and 350 ms debounced search stay fixed above an independently scrolling list. TanStack Query owns page-based history data, cancellation, retry state, and caching scoped by saved UUID, search, and page. Each page contains up to 50 thoughts. Previous/next controls and the current/total page indicator stay centered in a footer outside the scrolling list. Changing search or UUID starts at page 1; only the selected page is rendered. History cards omit coordinates; the saved coordinates remain available to the map navigation action. Opening history never creates a UUID; missing or inaccessible storage shows a localized invitation to share. UUID changes are observed across tabs and after the first local submission. Successful creation invalidates history queries. Each thought has a Take me there action that closes history, moves the map to its coordinates beyond the clustering threshold while preserving closer zoom, and opens the existing thought modal after the camera arrives. Selecting another thought or starting a submission cancels an earlier visit; the draft pin is preserved. Author update/delete services and API handlers exist without connected author-management controls.
+HistoryPanel opens from the toolbar and loads account-owned private history with
+10-item pagination and debounced description search. Guests can open the login sidebar.
+History includes exact timestamps and author deletion with confirmation. Take me there
+closes history and opens the thought on the map; unpublished thoughts cannot navigate.
+Client-account changes clear old private queries and reload personalized map visibility.
+Submitted content is immutable; public PATCH is unavailable.
 
 Realtime Module
 
@@ -111,16 +116,19 @@ Backend (Next.js Server)
 Backend logic runs inside the Next.js server layer.
 
 Internal CMS API logic lives in native endpoint files under `app/api/cms`, with
-shared auth/HTTP utilities in `handlers/` and its server-only page factory in
-`components/ProtectedPage`. Each native CMS page selects its content component with
+shared server-only auth/HTTP utilities in the private `app/api/_handlers/` folder.
+Its server-only page factory lives in `components/ProtectedPage`. Each native CMS page selects its content component with
 `createProtectedPage(Component, ROUTE_PATHS.KEY)`; the factory validates the session
 and resolves permissions before rendering content. `services/constant.ts` holds
 fixed service constants, including CMS paths. `services/permission.ts` owns the
 permission catalog, module definitions, exhaustive protected-route permission map
 and landing policy, with no component registry. `services/routes.ts` retains landing
 navigation helpers and route types. Shared server-only API helpers live in
-`app/api/_shared.ts`. CMS page components and reusable UI
-follow the existing `components/` and `components/shared/` structure, with
+`app/api/_shared.ts`. Shared API constants live in `app/api/constant.ts`, and client
+auth constants live in `app/api/client/constant.ts`. Both are plain data modules
+available to frontend and backend code. `_handlers` and its subfolders
+are excluded from routing, and every handler retains its `server-only` guard.
+CMS page components and reusable UI follow the existing `components/` and `components/shared/` structure, with
 colocated `index.scss` styles. Permission/route/schema/query definitions live in
 `services/`, CMS domain requests in `services/cms/{accounts,roles,submissions,auth}/`,
 transport/common types in `services/shared/`, and session state in
@@ -134,7 +142,7 @@ CMS UI calls named service functions; endpoint URLs, methods and request encodin
 belong to services. Role options use the session-only
 `/api/cms/nopermission/options/roles` endpoint through the roles service.
 
-The accounts, roles, auth, future-message, submissions and locale service modules use
+The accounts, roles, auth, submissions and locale service modules use
 `index.ts` for request functions and `types.ts` for module-owned types. Consumers
 import runtime services and type-only definitions separately.
 
@@ -144,13 +152,14 @@ store submissions
 provide map queries
 enforce rate limits
 fetch weather data
-Future-message create/list scaffolding exists; unlocking is not implemented.
+Future messages are disabled pending a new client-account-based flow; legacy runtime
+code is removed, and unlocking is not implemented.
 
 Implemented submission Route Handlers:
 
 POST /api/submissions
 
-Validates description (1–600 characters) and coordinates, deriving ownership from the signed cookie. The form trims descriptions before sending. A successful create fetches weather, stores the row, and returns it with status 201. Creation is limited to one attempt per signed browser identity per rolling minute; invalid attempts consume the limit. More than ten rejected retries in a rolling minute blacklist the browser on retry 11. A separate 300-attempts/minute IP cap triggers a six-hour network ban on attempt 301. See `contexts/cms.md` for persistence and CMS management.
+Validates description (1–600 characters) and coordinates, derives ownership from a verified client account session, and atomically saves the thought with its quota counter. See `contexts/client-auth.md` for daily allowance, cooldown, suspensions and bans.
 
 GET /api/submissions
 
@@ -161,7 +170,10 @@ Invalid bounds return 400. The query has no fixed row cap, and public positions 
 
 GET /api/submissions/history
 
-Requires a valid signed visitor cookie and accepts search and page parameters (page defaults to 1). Returns a page of matching thoughts, newest first with an ID tie-breaker, as `{ items, metadata: { page, pageSize, total, totalPages } }`. All current and future paginated list APIs use this envelope and the shared `PaginatedResponse<T>` / `PaginationMetadata` types in `services/shared/pagination.ts`. Requested pages beyond the available range are clamped to the last page; an empty history has one empty page. Every page is filtered by the verified cookie owner; description search is case-insensitive. Responses are private/no-store and omit author_uuid. This uses anonymous cookie ownership, without public accounts or CMS sessions.
+Requires a client-account session and accepts search/page parameters. Returns account-owned
+thoughts, newest first, in the shared `{ items, metadata }` pagination envelope (10 per page).
+Empty results have one page, and requested pages are clamped. Responses are private/no-store
+and include exact timestamps only for the author.
 
 GET /api/submissions/:id
 
@@ -171,23 +183,26 @@ Returns id, description, lat, lng, weather_summary, and weather_code; returns 40
 
 PATCH /api/submissions/:id
 
-Supports description changes with ownership from the signed cookie. It compares the verified owner ID with the stored author_uuid, returning 403 on mismatch and 404 when missing.
+Not supported (405). Submitted content, coordinates and weather cannot be edited.
 
 DELETE /api/submissions/:id
 
-Checks the verified cookie owner against the stored author_uuid and returns 204 after deletion. These mutation handlers are implemented without connected edit/delete UI.
+Requires a client session and matching nullable `clientUserId`; returns 204 after deletion.
+History provides a confirmation UI. CMS deletion separately requires `submission.delete`.
 
 POST /api/locale
 
 Validates vi/en and stores the choice in a one-year locale cookie. The language selector refreshes the page after changing it; Vietnamese is the default.
 
-The following future-message endpoints are create/list scaffolding only; the planned send/unlock experience remains unfinished.
-
-Future message endpoints:
-
-POST /api/future-message
-
-GET /api/future-message
+Future-message endpoints are temporarily unavailable: GET/POST `/api/future-message`
+return 404. POST `/api/submissions/client-token` returns 405 via the existing
+`/api/submissions/[id]` route and cannot initialize anonymous identity. The old handlers,
+future-message/visitor services, browser identity cache/bootstrap, signed anonymous
+cookies, identity-error constant and in-memory limiter have been removed, including
+the temporary `app/api/_disabled/` archive. The Prisma model and existing data are
+retained until a deliberate ownership redesign. Future messages must use the existing
+client-account authentication when reimplemented. Client-account auth, map browsing,
+thoughts and CMS routes remain active.
 
 Database
 
@@ -219,7 +234,7 @@ updated_at
 
 Submission uses a cuid ID and a 600-character description column. It has indexes on author_uuid and on the lat/lng pair. weather_summary and weather_code are nullable. There is no title column in the current model.
 
-FutureMessage
+FutureMessage (legacy storage only; no active API/service)
 
 id
 
@@ -279,13 +294,19 @@ Security
 
 Implemented protections:
 
-Submission creation uses PostgreSQL-backed rolling-window protection shared across application instances: one admitted attempt per signed browser identity per minute, a browser block after more than ten rejected retries in one minute, and a six-hour IP ban after more than 300 attempts in one minute. IP protection trusts the proxy-overwritten X-Real-IP header. Future-message creation separately retains its in-memory, per-process limiter keyed by the first X-Forwarded-For IP; that limiter is not shared across instances. See `contexts/cms.md` for submission protection and proxy requirements.
+Client account quotas and auth-IP challenge windows persist in PostgreSQL and are checked
+on the server. Submission creation and quota updates share a per-account transaction lock.
+Public mutations check trusted same-origin requests; anonymous ownership IDs are never
+accepted. CMS/client sessions use separate secrets/cookies and account-kind checks.
+Legacy future-message anonymous identity and its in-memory limiter have been removed.
+The same trusted-origin check now lives directly in `app/api/_handlers/clientHttp.ts`,
+preserving the `SUBMISSION_PUBLIC_ORIGIN`/`NEXT_PUBLIC_APP_URL` runtime configuration
+and cross-site rejection for client-auth and thought mutations. The removed
+`SUBMISSION_CLIENT_COOKIE_SECRET` is no longer required.
+See `contexts/client-auth.md` for lifecycle, CAPTCHA, proxy and cleanup contracts.
 
-Zod validation for create/update payloads and viewport bounds, plus the description length limit.
-
-Author UUID comparison for public update/delete. Public identity is a server-issued signed HttpOnly cookie, separate from CMS authentication. Internal CMS accounts and database-backed sessions are isolated under `/cms` and `/api/cms`; see `contexts/cms.md` for the CMS contracts.
-
-Public submission GET routes explicitly select safe fields. Create/update responses return the saved row to the caller.
+Zod validates public payloads and bounds; public GET/create DTOs select only safe fields.
+Client-account deletion detaches thought ownership while retaining the published records.
 
 Writing guidance is implemented in the sidebar. Manual CMS moderation is implemented; automatic content classification is not implemented.
 
@@ -297,16 +318,15 @@ Optional profanity filter
 Submission moderation and audit additions
 
 Submission status is published/unpublished; validity is valid/invalid/need-inspect.
-Existing records migrate to published + valid; new records default to published +
-need-inspect. Public author edits cannot change moderation state. CMS has separate
+New records default to published + need-inspect. Submitted content is immutable. CMS has separate
 status and validity permissions, creation and deletion; existing content is read-only
 in CMS. See contexts/cms.md for API, warning and permission contracts.
 
 Pins and direct thought GETs require published status. A valid submission is visible
-to everyone; a non-valid published submission is visible only to its existing local
-cookie owner via a verified signed HttpOnly cookie. Invalid/missing cookies confer no extra access; client UUID headers/body fields confer none.
+to everyone; a non-valid published submission is visible only to its signed-in client
+author. Invalid/missing sessions confer no extra access; client UUID headers/body fields confer none.
 These reads are private/no-store and vary on identity and compression headers.
-UUID changes refresh visible positions without recreating the map. History retains
+Client-account changes refresh visible positions without recreating the map. History retains
 all owned states; unpublished entries cannot navigate to map details.
 
 Submission createdBy/createdFrom and all three modules' updatedBy are derived by the
@@ -316,3 +336,13 @@ history retains its existing owner-scoped timestamps. New record updater names
 start with the creator. Updates and password changes stamp the actor transactionally;
 login/session activity does not. Submission storage keeps updated_at; CMS DTOs use
 updatedAt. Creation/update public responses now use explicit safe field selections.
+
+Client authentication and schema maintenance
+
+User.kind isolates CMS and client accounts in shared Better Auth tables. Nullable
+Submission.clientUserId references User with SetNull deletion. ClientSubmissionLimit
+stores successful daily usage, last submission and bounded rejected-attempt timestamps;
+ClientAuthIpLimit stores expiring login/register windows. User fields hold verification
+send slots, status, suspension count/expiry and separate status audit data. There are
+no blacklist or account event-history tables. Prisma schema files are synchronized
+using `pnpm db:push` and `pnpm prisma:generate`; migration files are not retained.

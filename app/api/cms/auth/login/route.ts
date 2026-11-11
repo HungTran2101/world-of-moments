@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { constants } from "@/app/api/constant";
-import { getAuth, getCmsIdentity } from "@/handlers/auth";
-import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { getAuth, getCmsIdentity } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/services/schemas";
 

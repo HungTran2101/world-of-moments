@@ -61,7 +61,7 @@
     "closeMenu": "Close menu",
     "submissions": "Submissions",
     "dashboard": "Dashboard",
-    "blacklist": "Blacklist"
+    "clientUsers": "Client users"
   },
   "login": {
     "title": "Sign in",
@@ -108,7 +108,7 @@
     "role": "Roles",
     "submission": "Submissions",
     "dashboard": "Dashboard",
-    "blacklist": "Blacklist"
+    "clientUser": "Client users"
   },
   "permissionNames": {
     "account": {
@@ -118,8 +118,9 @@
       "updateSubmissionStatus": "Change publication status",
       "updateSubmissionValidity": "Change validity"
     },
-    "blacklist": {
-      "revoke": "Revoke blocks"
+    "clientUser": {
+      "changeStatus": "Change client account status",
+      "revokeBan": "Revoke client account bans"
     }
   },
   "validation": {
@@ -132,7 +133,8 @@
     "invalidRoles": "Select valid, non-system roles.",
     "differentPassword": "Choose a password different from your current password.",
     "descriptionMax": "Use at most 600 characters.",
-    "coordinates": "Enter valid coordinates."
+    "coordinates": "Enter valid coordinates.",
+    "email": "Enter a valid email address."
   },
   "errors": {
     "unauthorized": "Your session has expired. Please sign in again.",
@@ -217,32 +219,44 @@
     "month": "Month",
     "submissions": "Submissions"
   },
-  "blacklist": {
-    "ip": "IP address",
+  "clientUser": {
+    "email": "Email",
+    "password": "Password",
     "status": "Status",
-    "active": "Active",
-    "revoked": "Revoked",
-    "all": "All",
-    "count": "Times blacklisted",
-    "lastBlockedAt": "Latest block",
-    "blockedAt": "Blocked at",
-    "revokedAt": "Revoked at",
-    "revokedBy": "Revoked by",
-    "history": "Block history",
-    "historyTitle": "Block history: {ip}",
-    "historyRetention": "Events are kept for {days} days after revocation or expiry, then automatically deleted. Active blocks are kept, and the lifetime block count is unchanged.",
-    "revoke": "Revoke block",
-    "confirmRevoke": "Revoke the block for {ip}? Its history will be kept for {days} days after revocation.",
-    "browserTab": "Browser blocks",
-    "networkTab": "Temporary network bans",
-    "browserId": "Browser ID",
-    "latestIp": "Latest blocked IP",
-    "expiresAt": "Expires at",
-    "endedAt": "Ended at",
-    "endReason": "End reason",
-    "expired": "Expired",
-    "legacy": "Legacy IP block",
-    "migrated": "Archived during migration",
-    "unavailable": "Unavailable"
+    "statuses": {
+      "unverified": "Unverified",
+      "verified": "Verified",
+      "suspended": "Suspended",
+      "banned": "Banned"
+    },
+    "allStatuses": "All statuses",
+    "suspendedUntil": "Suspended until",
+    "suspensionCount": "Suspension count",
+    "system": "System",
+    "createTitle": "Create client user",
+    "detailTitle": "Client user details",
+    "changeStatus": "Change account status",
+    "confirmStatus": "Apply this restriction? A third suspension becomes a ban.",
+    "revokeBan": "Revoke ban",
+    "confirmRevoke": "Restore this account to verified? Current submission usage will be preserved.",
+    "emailError": "The account was created, but its verification email could not be sent. The user can sign in and retry sending it.",
+    "id": "Account reference",
+    "emailVerified": "Email verified",
+    "yes": "Yes",
+    "no": "No",
+    "verificationSendCount": "Verification send slots used",
+    "verificationLastSentAt": "Last verification send attempt",
+    "verificationDeadline": "Verification deadline",
+    "dailySubmissions": "Submissions today",
+    "lastSubmittedAt": "Last submission",
+    "recentRejectedAttempts": "Recent rejected attempts",
+    "errors": {
+      "emailExists": "That email already has an account.",
+      "notFound": "The client user was not found.",
+      "statusConflict": "The account status changed. Bans can only be restored using Revoke ban.",
+      "verificationPermanent": "Email verification cannot be removed.",
+      "unauthorized": "This unverified account has expired.",
+      "emailFailed": "The verification email could not be sent."
+    }
   }
 }

@@ -2,15 +2,15 @@
 
 This is the maintained CMS specification and implementation reference. Read it
 before changing CMS behavior and update the affected contracts/status in the same
-task. Public map visitors use a separate anonymous signed HttpOnly cookie identity.
+task. Client accounts use a separate cookie-session configuration; see `contexts/client-auth.md`.
 
 ## Scope and architecture
 
 - Internal CMS only: `/cms` and `/api/cms`.
 - Next.js App Router, Better Auth hosted in Next.js, Neon PostgreSQL through the
   existing Prisma client, TanStack Query, Zustand, React Hook Form and Yup.
-- Modules: submissions, browser/network blacklist, accounts and roles. Exports are deferred. There are no
-  social logins, public registration, or email recovery.
+- Modules: submissions, client users, CMS accounts and roles. Exports are deferred.
+  Public registration belongs to separate client auth; CMS has no public signup or email recovery.
 - Use a restrained, readable interface with shared spacing, controls and subtle
   transitions. No glass dashboard styling or decorative statistics panels.
 
@@ -19,7 +19,7 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
 - Page components live in `components/AccountDetail`, `components/Accounts`,
   `components/ChangePassword`, `components/General`, `components/Login`,
   `components/Dashboard`, `components/Profile`, `components/RoleDetail`, `components/Roles`,
-  `components/Submissions`, `components/Blacklist` and `components/SubmissionDetail`. Styles are colocated in
+  `components/Submissions`, `components/ClientUsers`, `components/ClientUserDetail` and `components/SubmissionDetail`. Styles are colocated in
   `index.scss` where needed and loaded centrally through `styles/cms-import.scss`
   from `app/cms/layout.tsx`. CMS styles are excluded from the root public/shared
   entry, `styles/import.scss`, so public routes do not download CMS component CSS.
@@ -123,11 +123,12 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
   The public map sidebar is
   `components/SubmissionSidebar` (`SubmissionSidebar`).
 - CMS API operation logic lives directly in native `route.ts` files under
-  `app/api/cms/{auth,accounts,roles,submissions,blacklist,dashboard,nopermission}`. Shared account
+  `app/api/cms/{auth,accounts,roles,submissions,client-users,dashboard,nopermission}`. Shared account
   selection/serialization/role validation, submission serialization/moderation helpers
   and dashboard calendar SQL live in the server-only `app/api/_shared.ts`.
-- Server-only session/auth configuration and HTTP utilities remain in
-  `handlers/auth.ts` and `handlers/http.ts`. The shared request wrapper checks
+- Server-only session/auth configuration and HTTP utilities live in the private, non-routable
+  `app/api/_handlers/` folder (`auth.ts`, `http.ts`, and client-auth equivalents).
+  Every handler keeps its `server-only` import. The shared request wrapper checks
   trusted origins for POST/PATCH and converts application errors to JSON.
 - `components/ProtectedPage/index.tsx` owns the server-only `createProtectedPage`
   factory and cached session lookup. Each protected native `page.tsx` imports its
@@ -146,8 +147,12 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
   `services/{routes,query-state,schemas}.ts`.
   The constants module is dependency-free and stays safe for client consumers;
   server-only API helpers stay in `app/api/_shared.ts`.
+- Shared API constants live in `app/api/constant.ts`. Client statuses, limits, query
+  keys and session events live in `app/api/client/constant.ts`. Both plain data modules
+  are imported by frontend and backend code; they must not import server-only handlers
+  or contain secrets.
 - Each request module has `index.ts` for service functions and `types.ts` for its
-  types: `services/cms/{accounts,roles,submissions,blacklist,dashboard,auth}`, `services/future-message`,
+  types: `services/cms/{accounts,roles,submissions,client-users,dashboard,auth}`,
   `services/submissions`, and `services/locale`. Types are imported directly from
   the module's `/types` path, separately from runtime functions.
 - CMS UI imports named service functions instead of calling `cmsRequest`,
@@ -181,6 +186,8 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
 - The protected system role grants `["*"]`. It cannot be edited, deleted, assigned
   to other accounts, or removed from the seeded account. System roles are excluded
   from role lists, search results and pagination totals.
+- All CMS identity, account CRUD and role-assignment paths enforce `kind: cms`.
+  Public client registration creates no roles and cannot enter the CMS.
 - The database session is the authority. APIs check the live session, expiry,
   account status and current role permissions.
 - Better Auth session cookie: HttpOnly, SameSite=Lax, Secure in production,
@@ -252,7 +259,7 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
   `undefined` (session-only access), subject to the no-page-access rule below.
 - Every protected content component receives a computed `permission` prop:
   `{ show, create, update, delete, custom }`.
-- `getCmsLandingPath` centralizes landing priority: Dashboard, Submissions, IP blacklist,
+- `getCmsLandingPath` centralizes landing priority: Dashboard, Submissions, Client users,
   Accounts, then Roles, using each module's show permission. Login, authenticated login-page
   visits, the sidebar brand and `/cms` without Dashboard access use that destination.
   Other unauthorized module URLs retain the forbidden view.
@@ -278,7 +285,7 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
   new tab using `target="_blank"` and
   `rel="noopener noreferrer"`. Selecting it also closes the mobile sidebar.
   Its label is localized in English and Vietnamese and requires no module permission.
-  Management contains Submissions. System contains Accounts, Roles, General and
+  Management contains Submissions and Client users. System contains Accounts, Roles, General and
   Profile; General and Profile are available to signed-in users with at least one
   module show permission. Profile
   remains highlighted on its nested password-change page.
@@ -289,7 +296,9 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
 | `/cms` | Dashboard (`dashboard.show`); otherwise first permitted module or no-access message |
 | `/cms/submissions` | Submission list and bulk moderation |
 | `/cms/submissions/detail` | Create without `id`; view/moderate with `?id=...` |
-| `/cms/accounts` | Account list |
+| `/cms/client-users` | Client account list, status filter and email search |
+| `/cms/client-users/detail` | Create without id; information/status with id |
+| `/cms/accounts` | CMS account list |
 | `/cms/accounts/detail` | Create without `id`; view/update with `?id=...` |
 | `/cms/roles` | Role list |
 | `/cms/roles/detail` | Create without `id`; view/update with `?id=...` |
@@ -336,10 +345,7 @@ task. Public map visitors use a separate anonymous signed HttpOnly cookie identi
   Both require `dashboard.show` independently of `submission.show`, use central
   Yup validation, private/no-store responses and parameterized PostgreSQL aggregates.
   Omitted periods default to 30d; timeZone is required.
-- `Submission.created_at` has the B-tree index `submissions_created_at_idx`,
-  declared in Prisma and added by migration
-  `20261105000000_add_submission_created_at_index`. It supports bounded creation-date
-  ranges and earliest-date lookup; all-time aggregates still process matching rows.
+- `Submission.created_at` has a B-tree index declared in Prisma for creation-date ranges and earliest-date lookup.
 - Named dashboard services accept `ApiRequestOptions`; separate TanStack Query
   keys include period and time zone. Sections load/fail/retry independently.
 
@@ -767,24 +773,15 @@ page 1 after a page-size change.
    the same secret across instances of an environment, using separate development
    and production secrets; keep it out of client bundles and logs. Production CMS
    requires this in `.env.production` or deployment environment settings.
-4. Run `pnpm exec prisma migrate deploy`, then `pnpm prisma:generate`.
+4. Run `pnpm db:push`, then `pnpm prisma:generate`. Schema files are the development
+   source of truth; there are no migration files or database-reset steps.
 5. Set `CMS_INITIAL_ADMIN_PASSWORD=worldofmoment`, then run `pnpm cms:seed`.
    Remove the bootstrap password from deployment configuration when no longer needed.
 6. Run `pnpm dev` and open `/cms`. Use the normal change-password page to change
    the seeded password. Deploy schema/configuration before exposing the CMS.
 
-Production migration and seeding are explicit deployment steps, not runtime
-startup behavior.
-
-The `20261102000200_remove_cms_jwt` cleanup migration removes the obsolete signing-key
-table. Deploy the session-only application before applying this migration where
-older application instances could still use JWT signing keys. Existing migration
-history is retained. `BETTER_AUTH_SECRET` remains required for cookie-based auth.
-
-Deploy the application with `displayUsername` disabled and regenerate Prisma
-before applying `20261104000000_remove_cms_display_username`. Older application
-instances still write/read that column and must be restarted with the updated
-code and generated client before the column is dropped.
+Schema synchronization and seeding are explicit setup steps, not runtime startup behavior.
+See `contexts/client-auth.md` for provider keys, hosting timezone and hourly cleanup.
 
 ### Development compiler
 
@@ -811,258 +808,6 @@ Prisma model types or delegates (for example, `UserSelect`, `UserGetPayload`,
 `prisma.user`, or `prisma.cmsRole`), run **TypeScript: Restart TS Server** from the
 command palette. The editor can retain old generated declarations even when a
 fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
-
-## Validation status
-
-- Submission creation-date index: migration
-  `20261105000000_add_submission_created_at_index` is applied to the development
-  database. Prisma formatting/validation, migration status, database-to-schema
-  comparison and diff checks pass. PostgreSQL metadata confirms
-  `submissions_created_at_idx` is a valid, ready B-tree index on `created_at`.
-  Production is unchanged; apply the migration there during deployment.
-- Provider-scoped CMS identity: `CmsSession` seeds a vanilla Zustand context
-  store from the server user and renders children immediately. Scoped ESLint
-  fixes, repository lint, TypeScript and the Webpack production build pass.
-  Temporary checks verify store isolation, seeded SSR identity, first-render
-  children, same-user notification avoidance and isolated update/clear behavior.
-  Production-mode browser/HTTP checks verify identity/sidebar/content in initial
-  HTML without the loading gate, real login, isolated authorized/zero-scope users,
-  live identity/scope updates on client navigation, two-tab logout, protected API
-  401 handling and anonymous redirects without hydration warnings/errors.
-  Under the previous 390px/Slow-4G/4x-CPU cold-load scenario, one follow-up trace
-  records LCP 1.99s versus the earlier 6.81–6.83s baseline; CLS remains about 0.12
-  because summary loading space is unchanged. These are local lab measurements.
-  Temporary users, roles, sessions, credentials, test server and browser/blank
-  window are removed; production deployment is unchanged.
-- Compact summary cards: shared badge palette reuse, tighter spacing/type and an
-  icon-only inspection link pass scoped ESLint/Stylelint fixes, TypeScript,
-  repository lint and diff checks. Development-browser checks verify about 83px
-  desktop cards, responsive 390px layout without overflow, matching preset colors,
-  localized link label/filter URL and visible keyboard focus. Console warnings/
-  errors are absent; temporary test records and the automation/blank window are removed.
-- Dashboard chart/localization refinement: the official radix-nova shadcn chart
-  primitive uses Recharts 3.8.0 and the existing `cn` helper. Vietnamese labels
-  retain Dashboard and use Khoảnh khắc throughout Dashboard copy. Scoped
-  ESLint/Stylelint auto-fixes, TypeScript, repository lint, locale-key/newline
-  checks and the Webpack production build pass. Development-browser checks verify
-  daily/monthly charts, independent filters, localized date/count tooltips,
-  keyboard arrow navigation with a visible focus outline and desktop/390px layout
-  without overflow or console warnings/errors. Temporary account/role/session
-  records, credentials and the dedicated browser/blank window are removed.
-- Dashboard and permission-aware landing: scoped ESLint/Stylelint auto-fixes,
-  TypeScript, repository lint, route type generation, locale-key/newline checks,
-  diff checks and the Webpack production build pass. PostgreSQL checks using
-  rolled-back temporary tables cover all status/validity combinations, empty
-  periods, local-midnight inclusion, future-date exclusion, DST transitions,
-  missing buckets and the 90/91-day aggregation switch. Live development-browser
-  checks cover 401/403 API guards, invalid-filter 422 responses, Dashboard-only,
-  Submissions-only, Accounts-only, Roles-only, wildcard, action-only and zero-view
-  access, landing redirects, empty navigation, no-access General/Profile/password views,
-  EN/VI Dashboard labels, independent filters, the prefiltered inspection link,
-  keyboard/touch tooltip access and desktop/390px layout without overflow.
-  Simulated browser responses verify zero/empty presentation and independent
-  trend failure/retry; a fresh Dashboard has no console warnings/errors. Temporary
-  account/role/session/credential artifacts and the dedicated automation browser,
-  including its blank window, are removed. Production is unchanged.
-- Selected chips/password visibility: scoped ESLint fixes, TypeScript,
-  repository lint, translation-key/newline and diff checks pass. Desktop/390px
-  browser checks verify borderless chip removal without overlap, keyboard
-  selection/removal/clear-all and focus return. Password visibility preserves
-  values, input focus, registration/autocomplete, independent field state and
-  localized validation/error association. The toggle is excluded from Tab order;
-  fieldset disabling covers the input and its toggle. EN/VI labels and mobile
-  overflow checks pass. No account or password changes were submitted.
-- System → Profile: read-only username/display-name details reuse the validated
-  CMS identity. Password change now lives at `/cms/profile/change-password` with
-  Profile breadcrumbs/back navigation; the sidebar footer retains only identity
-  and sign-out. Scoped ESLint/Stylelint fixes, route type generation, TypeScript,
-  repository lint, translation-key/newline checks and diff checks pass. Stale
-  generated types for the deleted password route were removed. Browser checks
-  cover desktop/390px layout without horizontal overflow, EN/VI labels, button
-  navigation, active Profile highlighting, back navigation and password-form
-  validation. Both routes redirect anonymous visitors to login; the old route is
-  404. Checked pages have no console warnings/errors. No passwords were changed.
-- `displayUsername` cleanup: the username plugin disables the field, account
-  creation/update and seeding no longer write it, and the Prisma column is
-  removed. The migration is applied to the development database; a direct
-  metadata query confirms the column is absent and `username`/`name` remain.
-  Scoped ESLint fixes, repository lint, Prisma formatting/validation/client
-  generation, TypeScript and diff checks pass. The development server was
-  restarted with the regenerated client. Live HTTP checks cover account creation,
-  username update, detail retrieval, login with the updated username and the
-  existing administrator session. Temporary account/role records were removed;
-  checked browser pages have no console warnings/errors. Production is unchanged.
-- Native CMS page factory: scoped ESLint fixes, repository lint, TypeScript and
-  the Webpack production build pass. The default Turbopack build is blocked here
-  by font-download and worker-port restrictions. Temporary checks cover 30
-  route/scope combinations, 401 redirects, unexpected-error propagation and
-  compile-time rejection of login/unknown protected paths. Live development-browser
-  checks cover all six screens, read-only/wildcard/empty scopes, forbidden content
-  exclusion from server responses, store/sidebar updates during client navigation,
-  detail/back search and page-size preservation, login/logout redirects and unknown
-  route 404s. Temporary account, role, credentials and sessions are removed.
-- Implementation and development-database migrations/seed are complete. Production
-  database/deployment have not been changed.
-- Automated test sources, package scripts and test-only dependencies were removed
-  at the user's request. `tsx` remains required by `pnpm cms:seed`.
-- Changed-file ESLint/Stylelint fixes, typecheck, Prisma validation and production
-  build pass. Repository-wide lint passes without errors or warnings after the
-  PostCSS configuration correction.
-- Completed production-mode HTTP integration verification against the development DB:
-  CRUD, current DB permissions, hidden admin, 422 field errors, revocation,
-  password change/reset, and atomic batch conflicts; temporary fixtures are removed.
-- Browser checks cover admin login, role/account creation, read-only-user sidebar
-  and 403 page, English/Vietnamese, search/page-size restoration after reload, bulk
-  deletion with last-page clamping, and responsive table behavior.
-- At a 390px viewport the Header remains at 48px while the main area scrolls;
-  action cells remain sticky during horizontal table scroll with no page overflow.
-- English/Vietnamese CMS files have equal 98-key sets; all locale files retain
-  their lack of trailing newline. Final fixture cleanup leaves only the hidden
-  seeded admin and its protected system role.
-- Restart an already-running development server after generating the new Prisma
-  client so it cannot retain an older model schema in memory.
-- Next.js 16.4.3 upgrade: typecheck, repository ESLint and production build pass.
-  Development browser checks cover login/logout, protected-route redirects,
-  user permission scopes, account/role pagination, 422 validation, English/Vietnamese,
-  the public map, thought-detail/history APIs, and CSS HMR without a reload. A
-  four-minute development session returned to 0% server CPU with no observed
-  heap-threshold restarts; this does not establish long-session memory stability.
-  Production-mode CMS rendering, session auth, account list and public-map checks also
-  passed using the development database. Temporary servers were stopped afterward.
-  The existing `middleware.ts` deprecation remains. The PostgreSQL SSL-mode
-  warning was subsequently addressed by setting `sslmode=verify-full` in the
-  local development/production URL files; hosted deployment settings still need
-  the same explicit mode when configured separately.
-- Folder reorganization: all 30 moved modules retain their logic and exports;
-  imports use the ownership map above and the old root `cms/` folder is removed.
-  Styles are split by page/shared component, with the original compiled rules
-  preserved except that account/password form widths belong to their page classes.
-  Scoped ESLint/Stylelint fixes, repository ESLint, typecheck and production build
-  pass. Desktop Accounts geometry/computed styles match the baseline. Browser
-  checks cover the role permission matrix, detail form widths, 390px sticky header
-  and action cells, select-arrow alignment, account/role lists, session refresh,
-  unauthenticated redirects and the public map. Checks did not mutate CMS records.
-- Session-only authentication: JWT plugin, direct `jose` dependency, token state,
-  decoding, expiry timers and refresh endpoint are removed. The signing-key cleanup
-  migration is applied to the development database; production is unchanged.
-  Prisma validation, scoped ESLint fixes, repository ESLint, typecheck and build
-  pass. Browser checks verify plain-user login, logout, unauthenticated redirects,
-  reload hydration and zero refresh calls. Production-mode HTTP checks against the
-  development DB verify HttpOnly cookies, plain login DTOs, missing/invalid session
-  rejection, 403 permissions, 422 validation, live permission changes and revoked
-  sessions. Temporary role/account fixtures and the preview server were cleaned up.
-- Native CMS endpoint routing: operation logic is colocated in 11 route files;
-  the catch-all router and three domain dispatcher modules are removed. Scoped
-  ESLint fixes, repository lint, route type generation, typecheck and the Webpack
-  production build pass. Stale generated development route types referencing the
-  removed catch-all were cleared. Turbopack's build was blocked by an internal
-  compiler port-binding restriction in the validation environment.
-  All 168 production-mode HTTP/DB checks pass against the development database,
-  covering native 404/405, HEAD/OPTIONS, static-route precedence, auth/cookies,
-  permissions/origin checks, CRUD, validation, record JSON 404s, pagination,
-  password changes/resets, session revocation, login throttling and atomic batch
-  conflicts. Browser checks pass for login/logout, account and role lists/details,
-  account role options and protected-route redirects, with no console errors or
-  warnings. Temporary records, sessions, limiter rows and the server are removed;
-  production data/deployment are unchanged.
-- CMS services/options: the five CMS UI callers use named account, role and auth
-  services instead of direct transport calls. Module options moved to
-  `/api/cms/nopermission/options/roles` with session-only access; every CMS endpoint
-  documents access immediately above each HTTP method. `AGENTS.md` records
-  the service boundary. Account-detail route permissions now match the documented
-  account permissions and include the password-reset action.
-  Scoped ESLint fixes, repository lint, route type generation, typecheck and the
-  Webpack production build pass. All 94 temporary service/HTTP/DB checks pass,
-  covering request encoding, payloads, cancellation, cookies, login-error/session
-  handling, options access without module scopes, minimal DTOs, native routing
-  errors and HEAD/OPTIONS. Production-mode browser checks cover account/role
-  create/edit, role options, password change/reset and login with the new passwords,
-  local credential errors, logout, revoked-session redirects, and read-only
-  account details without role permissions. The checked successful flows have
-  no console errors or warnings. Temporary fixtures and the server are removed;
-  production data/deployment are unchanged.
-
-- Modern CMS controls and inset shell: shadcn Input, Select and Checkbox replace
-  native CMS controls; the shared Base UI Combobox adapter provides searchable
-  multiple selection with wrapping/removable tags and continued selection after
-  search. Sidebar/Header have 12px corners and 12px desktop / 8px mobile shell gaps.
-  Scoped ESLint/Stylelint fixes (including CSS), typecheck, repository lint and the
-  Webpack production build pass. CMS locales have matching 102-key sets and no
-  trailing newline. Development-browser checks cover account creation and role
-  persistence, extra-permission add/remove without changing other permissions,
-  inline search/empty results, keyboard selection/Backspace/Escape, validation
-  focus/error association, read-only accounts, the protected system role, locale
-  switching with dirty input preserved, search, bulk deletion and page-size reload
-  restoration. Geometry/screenshots cover 1440px, 820px and 390px views: tags wrap,
-  tables scroll horizontally without page overflow, and the inset Header remains
-  sticky with mobile navigation expanded. Popups remain light under an inherited
-  dark class, appear above the Header and respect reduced motion. Checked CMS flows
-  have no console errors or warnings. The public-map render smoke check passes;
-  Chrome reports a WebGL buffer performance warning. Temporary account/role records
-  and isolated browser tabs are removed. Production data/deployment are unchanged.
-
-- Shared page content: `CmsPageContent` wraps breadcrumbs and page bodies across
-  overview, CRUD lists, account/role details, password change and the 403 view.
-  Outer padding/gaps/bottom spacing belong to this component; Header reads the
-  same responsive inline-padding token. Old `.cms-content`, breadcrumb padding,
-  overview top padding and main bottom padding are removed. Scoped ESLint/Stylelint
-  fixes, typecheck, repository lint and the Webpack production build pass.
-  Browser geometry verifies matching Header/content padding (32px desktop, 16px
-  mobile), aligned breadcrumb/form edges and no page overflow. At 390px, overview,
-  account list, role detail and password change each render one shared wrapper.
-
-- Unified Select: single and multiple selection share `components/ui/select.tsx`;
-  the old CMS controls module is removed and every CMS caller imports `Select`
-  directly. Multiple mode supports boolean and `{ allowClear }` configuration;
-  clear-all is keyboard reachable and updates the controlled array/form value.
-  CMS theme classes and localized labels are supplied at usage, with generic
-  English defaults for other consumers. CMS locales have matching 103-key sets
-  and retain no trailing newline. Scoped ESLint/Stylelint fixes, typecheck,
-  repository lint and the Webpack production build pass. Browser checks cover
-  single selection, boolean/object multiple modes (including allowClear false),
-  search/empty results, continued selection, tag removal, keyboard clear-all,
-  disabled controls, and operation outside the CMS without CMS translation keys.
-  Account-form clear-all triggers the existing required-role error and focuses
-  the field; 390px controls have no page overflow. CMS page-size selection and
-  protected-role rendering pass. The temporary validation route and role are
-  removed; no account records were created.
-
-- Shared Button adoption: all native button JSX in CMS pages/shared controls,
-  map attribution/guidelines/retry and the global fallback now uses `Button`.
-  Existing GlassButton consumers already compose this primitive. CMS actions use
-  outline/link variants; obsolete native-button styling is removed. Public custom
-  styles preserve attribution/guideline geometry, transparency and icon sizes.
-  Scoped ESLint/Stylelint fixes, typecheck, repository lint and the Webpack
-  production build pass. Browser checks cover external-form header submit and
-  validation, account creation, reset-dialog validation/cancel, search/deletion,
-  disabled pagination/bulk controls, mobile overflow and attribution/guideline
-  open/close with focus restoration. A temporary client-mounted global-fallback
-  harness verifies keyboard retry even with stylesheets disabled. Temporary
-  account/role records, the harness route and extra browser tabs are removed.
-
-- API-button loading audit: scoped ESLint fixes, typecheck and diff checks pass.
-  Temporary component checks with mocked HTTP responses cover account/role row
-  deletion failures, successful deletion through list invalidation, search, stale
-  and fresh-cache pagination, retry recovery, and sign-out failure recovery. No CMS
-  data or sessions were changed by these checks. Live search HTTP requests succeed;
-  transient loading visuals and real mutation flows were not fully browser-verified.
-
-- Reusable pagination: the shared controlled component owns its styles and
-  exposes page/page-size callbacks. Table uses it without pagination loading dots.
-  Scoped ESLint/Stylelint fixes, typecheck, Sass compilation and diff checks pass.
-  Temporary component checks cover standalone callbacks, page-size changes, empty
-  and boundary pages, disabled controls, custom sizes/classes, EN/VI labels and
-  Table composition while fetching. Desktop Accounts rendering is checked.
-
-- Compact sidebar and General preferences: scoped ESLint/Stylelint fixes,
-  repository lint, route type generation and TypeScript checks pass. Browser
-  verification covers the same-row secondary password link/destructive sign-out
-  icon, localized tooltip, display-name-only identity, and System → General
-  navigation. English/Vietnamese language changes persist across reloads.
-  At 1440px and 390px, the footer stays on one row without horizontal overflow;
-  mobile password navigation closes the sidebar. Account/role list and detail
-  breadcrumbs and password-change breadcrumbs omit the Overview prefix.
-  Sign-out returns to login, and the checked pages have no console warnings/errors.
 
 ## Submission administration and record audit fields
 
@@ -1093,11 +838,10 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   permission-matrix Update cell is unavailable. The two moderation permissions are
   independent extras, enforced by UI and APIs. Existing submission description,
   coordinates, UUID, weather and provenance are read-only in the CMS.
-- Existing submissions migrate to `published` + `valid`. New public and CMS records
+- New public and CMS records
   default to `published` + `need-inspect`. Other states are `unpublished` and
   `invalid`; wire values use the hyphenated `need-inspect` spelling. Public create
-  and author-edit payloads cannot set moderation or provenance. Public author edits
-  preserve the current moderation state.
+  payloads cannot set moderation or provenance. Public content editing is unavailable.
 - CMS creation accepts description, coordinates and initial state. Choosing a
   non-default status or validity requires the matching moderation permission.
   The server generates a normal random UUID; the UI shows “Auto generated” before
@@ -1137,7 +881,7 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   creator; new public submissions use `client`. Bootstrap records without an
   authenticated actor retain null. Account-name snapshots survive later renames
   and deletions and never serve as authorization identity.
-- Successful public author edits and CMS submission moderation stamp their actor;
+- CMS submission moderation stamps its actor;
   bulk moderation stamps every affected row. Role/account updates, account role
   assignments, password resets and self-service password changes stamp the same
   transaction. Login/session activity does not stamp record edits. Failed/cancelled
@@ -1147,269 +891,51 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   centered Actions; both timestamps use `formatDateTime` in browser time zone.
   On mobile, search inputs with extra tools fill a row so filters cannot squeeze
   the text field.
-- Migration `20261104000100_submission_moderation_audit` adds the enum/provenance/audit
-  fields, backfills old submission validity before setting the new default, and
-  preserves timestamps. Apply the additive migration before deploying this code,
-  regenerate Prisma, and restart existing application processes. Production
-  migration/deployment is an explicit operation.
-
 ### Public visibility and private history
 
 - Viewport pins and direct thought-detail reads use the same server-side predicate:
-  published + valid for everyone; published + any validity for the matching local
-  author UUID. Unpublished records are excluded for everyone and return 404 on
+  published + valid for everyone; published + any validity for the matching signed-in
+  client account. Unpublished records are excluded for everyone and return 404 on
   direct detail access. CMS session identity never changes public ownership.
-- Public browsing uses a verified signed visitor cookie. Missing/invalid cookies
-  act as anonymous visitors; UUID headers confer no access. Personalized GETs use
+- Public browsing is open. Client sessions add author visibility; CMS cookies and UUID
+  headers confer no public ownership. Personalized GETs use
   private/no-store caching and vary on Accept-Encoding and Cookie while
   retaining Brotli/gzip compression, viewport bounds and date-line handling.
 - Public DTOs omit creator/updater names, author UUID and exact timestamps.
   Owner history retains all states and exact creation time, includes status, and
   disables Take me there for unpublished records with a localized explanation.
-- UUID changes cancel obsolete viewport/detail requests and reload positions without
+- Client-account changes cancel obsolete viewport/detail requests and reload positions without
   recreating the map. There is no new realtime polling; normal viewport/submission
   refresh behavior remains in effect.
 
 
-### Submission and audit validation
 
-- The additive moderation/audit migration is applied to the development database;
-  all 215 pre-existing submissions were verified as published + valid. Production
-  has not been migrated or deployed. Prisma validation/generation, changed-file
-  ESLint/Stylelint fixes, route type generation, TypeScript, repository lint and the
-  Webpack production build pass.
-- All 130 temporary production-mode HTTP/database checks pass: public visibility
-  for six state combinations and four viewer identities, private caching, safe
-  DTOs, owner history, defaults/provenance, generated UUIDs, independent moderation
-  permissions, create overrides, immutable CMS content, publication acknowledgment,
-  atomic bulk failures, and role/account/password audit updates.
-- Browser checks cover desktop and 390px EN/VI pages, filter placement and URL
-  restoration, read-only details, generated-UUID labeling, correct select hydration,
-  status-only/validity-only/create-only permissions, bulk warning counts,
-  cancellation preserving selection, confirmed publication and list invalidation.
-  The submission row in role permissions has no Update checkbox and exposes its
-  two custom permissions. CMS pages have no observed console warnings/errors.
-- Public-browser checks verify UUID-triggered viewport refresh with the author
-  header and private compressed responses, unpublished history navigation being
-  disabled, and an owner's published invalid thought opening from history. The
-  map retains its existing Chrome WebGL buffer performance warning.
-- Temporary records/scripts, test-server processes and automation browser surfaces
-  are removed after validation. The development server is restarted on port 3000
-  with the regenerated Prisma client.
+## Client user management
 
-
-## Signed-cookie identity and blacklist management
-
-Public anonymous identity is now one server-issued signed HttpOnly cookie, separate
-from Better Auth CMS authentication. The LocalStorage UUID and `x-author-uuid`/body
-ownership credentials are retired. This is an intentional product change: browsers
-start fresh, and old submissions/future messages remain stored without importing or
-reassigning their owners. Existing moderation/visibility rules still apply.
-
-### Cookie and ownership contract
-
-- `POST /api/submissions/client-token` validates Origin and initializes/renews a
-  host-only cookie (`__Host-wom-visitor` in production; `wom-visitor` in development).
-  It is HttpOnly, SameSite=Lax, Secure in production, and lasts one renewable year.
-  Valid renewal preserves its random server-generated owner ID. The JSON response
-  is only `{ cacheKey }`, an HMAC value with a separate purpose from token signing.
-- `SUBMISSION_CLIENT_COOKIE_SECRET` must be independent from Better Auth, at least
-  32 random characters, stable across restarts and shared across app instances.
-  `SUBMISSION_PUBLIC_ORIGIN` optionally overrides the server's trusted origin at
-  runtime; otherwise it uses the build-configured `NEXT_PUBLIC_APP_URL`.
-  Missing configuration fails issuance/submission with generic 503. Do not rotate
-  this secret casually: losing it invalidates existing anonymous identities.
-- Ownership of public submissions/history/edit/delete and future-message scaffolding
-  comes only from the verified cookie. Client UUID headers/body fields confer no
-  access. The existing database owner columns and CMS UUID display remain internal.
-  Public response DTOs omit owner identifiers; exact timestamps remain private.
-- Reads without a valid cookie can browse normal published/valid thoughts. Private
-  operations require a cookie and return 401 `SUBMISSION_IDENTITY_REQUIRED`; this
-  error never logs out CMS. Public mutations reject untrusted Origin, including DELETE.
-- The public app initializes identity without gating anonymous map browsing. Private
-  queries use the opaque cache key; changes cancel/remove old private queries and
-  reload owner-sensitive pins/detail without rebuilding the map. Focus/visibility
-  and BroadcastChannel coordinate tabs; Web Locks serialize first-time issuance
-  where available. Only a change notification is broadcast, never credentials.
-- Owned requests reuse the initialized identity, including POST/PATCH/DELETE;
-  submissions do not refresh `client-token` before each mutation. Only a 401 with
-  `SUBMISSION_IDENTITY_REQUIRED` triggers identity renewal and one request retry,
-  because these handlers reject before any write. A second identity rejection is
-  surfaced as a cookie requirement and clears the cached identity. Other failures
-  (generic 401, blocked browser/network, validation, server/network errors) are not
-  retried. Cancellation prevents renewal/retry when the caller has aborted.
-- Cookie refusal explains the requirement while retaining drafts. Clearing cookies
-  loses access to previous private history and yields a fresh browser identity.
-  Signing prevents forgery, not deliberate cookie deletion. No legacy import exists.
-
-### Abuse policy and persistence
-
-- Browser cooldown: one admitted attempt per rolling minute, including malformed
-  JSON/content. Rejected retries do not extend that cooldown. More than ten
-  rate-limited retries in a rolling minute block that browser until CMS revocation,
-  across IP changes: retries 1–10 return 429; retry 11 creates the browser block
-  and returns 403. Rejections at least one minute old no longer count.
-- Network safety cap: 300 incoming submission attempts in a rolling minute are
-  allowed through this layer; attempt 301 creates a six-hour IP ban. Invalid-cookie,
-  malformed-body and browser-blocked attempts count too. Origin-denied requests and
-  cookie bootstrap are rejected/excluded before this counter. The network ban is
-  deliberately shared by all browsers on that IP.
-- Active network bans take precedence and return 429 `SUBMISSION_NETWORK_BANNED`
-  with remaining Retry-After seconds. Browser blocks return 403
-  `SUBMISSION_BROWSER_BLOCKED`; ordinary cooldown is 429. All reject before weather
-  and submission writes. Requests during a ban do not extend it or add events.
-- Browser/network locks use PostgreSQL transaction-scoped advisory locks, always
-  network before browser. Temporary counters are cleaned on expiry. Unique target
-  keys and the one-open-event partial index protect concurrent creation.
-- `SubmissionBlacklist` and `BlacklistEvent` map to the original blacklist tables,
-  preserving IDs/history. Scopes are browser/network/legacy. Events retain the IP,
-  creation/expiry/end time, end reason and manual moderator-name snapshot. Expiry is
-  recognized by timestamps before cleanup. A later ban closes the expired event.
-- Ended blacklist events are retained for 90 days after `endedAt`, or after
-  `expiresAt` when an expired event has not been closed yet. Older ended events
-  are deleted during submission protection and authorized blacklist list/history
-  requests; there is no background scheduler. Active events are never pruned.
-  Target rows and lifetime `blacklistCount` remain unchanged. List DTOs allow
-  `latestEvent: null` after all events have been pruned; the CMS preserves the
-  target status and shows empty revocation details in that case. Historical IP
-  search only covers retained events and the target row's latest IP.
-- Browser-blocked and network-banned submission errors include the requesting
-  browser's verified `browserId` (nullable when no valid cookie exists) and the
-  public support address from `NEXT_PUBLIC_ERROR_REPORT_EMAIL`. They never expose
-  the cookie or its signature. Other responses continue omitting owner identifiers. Both error
-  dialogs display the full ID with an accessible copy control and inline feedback.
-  When `NEXT_PUBLIC_ERROR_REPORT_EMAIL` is set at build time, a small EN/VI appeal
-  note links to a prefilled mailto containing the browser ID and stable block code
-  (`SUBMISSION_BROWSER_BLOCKED` or `SUBMISSION_NETWORK_BANNED`).
-  Without an address, the email note is hidden. No new identity/bootstrap request
-  is made by the dialog.
-- Bans restrict new thought submission. Browsing/private history and independent
-  ownership operations remain available. Future-message ownership is migrated;
-  its pre-existing submission throttle is otherwise unchanged.
-
-### CMS tabs, summary and revocation
-
-- `/cms/blacklist` defaults to Browser blocks. Temporary network bans is the second
-  tab. `blacklist.show` governs both lists/history/summary; custom `blacklist.revoke`
-  governs revocation. Existing ordinary roles are not automatically granted access.
-- Browser rows show the full browser ID, latest blocked IP, status and lifetime count.
-  History titles and revocation confirmations also show the full browser ID.
-  Network rows show IP, status, expiry and lifetime count. IP search includes event
-  history. Created at remains immediately before centered Actions; all timestamps
-  use `formatDateTime`. URL state retains scope/status/search/page/pageSize.
-  Status tools follow Submissions: memoized `extraTools`, shared `cms-searchFilter`
-  with a label above a 200px Select, and the existing responsive toolbar styles.
-- GET `/api/cms/blacklist` accepts scope browser/network and status
-  active/revoked/expired/all (expired is network-only). Both tabs default to All;
-  an omitted or empty API status also defaults to All. Network All also exposes old
-  IP-only records with a Legacy label; these are read-only and never enforced.
-- GET `/api/cms/blacklist/:id/history` paginates events. Both list endpoints use
-  `{ items, metadata: { page, pageSize, total, totalPages } }`.
-  The history dialog uses the shared `Table` with `hiddenToolbar`, including its
-  loading/error/empty states, retry and controlled pagination; page-size changes
-  reset history to page 1.
-  Its EN/VI description explains the 90-day retention after revocation/expiry,
-  preservation of active blocks and the unchanged lifetime block count. Revocation
-  confirmations describe the same retention window.
-  History tables share the `.cms-tableScroll` cell spacing, header backgrounds and
-  minimum width even when the dialog is portaled outside `.cms`; narrow screens
-  scroll the table horizontally within the dialog.
-- GET `/api/cms/blacklist/summary` returns
-  `{ activeBrowserBlocks: number, activeNetworkBans: number }`. Counts are distinct
-  active targets, never historical totals; revoked, expired and legacy records are
-  excluded. Search/filters/page/scope do not affect this global summary. Responses
-  are private/no-store, and require `blacklist.show` independently.
-- Both tab counts load immediately, including zero. Pending/failed initial queries
-  show loading/unavailable rather than zero. Background refresh retains old counts,
-  with an error notice/retry on failure. Revocation synchronizes both lists,
-  summary and history through query invalidation. There is no blacklist polling
-  timer or focus/visibility refresh; expiry alone does not automatically refresh
-  the displayed counts.
-- POST `/api/cms/blacklist/:id/revoke` accepts `{ eventId }`, requires trusted Origin
-  and `blacklist.revoke`, and follows confirmation. It invalidates both lists, summary
-  and history. Browser revoke resets only its browser counter; network revoke resets
-  only its IP counter. A stale/already-ended event cannot revoke a newer block.
-  Unknown/foreign event is 409; unknown record is 404; legacy revoke is 409.
-
-### Migration and future VPS setup
-
-Apply pending migrations in order, regenerate Prisma and restart application
-processes. `20261110000000_submission_ip_blacklist` creates the original storage;
-`20261110010000_signed_browser_identity` archives old permanent IP blocks without
-losing history. `20261110020000_remove_legacy_submission_ip_limit` removes the unused
-`SubmissionIpLimit` model/table, whose counter was replaced by the browser/network
-counters. It does not remove blacklist records or event history. The obsolete table
-was verified empty in development before removal. Applied migration files are kept
-unchanged so existing databases and fresh installations share the same history.
-These migrations are applied to development; production is not deployed.
-`20261110030000_blacklist_event_retention` adds indexes for event end/expiry cleanup;
-deploy it before enabling retention on an existing database.
-
-Before VPS deployment, configure the signing secret and HTTPS. Bind Next.js to
-loopback (for example `pnpm start --hostname 127.0.0.1`), exposing only the reverse
-proxy ports. The direct Nginx edge must overwrite incoming client-IP headers:
-
-```nginx
-location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
-
-See [Nginx proxy_set_header](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header).
-Only a single valid, normalized `X-Real-IP` is trusted. Missing/invalid production IP
-returns 503; development may use loopback when absent. `X-Forwarded-For` is ignored
-for this public protection. If adding a CDN before Nginx, first configure trusted
-real-IP restoration for that provider. Verify HTTPS cookie attributes, overwritten
-spoofed headers, distinct real clients, and that the Next.js port is private.
-
-
-### Signed-identity verification
-
-- Ten native cookie/database regression checks pass, including shared-IP browser
-  independence, cross-IP browser blocking, concurrent creation, independent
-  cooldown/retry expiry, six-hour network expiry, stale revocation and another
-  process reading the same persisted block.
-- The production-mode HTTP suite passes 68 assertions for cookie attributes,
-  renewal, ownership isolation, UUID spoof rejection, private DTOs, browser/network
-  policy, CMS permissions/Origin, summary counts, historical IP search and stale
-  revocation. It also verifies cookie ownership of future-message scaffolding.
-- Browser checks cover EN/VI browser-block messages and preserved drafts, the
-  Vietnamese network-ban message, CMS desktop/390px layout, both badges before
-  visiting the network tab, lifetime count versus active-target count, history
-  pagination and revoke cancellation/success. Summary outage tests use injected
-  failed responses: initial failure
-  displays Unavailable, background failure retains previous counts, Retry recovers.
-  Cookie refusal is simulated by withholding cookie issuance in bootstrap; the
-  real submission endpoint rejects with 401 and the draft/map remain usable.
-- The proxy client IP was supplied by the test harness; no real VPS is provisioned.
-  The public map retains its existing Chrome WebGL buffer performance warning.
-  No application console warnings/errors were observed on the final CMS page.
-- Scoped ESLint auto-fixes, repository lint, Prisma validation/generation,
-  TypeScript and the Webpack production build pass. No stylesheets were changed.
-  Temporary accounts, records, testing servers and browser surfaces are removed;
-  the existing development server is restarted with the new Prisma client/secret.
-
-### Blocked-submission support verification
-
-- Real 403 browser-block and 429 network-ban responses render the support note,
-  verified browser ID and prefilled email on the 390px public page. EN/VI labels,
-  preserved drafts and released submission controls are verified. The configured
-  test email uses an `.invalid` domain; no email was sent.
-- Mailto parsing verifies the complete ID, plus-address recipient and actual
-  message newlines. Clipboard success/failure is simulated in the isolated test
-  browser. Injected missing metadata disables copying and hides the email note;
-  ordinary cooldown errors have no support section.
-- Two focused support-helper tests, scoped ESLint/Stylelint fixes, TypeScript and
-  the Webpack production build pass. Temporary database fixtures, test scripts,
-  the dedicated production-mode test server and automation browser are removed.
-
-Run native checks with:
-`RUN_VISITOR_DB_TESTS=1 node --env-file=.env.development --conditions=react-server --import tsx --test tests/visitor-protection.test.ts`.
-
-Run HTTP checks against a dedicated production server using the development DB,
-with `SUBMISSION_PUBLIC_ORIGIN` and `CMS_AUTH_URL` matching its URL:
-`RUN_VISITOR_HTTP_TESTS=1 VISITOR_TEST_BASE_URL=http://localhost:3100 node --env-file=.env.development --import tsx --test tests/visitor-http.test.ts`.
-The opt-in tests use randomized documentation IPs and remove their own fixtures.
+- `/cms/client-users` owns its Header, columns, selection, filters and shared Table,
+  calling `useCRUDPage`. Default status is All; email search and pagination use URL
+  state. `createdAt` is explicitly second last using `formatDateTime`.
+- `/cms/client-users/detail` creates without id and displays operational account
+  details with `?id=...`. Existing email/password are read-only; status is the only
+  editable field. Passwords, credential hashes and session/verification tokens are
+  never exposed. The detail includes verification sends/deadline, daily usage,
+  suspension state and status audit data.
+- Permissions: `clientUser.show/create/delete`, `clientUser.changeStatus`, and
+  `clientUser.revokeBan`. Create defaults to unverified; choosing another initial
+  state also requires changeStatus. Non-unverified initial states are an explicit
+  CMS verification. Initial suspended status counts as one suspension.
+- Verification is permanent. A banned account can only be restored through the
+  separately guarded revoke-ban action. Manual suspensions count toward banning
+  on the third trigger; reapplying an active suspension does not add a strike.
+- `updatedAt`/`updatedBy` in client DTOs are the status audit timestamp/CMS user ID;
+  null actor means system. DTOs also resolve a current CMS actor display name when
+  available. Limiter writes do not change this audit. No event-history table exists.
+- APIs: GET/POST `/api/cms/client-users`, GET/PATCH `/api/cms/client-users/[id]`, POST
+  `/api/cms/client-users/[id]/revoke-ban` and POST `/api/cms/client-users/bulk-delete`.
+  All enforce CMS sessions, exact permissions, client account kind, same-origin
+  mutations and the shared pagination envelope. Services live under
+  `services/cms/client-users`; UI owns invalidation and confirmations.
+- Account deletion preserves thoughts through nullable ownership and cascades only
+  client credentials, sessions and quota state. The retired browser/network blacklist
+  module, its permissions and tables are removed. See `contexts/client-auth.md` for
+  public authentication, email delivery, limits and hourly expired-account cleanup.

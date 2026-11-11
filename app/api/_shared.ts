@@ -1,7 +1,7 @@
 import "server-only";
 
 import { Prisma, type Submission } from "@prisma/client";
-import { CmsHttpError } from "@/handlers/http";
+import { CmsHttpError } from "@/app/api/_handlers/http";
 import { permissions, checkPermission } from "@/services/permission";
 
 import type { CmsUser } from "@/services/shared/types";

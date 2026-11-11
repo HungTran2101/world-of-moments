@@ -40,7 +40,7 @@ Public moments carry words, a place, and a little weather. Names and exact times
 
 A small observation, a memory, words you never said. Joy, longing, grief, and hard days all belong here. There is room for more than one kind of feeling.
 
-- **Anonymous by design.** No sign-up. A UUID stored in your browser connects your thoughts to the same browser. Clearing that storage or changing devices starts a new identity.
+- **Anonymous to the world.** Browse freely. Sign in and verify your email to leave thoughts and revisit your own moments; your name and email are never shown publicly.
 - **Space to simply be.** No likes, comments, followers, feeds, or popularity counts.
 - **Atmosphere in the details.** Weather lends each thought a little context; gentle motion helps it settle into the map.
 - **Words left with care.** Thoughts are public. Keep personal details private, speak from your own experience, and leave room for the person who finds them.
@@ -76,7 +76,7 @@ Zoom out to see the Earth against a quiet star field, with satellite imagery fro
 
 ## Still unfolding
 
-World of Moments is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search and pagination (50 thoughts per page) for thoughts tied to the UUID saved in your browser. The roadmap makes room for letters to your future self, subtle realtime arrivals, and a secondary globe view as the project grows.
+World of Moments is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search, pagination and deletion for thoughts owned by your signed-in account. Submitted thoughts cannot be edited. Future messages remain disabled: the old anonymous-identity APIs, services, cookie bootstrap and limiter have been removed. The existing database model and records are retained until a new client-account-based flow is implemented. The roadmap also makes room for subtle realtime arrivals and a secondary globe view as the project grows.
 
 ---
 
@@ -84,3 +84,16 @@ World of Moments is in early development, with map exploration, thought submissi
   <em>Small thoughts. Big world.</em><br />
   <sub>Leave a little of yourself somewhere.</sub>
 </p>
+
+## Development setup
+
+Copy `.env.example` to the appropriate `.env.development` configuration and set the
+database URL, independent CMS/client auth secrets, Resend sender/key, Turnstile keys
+and application origin. Apply the schema with `pnpm db:push`, then run
+`pnpm prisma:generate`. Schema files are the development source of truth; migration
+files and reset flows are not used. Run `pnpm cms:seed` only with the intended bootstrap
+password configured. Run `pnpm dev` to start the app.
+
+Schedule `pnpm client-users:cleanup` hourly on the host and use the same `TZ` across
+server instances. See [client authentication](contexts/client-auth.md) and
+[CMS contracts](contexts/cms.md) for setup, ownership and moderation details.

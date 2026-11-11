@@ -7,13 +7,13 @@ import {
   serializeSubmission,
 } from "@/app/api/_shared";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
 import {
   cmsJson,
   CmsHttpError,
   parseBody,
   withCmsRequest,
-} from "@/handlers/http";
+} from "@/app/api/_handlers/http";
 import { submissionUpdateSchema } from "@/services/schemas";
 
 export const runtime = "nodejs";

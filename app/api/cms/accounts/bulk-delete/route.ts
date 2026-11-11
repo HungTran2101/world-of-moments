@@ -1,7 +1,7 @@
 import { permissions } from "@/services/permission";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { deleteSchema } from "@/services/schemas";
 
 export const runtime = "nodejs";
@@ -16,12 +16,11 @@ export async function POST(request: Request) {
     await prisma.$transaction(
       async (tx) => {
         const count = await tx.user.count({
-          where: { id: { in: ids }, isSystem: false },
+          where: { id: { in: ids }, isSystem: false, kind: "cms" },
         });
-        if (count !== ids.length)
-          throw new CmsHttpError(404, "errors.notFound");
+        if (count !== ids.length) throw new CmsHttpError(404, "errors.notFound");
         await tx.user.deleteMany({
-          where: { id: { in: ids }, isSystem: false },
+          where: { id: { in: ids }, isSystem: false, kind: "cms" },
         });
       },
       { isolationLevel: "Serializable" },

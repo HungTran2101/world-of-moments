@@ -1,0 +1,16 @@
+.clientPrivacy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 680px;
+  max-height: 100dvh;
+  overflow-y: auto;
+  margin-inline: auto;
+  padding: 3rem 1.5rem;
+  line-height: 1.8;
+
+  a {
+    color: var(--primary-color-dark);
+    text-decoration: underline;
+  }
+}

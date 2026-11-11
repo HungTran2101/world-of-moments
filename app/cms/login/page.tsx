@@ -2,8 +2,8 @@ import { ROUTE_PATHS } from "@/services/constant";
 import { getCmsLandingPath } from "@/services/routes";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireCmsSession } from "@/handlers/auth";
-import { CmsHttpError } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { CmsHttpError } from "@/app/api/_handlers/http";
 import { LoginPage } from "@/components/Login";
 
 export default async function Page() {

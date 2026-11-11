@@ -27,9 +27,9 @@ import {
 import { createTimeReveal } from "./timeReveal";
 import { createSunRay } from "./sunRay";
 import { getMapSunPosition, getTimeMapStyle, resolveMapTimeStage } from "./timeStyle";
-import { constants } from "@/app/api/constant";
 import Attribution from "./Attribution";
 
+const CARTO_BASEMAP_API_KEY = process.env.NEXT_PUBLIC_CARTO_BASEMAP_API_KEY?.trim();
 const LOADER_EXIT_DELAY_MS = 2100;
 const INITIAL_MAP_CENTER: [number, number] = [106, 16];
 const INITIAL_MAP_ZOOM = 5.5;
@@ -154,8 +154,8 @@ export default function MapView() {
           const isCarto = requestUrl.hostname === "basemaps.cartocdn.com"
             || requestUrl.hostname.endsWith(".basemaps.cartocdn.com");
           // Gắn khóa cho cả tile, font và sprite, kể cả URL do TileJSON trả về.
-          if (isCarto) {
-            requestUrl.searchParams.set("key", constants.CARTO_BASEMAP_API_KEY);
+          if (isCarto && CARTO_BASEMAP_API_KEY) {
+            requestUrl.searchParams.set("key", CARTO_BASEMAP_API_KEY);
             return { url: requestUrl.toString() };
           }
           return { url };

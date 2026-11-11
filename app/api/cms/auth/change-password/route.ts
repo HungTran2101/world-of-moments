@@ -1,6 +1,6 @@
 import { hashPassword, verifyPassword } from "better-auth/crypto";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { prisma } from "@/lib/prisma";
 import { changePasswordSchema } from "@/services/schemas";
 

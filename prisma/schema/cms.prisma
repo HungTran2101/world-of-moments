@@ -1,20 +1,43 @@
 model User {
-  id            String        @id @default(cuid())
-  name          String
-  email         String        @unique
-  emailVerified Boolean       @default(false)
-  image         String?
-  username      String?       @unique
-  isActive      Boolean       @default(true)
-  isSystem      Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  updatedBy     String?
-  sessions      Session[]
-  accounts      Account[]
-  roles         CmsUserRole[]
+  id                     String                 @id @default(cuid())
+  name                   String
+  email                  String                 @unique
+  emailVerified          Boolean                @default(false)
+  image                  String?
+  username               String?                @unique
+  isActive               Boolean                @default(true)
+  isSystem               Boolean                @default(false)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  updatedBy              String?
+  kind                   UserKind               @default(cms)
+  clientStatus           ClientStatus           @default(unverified)
+  suspendedUntil         DateTime?
+  suspensionCount        Int                    @default(0)
+  statusUpdatedAt        DateTime               @default(now())
+  statusUpdatedBy        String?
+  verificationSendCount  Int                    @default(0)
+  verificationLastSentAt DateTime?
+  sessions               Session[]
+  accounts               Account[]
+  roles                  CmsUserRole[]
+  submissions            Submission[]
+  submissionLimit        ClientSubmissionLimit?
 
+  @@index([kind, clientStatus, createdAt])
   @@map("cms_auth_users")
+}
+
+enum UserKind {
+  cms
+  client
+}
+
+enum ClientStatus {
+  unverified
+  verified
+  suspended
+  banned
 }
 
 model Session {

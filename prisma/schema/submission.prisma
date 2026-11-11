@@ -6,6 +6,8 @@ model Submission {
   weather_summary String?
   weather_code    Int?
   author_uuid     String
+  clientUserId    String?
+  clientUser      User?              @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
   created_at      DateTime           @default(now())
   updated_at      DateTime           @updatedAt
   status          SubmissionStatus   @default(published)
@@ -15,6 +17,7 @@ model Submission {
   updatedBy       String?
 
   @@index([author_uuid])
+  @@index([clientUserId])
   @@index([lat, lng])
   @@index([created_at])
   @@map("submissions")

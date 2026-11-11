@@ -1,7 +1,7 @@
 import { permissions } from "@/services/permission";
 import { prisma } from "@/lib/prisma";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import { hashPassword } from "better-auth/crypto";
 import { resetPasswordSchema } from "@/services/schemas";
 
@@ -15,15 +15,12 @@ export async function POST(
 ) {
   return withCmsRequest(request, async () => {
     const { id } = await context.params;
-    const actor = await requireCmsSession(
-      request.headers,
-      permissions.ACCOUNT_RESET_PASSWORD,
-    );
+    const actor = await requireCmsSession(request.headers, permissions.ACCOUNT_RESET_PASSWORD);
     const body = await parseBody(request, resetPasswordSchema);
     const password = await hashPassword(body.newPassword);
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.findFirst({
-        where: { id, isSystem: false },
+        where: { id, isSystem: false, kind: "cms" },
         select: { id: true },
       });
       if (!user) throw new CmsHttpError(404, "errors.notFound");

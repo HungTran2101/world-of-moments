@@ -4,6 +4,7 @@
 @use "./keyframes";
 @use "./custom";
 @use "./not-found";
+@use "./privacy";
 
 // Components
 @use "../components/HistoryPanel";
@@ -21,3 +22,4 @@
 @use "../components/shared/Skeleton";
 @use "../components/ui/dialog";
 @use "../components/ui/refractive-glass";
+@use "../components/ClientSidebarContent";

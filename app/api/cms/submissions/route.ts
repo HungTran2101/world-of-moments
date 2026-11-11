@@ -12,8 +12,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { fetchWeatherAtmosphere } from "@/lib/weather";
 import { toDatabaseValidity } from "@/lib/submissionModeration";
-import { requireCmsSession } from "@/handlers/auth";
-import { cmsJson, parseBody, withCmsRequest } from "@/handlers/http";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
 import {
   submissionCreateSchema,
   submissionListSchema,
