@@ -5,7 +5,6 @@ import {
   assertPublicationConfirmed,
   serializeSubmission,
 } from "@/app/api/_shared";
-import { randomUUID } from "node:crypto";
 import type { PaginatedResponse } from "@/services/shared/pagination";
 import type { CmsSubmissionRecord } from "@/services/cms/submissions/types";
 import type { Prisma } from "@prisma/client";
@@ -87,7 +86,6 @@ export async function POST(request: Request) {
         description: data.description,
         lat: data.lat,
         lng: data.lng,
-        author_uuid: randomUUID(),
         status: data.status,
         validity: toDatabaseValidity(data.validity),
         createdBy: actor.name,

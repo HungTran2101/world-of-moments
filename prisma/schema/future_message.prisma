@@ -1,11 +1,12 @@
 model FutureMessage {
   id               String    @id @default(cuid())
-  author_uuid      String
+  clientUserId     String?
+  clientUser       User?     @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
   message          String    @db.VarChar(1000)
   unlock_condition String // e.g. "after_days:30" | "random"
   created_at       DateTime  @default(now())
   unlocked_at      DateTime?
 
-  @@index([author_uuid])
+  @@index([clientUserId])
   @@map("future_messages")
 }

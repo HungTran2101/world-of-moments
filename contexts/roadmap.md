@@ -47,7 +47,8 @@ Phase 4 — Future Message System
 
 Status: disabled pending a new client-account-based flow. Legacy create/list APIs,
 services, anonymous-identity bootstrap/cookies and limiter have been removed. Existing
-storage is retained until the ownership redesign; the planned UI remains unconnected.
+messages are retained with nullable `clientUserId` ownership; existing anonymous
+messages remain unclaimed. The planned UI remains unconnected.
 
 Features:
 

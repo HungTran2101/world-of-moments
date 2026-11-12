@@ -1,5 +1,6 @@
 import { getClientRecord, clientIdentity } from "@/lib/clientAccounts";
-import { withAuthIpLimit } from "@/lib/clientCaptcha";
+import { withAuthCaptcha } from "@/lib/clientCaptcha";
+import { admitAuthRequest } from "@/lib/clientAuthLimits";
 import { ClientHttpError } from "@/lib/clientErrors";
 import { clientJson, withClientRequest } from "@/app/api/_handlers/clientHttp";
 import {
@@ -10,8 +11,9 @@ import {
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   return withClientRequest(request, async () => {
+    const admission = await admitAuthRequest(request, "login");
     const body = clientCredentialsSchema.parse(await request.json());
-    const result = await withAuthIpLimit(request, "login", body.captchaToken, () =>
+    const result = await withAuthCaptcha(request, admission, body.captchaToken, () =>
       signInClient(request, body.email, body.password),
     );
     const user = await getClientRecord(result.response.user.id);

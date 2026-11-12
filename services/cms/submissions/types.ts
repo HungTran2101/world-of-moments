@@ -5,7 +5,6 @@ export interface CmsSubmissionRecord {
   description: string;
   lat: number;
   lng: number;
-  authorUuid: string;
   weatherSummary: string | null;
   weatherCode: number | null;
   status: SubmissionStatus;

@@ -5,7 +5,6 @@ model Submission {
   lng             Float
   weather_summary String?
   weather_code    Int?
-  author_uuid     String
   clientUserId    String?
   clientUser      User?              @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
   created_at      DateTime           @default(now())
@@ -16,7 +15,6 @@ model Submission {
   createdFrom     SubmissionSource   @default(client)
   updatedBy       String?
 
-  @@index([author_uuid])
   @@index([clientUserId])
   @@index([lat, lng])
   @@index([created_at])

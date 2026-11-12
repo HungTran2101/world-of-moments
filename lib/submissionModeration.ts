@@ -12,7 +12,7 @@ export async function submissionViewer(request: NextRequest): Promise<string | u
   return (await getClientSession(request.headers))?.id;
 }
 
-export function visibleSubmissionWhere(authorUuid?: string): Prisma.SubmissionWhereInput {
+export function visibleSubmissionWhere(clientUserId?: string): Prisma.SubmissionWhereInput {
   // Chủ bài được xem bài đã công bố dù chưa hợp lệ; bài ẩn không xuất hiện trên bản đồ.
   return {
     status: "published",
@@ -20,10 +20,10 @@ export function visibleSubmissionWhere(authorUuid?: string): Prisma.SubmissionWh
       {
         validity: "valid",
       },
-      ...(authorUuid
+      ...(clientUserId
         ? [
             {
-              clientUserId: authorUuid,
+              clientUserId,
             },
           ]
         : []),

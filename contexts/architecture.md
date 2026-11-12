@@ -166,7 +166,7 @@ GET /api/submissions
 Requires west, south, east, and north viewport bounds; returns only id, lat, and lng.
 Bounds crossing the international date line are supported.
 
-Invalid bounds return 400. The query has no fixed row cap, and public positions omit author_uuid and timestamps.
+Invalid bounds return 400. The query has no fixed row cap, and public positions omit ownership IDs and timestamps.
 
 GET /api/submissions/history
 
@@ -199,9 +199,9 @@ return 404. POST `/api/submissions/client-token` returns 405 via the existing
 `/api/submissions/[id]` route and cannot initialize anonymous identity. The old handlers,
 future-message/visitor services, browser identity cache/bootstrap, signed anonymous
 cookies, identity-error constant and in-memory limiter have been removed, including
-the temporary `app/api/_disabled/` archive. The Prisma model and existing data are
-retained until a deliberate ownership redesign. Future messages must use the existing
-client-account authentication when reimplemented. Client-account auth, map browsing,
+the temporary `app/api/_disabled/` archive. Existing messages are retained with nullable
+`clientUserId` ownership; legacy anonymous messages remain unclaimed. Future messages
+must use the existing client-account authentication when reimplemented. Client-account auth, map browsing,
 thoughts and CMS routes remain active.
 
 Database
@@ -228,17 +228,20 @@ weather_code
 
 created_at
 
-author_uuid
+clientUserId (nullable)
 
 updated_at
 
-Submission uses a cuid ID and a 600-character description column. It has indexes on author_uuid and on the lat/lng pair. weather_summary and weather_code are nullable. There is no title column in the current model.
+Submission uses a cuid ID and a 600-character description column. It has indexes on
+clientUserId, the lat/lng pair and created_at. Nullable clientUserId references User
+with SetNull deletion. weather_summary and weather_code are nullable. There is no
+title or legacy author_uuid column in the current model.
 
-FutureMessage (legacy storage only; no active API/service)
+FutureMessage (storage only; no active API/service)
 
 id
 
-author_uuid
+clientUserId (nullable)
 
 message
 
@@ -247,6 +250,9 @@ unlock_condition
 created_at
 
 unlocked_at
+
+FutureMessage.clientUserId is indexed and references User with SetNull deletion.
+Existing anonymous messages remain unclaimed; the legacy author_uuid column is removed.
 
 Realtime Layer
 
@@ -294,8 +300,12 @@ Security
 
 Implemented protections:
 
-Client account quotas and auth-IP challenge windows persist in PostgreSQL and are checked
-on the server. Submission creation and quota updates share a per-account transaction lock.
+Client account quotas, auth-IP request caps, creation allowances, temporary blocks and
+CAPTCHA windows persist in PostgreSQL and are checked on the server. Login/registration
+request admission precedes payload parsing and expensive operations. Public account
+creation and its IP allowance commit atomically; CAPTCHA/password work does not hold
+an IP transaction open. See `contexts/client-auth.md` for limits, retention and retry
+responses. Submission creation and quota updates share a per-account transaction lock.
 Public mutations check trusted same-origin requests; anonymous ownership IDs are never
 accepted. CMS/client sessions use separate secrets/cookies and account-kind checks.
 Legacy future-message anonymous identity and its in-memory limiter have been removed.
@@ -331,7 +341,7 @@ all owned states; unpublished entries cannot navigate to map details.
 
 Submission createdBy/createdFrom and all three modules' updatedBy are derived by the
 server. CMS DTOs expose updatedAt/updatedBy; historical updater names are null.
-Public DTOs exclude author UUID, CMS actor names and exact timestamps; private
+Public DTOs exclude client ownership IDs, CMS actor names and exact timestamps; private
 history retains its existing owner-scoped timestamps. New record updater names
 start with the creator. Updates and password changes stamp the actor transactionally;
 login/session activity does not. Submission storage keeps updated_at; CMS DTOs use
@@ -340,9 +350,20 @@ updatedAt. Creation/update public responses now use explicit safe field selectio
 Client authentication and schema maintenance
 
 User.kind isolates CMS and client accounts in shared Better Auth tables. Nullable
-Submission.clientUserId references User with SetNull deletion. ClientSubmissionLimit
+Submission.clientUserId and FutureMessage.clientUserId reference User with SetNull
+deletion, preserving records when an account is deleted. ClientSubmissionLimit
 stores successful daily usage, last submission and bounded rejected-attempt timestamps;
-ClientAuthIpLimit stores expiring login/register windows. User fields hold verification
+ClientAuthIpLimit stores bounded login/register request and CAPTCHA timestamps,
+successful registration timestamps and action-specific IP block expiry. User fields hold verification
 send slots, status, suspension count/expiry and separate status audit data. There are
 no blacklist or account event-history tables. Prisma schema files are synchronized
 using `pnpm db:push` and `pnpm prisma:generate`; migration files are not retained.
+
+Public registration checks recipient DNS and durable address-level suppression before
+creating an account. Verification sends repeat preflight outside transactions and recheck
+eligibility/suppression before reserving a slot. `ClientEmailSuppression` is independent
+of users and retains the first permanent bounce, complaint or provider-suppression event.
+`POST /api/webhooks/resend` verifies the raw payload/timestamp using Svix and
+`RESEND_WEBHOOK_SECRET`; persistence precedes acknowledgment. Client identities expose
+only `verificationEmailBlocked` and resend eligibility, never provider event details.
+See `contexts/client-auth.md` for webhook setup, retry behavior and the deferred auth/limit review.

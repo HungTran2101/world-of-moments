@@ -76,7 +76,7 @@ Zoom out to see the Earth against a quiet star field, with satellite imagery fro
 
 ## Still unfolding
 
-World of Moments is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search, pagination and deletion for thoughts owned by your signed-in account. Submitted thoughts cannot be edited. Future messages remain disabled: the old anonymous-identity APIs, services, cookie bootstrap and limiter have been removed. The existing database model and records are retained until a new client-account-based flow is implemented. The roadmap also makes room for subtle realtime arrivals and a secondary globe view as the project grows.
+World of Moments is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search, pagination and deletion for thoughts owned by your signed-in account. Submitted thoughts cannot be edited. Future messages remain disabled: the old anonymous-identity APIs, services, cookie bootstrap and limiter have been removed. Stored messages use nullable client-account ownership, preserving existing anonymous messages as unclaimed, while the new flow remains unimplemented. The roadmap also makes room for subtle realtime arrivals and a secondary globe view as the project grows.
 
 ---
 

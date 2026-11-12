@@ -10,9 +10,12 @@ model ClientSubmissionLimit {
 }
 
 model ClientAuthIpLimit {
-  key        String     @id
-  attemptsAt DateTime[]
-  expiresAt  DateTime
+  key               String     @id
+  attemptsAt        DateTime[]
+  requestsAt        DateTime[] @default([])
+  createdAccountsAt DateTime[] @default([])
+  blockedUntil      DateTime?
+  expiresAt         DateTime
 
   @@index([expiresAt])
   @@map("client_auth_ip_limits")

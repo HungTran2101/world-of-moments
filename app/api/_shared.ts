@@ -50,7 +50,6 @@ export function serializeSubmission(row: Submission): CmsSubmissionRecord {
     description: row.description,
     lat: row.lat,
     lng: row.lng,
-    authorUuid: row.author_uuid,
     weatherSummary: row.weather_summary,
     weatherCode: row.weather_code,
     status: row.status,

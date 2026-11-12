@@ -22,6 +22,7 @@ model User {
   accounts               Account[]
   roles                  CmsUserRole[]
   submissions            Submission[]
+  futureMessages         FutureMessage[]
   submissionLimit        ClientSubmissionLimit?
 
   @@index([kind, clientStatus, createdAt])

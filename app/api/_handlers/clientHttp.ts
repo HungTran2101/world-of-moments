@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { ClientHttpError } from "@/lib/clientErrors";
+import { CLIENT_LIMITS } from "@/app/api/client/constant";
+import { constants } from "@/app/api/constant";
 
 function trustedPublicOrigin(request: Request) {
   // Đọc cấu hình runtime trên server, tránh Next.js đóng băng URL public từ lúc build.
@@ -22,7 +24,20 @@ export async function withClientRequest(request: Request, action: () => Promise<
     }
     return await action();
   } catch (error) {
-    if (error instanceof ClientHttpError) return clientJson({ code: error.code }, error.status);
+    if (error instanceof ClientHttpError) {
+      const response = clientJson({
+        code: error.code,
+        ...(error.retryAt ? { retryAt: error.retryAt.toISOString() } : {}),
+      }, error.status);
+      if (error.retryAt) {
+        const seconds = Math.max(
+          CLIENT_LIMITS.MIN_RETRY_AFTER_SECONDS,
+          Math.ceil((error.retryAt.getTime() - Date.now()) / constants.MILLISECONDS_PER_SECOND),
+        );
+        response.headers.set("Retry-After", String(seconds));
+      }
+      return response;
+    }
     if (error instanceof z.ZodError || error instanceof SyntaxError)
       return clientJson({ code: "validation" }, 422);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

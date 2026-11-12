@@ -176,7 +176,7 @@ function HistoryContents({
                 <LoadingDots />
               ) : (
                 <>
-                  <p>{t(identityError ? "identityError" : "loginPrompt")}</p>
+                  <p className="mb-2 mt-0">{t(identityError ? "identityError" : "loginPrompt")}</p>
                   <GlassButton
                     onClick={() => {
                       if (identityError) void refresh();
@@ -290,12 +290,12 @@ function HistoryContents({
           >
             {data
               ? t("pageIndicator", {
-                  page: currentPage,
-                  totalPages: data.metadata.totalPages,
-                })
+                page: currentPage,
+                totalPages: data.metadata.totalPages,
+              })
               : t("pageNumber", {
-                  page: currentPage,
-                })}
+                page: currentPage,
+              })}
           </span>
           <GlassButton
             size="icon-sm"

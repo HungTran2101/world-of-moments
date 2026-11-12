@@ -6,6 +6,16 @@ import { prisma } from "@/lib/prisma";
 import { ClientHttpError } from "@/lib/clientErrors";
 import { CLIENT_LIMITS } from "@/app/api/client/constant";
 import type { ClientIdentity, ClientStatus } from "@/services/client-auth/types";
+import {
+  isClientEmailSuppressed,
+  assertClientEmailNotSuppressed,
+  checkClientEmailDeliverability,
+} from "@/lib/clientEmailSuppression";
+import {
+  checkRegistrationAllowance,
+  withRegistrationAllowance,
+  type AuthIpAdmission,
+} from "@/lib/clientAuthLimits";
 
 export const CLIENT_VERIFICATION_PREFIX = "client-email:";
 export const verificationPrefix = (id: string) => `${CLIENT_VERIFICATION_PREFIX}${id}:`;
@@ -54,10 +64,12 @@ export async function readClient(tx: Prisma.TransactionClient, id: string, at?: 
         select: { id: true },
       })
     : null;
-  return { ...user, hasPendingVerification: Boolean(pending) };
+  const verificationEmailBlocked = !user.emailVerified && await isClientEmailSuppressed(user.email, tx);
+  return { ...user, hasPendingVerification: Boolean(pending), verificationEmailBlocked };
 }
 export type ClientRecord = Prisma.UserGetPayload<{ include: { submissionLimit: true } }> & {
   hasPendingVerification?: boolean;
+  verificationEmailBlocked?: boolean;
 };
 export function clientIdentity(user: ClientRecord, now = new Date()): ClientIdentity {
   const limit = user.submissionLimit;
@@ -79,6 +91,7 @@ export function clientIdentity(user: ClientRecord, now = new Date()): ClientIden
     status: user.clientStatus,
     suspendedUntil: user.suspendedUntil?.toISOString() ?? null,
     verificationDeadline: verificationDeadline(user).toISOString(),
+    verificationEmailBlocked: Boolean(user.verificationEmailBlocked),
     resendAvailableAt: user.verificationLastSentAt
       ? new Date(
           user.verificationLastSentAt.getTime() + CLIENT_LIMITS.RESEND_COOLDOWN_MS,
@@ -86,6 +99,7 @@ export function clientIdentity(user: ClientRecord, now = new Date()): ClientIden
       : null,
     canResend:
       !user.emailVerified &&
+      !user.verificationEmailBlocked &&
       (user.verificationSendCount < CLIENT_LIMITS.VERIFICATION_SEND_SLOTS ||
         Boolean(user.hasPendingVerification)),
     availability: dailyLimit ? "daily-limit" : availableAt ? "cooldown" : "ready",
@@ -110,20 +124,25 @@ export async function createClientAccount(
   plainPassword: string,
   status: ClientStatus = "unverified",
   actorId: string | null = null,
+  registration?: AuthIpAdmission<"register">,
 ) {
+  if (registration) await checkRegistrationAllowance(registration);
   const normalized = email.trim().toLowerCase();
   const existing = await prisma.user.findFirst({
     where: { email: { equals: normalized, mode: "insensitive" } },
   });
   if (existing && (existing.kind !== "client" || (await getClientRecord(existing.id))))
     throw new ClientHttpError(409, "emailExists");
+  // Chỉ đăng ký công khai cần kiểm tra trước khi hash mật khẩu/tạo tài khoản; CMS giữ luồng quản trị riêng.
+  if (registration) await checkClientEmailDeliverability(normalized);
   const password = await hashPassword(plainPassword);
-  return prisma.$transaction(async (tx) => {
+  const insert = async (tx: Prisma.TransactionClient) => {
     const duplicate = await tx.user.findFirst({
       where: { email: { equals: normalized, mode: "insensitive" } },
       select: { id: true },
     });
     if (duplicate) throw new ClientHttpError(409, "emailExists");
+    if (registration) await assertClientEmailNotSuppressed(normalized, tx);
     const id = randomUUID();
     return tx.user.create({
       data: {
@@ -139,7 +158,18 @@ export async function createClientAccount(
         accounts: { create: { accountId: id, providerId: "credential", password } },
       },
     });
-  });
+  };
+  return registration
+    ? withRegistrationAllowance(registration, insert)
+    : prisma.$transaction(insert);
+}
+
+export function registerClientAccount(
+  email: string,
+  password: string,
+  admission: AuthIpAdmission<"register">,
+) {
+  return createClientAccount(email, password, "unverified", null, admission);
 }
 export async function changeClientStatus(
   id: string,
@@ -207,7 +237,11 @@ export async function cleanupExpiredClients(now = new Date()) {
     });
     if (removed) deleted++;
   }
-  await prisma.clientAuthIpLimit.deleteMany({ where: { expiresAt: { lte: now } } });
+  // expiresAt bao phủ mọi cửa sổ; kiểm tra thêm lệnh chặn để không xóa IP đang bị hạn chế.
+  await prisma.clientAuthIpLimit.deleteMany({ where: {
+    expiresAt: { lte: now },
+    OR: [{ blockedUntil: null }, { blockedUntil: { lte: now } }],
+  } });
   await prisma.verification.deleteMany({
     where: { identifier: { startsWith: CLIENT_VERIFICATION_PREFIX }, expiresAt: { lte: now } },
   });
@@ -243,7 +277,7 @@ export async function saveClientThought(
       return { code: identity.availability, status: 429 };
     }
     const submission = await tx.submission.create({
-      data: { ...data, clientUserId: id, author_uuid: id, updatedBy: "client" },
+      data: { ...data, clientUserId: id, updatedBy: "client" },
       select: {
         id: true,
         description: true,

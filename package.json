@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:client-email": "node --conditions=react-server --import tsx --test tests/client-email.test.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -13,9 +14,7 @@
     "prisma:generate": "prisma generate",
     "cms:seed": "node --import tsx scripts/seed-cms.ts",
     "db:push": "prisma db push",
-    "client-users:cleanup": "node --conditions=react-server --import tsx scripts/cleanup-client-users.ts",
-    "test:client": "node --env-file=.env.development --conditions=react-server --import tsx --test tests/client-auth.integration.test.ts",
-    "test:client:http": "node --env-file=.env.development --conditions=react-server --import tsx --test tests/client-http.integration.test.ts"
+    "client-users:cleanup": "node --conditions=react-server --import tsx scripts/cleanup-client-users.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -42,6 +41,7 @@
     "sass": "^1.97.3",
     "server-only": "^0.0.1",
     "shadcn": "^4.4.0",
+    "svix": "^2.10.0",
     "tailwind-merge": "^3.5.0",
     "yup": "^1.7.1",
     "zod": "^4.3.6",

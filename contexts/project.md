@@ -42,10 +42,10 @@ Current Implementation
 
 Implementation boundaries
 
-- Public map reads return only positions or public thought details; they omit author UUIDs and exact timestamps.
+- Public map reads return only positions or public thought details; they omit client ownership IDs and exact timestamps.
 - Submitted content and coordinates cannot be edited. Authors can delete their own thoughts from history; CMS deletion requires its delete permission.
 - `HistoryPanel` loads the signed-in account’s paginated private history from the map toolbar.
-- Future messages remain disabled. Their old create/list handlers, anonymous-identity bootstrap, services, cookies and limiter have been removed. The existing model/data are retained until the new client-account-based flow is implemented; no future-message UI is connected.
+- Future messages remain disabled. Their old create/list handlers, anonymous-identity bootstrap, services, cookies and limiter have been removed. Stored messages now use nullable client-account ownership, preserving existing anonymous messages as unclaimed; no future-message UI is connected.
 - Marker refreshes follow viewport changes or a local submission. There is no live subscription for thoughts submitted by other visitors.
 
 Identity Model

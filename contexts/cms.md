@@ -837,17 +837,17 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   `submission.updateSubmissionValidity`. There is no `submission.update`; its
   permission-matrix Update cell is unavailable. The two moderation permissions are
   independent extras, enforced by UI and APIs. Existing submission description,
-  coordinates, UUID, weather and provenance are read-only in the CMS.
+  coordinates, weather and provenance are read-only in the CMS.
 - New public and CMS records
   default to `published` + `need-inspect`. Other states are `unpublished` and
   `invalid`; wire values use the hyphenated `need-inspect` spelling. Public create
   payloads cannot set moderation or provenance. Public content editing is unavailable.
 - CMS creation accepts description, coordinates and initial state. Choosing a
   non-default status or validity requires the matching moderation permission.
-  The server generates a normal random UUID; the UI shows “Auto generated” before
-  creation and the actual read-only UUID afterward. Creation fetches weather.
-  Creation and detail forms show UUID first, latitude/longitude side by side on
-  the second row, and description third. Creator/source, weather and audit metadata
+  Creation fetches weather and leaves `clientUserId` null; a CMS session never
+  grants client ownership. The retired `author_uuid` field is absent from storage,
+  CMS DTOs and forms. Creation and detail forms show latitude/longitude side by
+  side first, followed by description. Creator/source, weather and audit metadata
   live in a subtle bordered inner card with plain labels/values, without input or
   textarea controls. Weather shows its numeric code and a translated
   description from the same `weather` message namespace as the public map,
@@ -901,7 +901,7 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   headers confer no public ownership. Personalized GETs use
   private/no-store caching and vary on Accept-Encoding and Cookie while
   retaining Brotli/gzip compression, viewport bounds and date-line handling.
-- Public DTOs omit creator/updater names, author UUID and exact timestamps.
+- Public DTOs omit creator/updater names, client ownership IDs and exact timestamps.
   Owner history retains all states and exact creation time, includes status, and
   disables Take me there for unpublished records with a localized explanation.
 - Client-account changes cancel obsolete viewport/detail requests and reload positions without
@@ -935,7 +935,12 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
   All enforce CMS sessions, exact permissions, client account kind, same-origin
   mutations and the shared pagination envelope. Services live under
   `services/cms/client-users`; UI owns invalidation and confirmations.
-- Account deletion preserves thoughts through nullable ownership and cascades only
+- Account deletion preserves thoughts and future messages through nullable
+  `clientUserId` relations with `onDelete: SetNull`, and cascades only
   client credentials, sessions and quota state. The retired browser/network blacklist
   module, its permissions and tables are removed. See `contexts/client-auth.md` for
   public authentication, email delivery, limits and hourly expired-account cleanup.
+- Address-level verification-email suppression also survives account deletion. It is
+  maintained by signed Resend webhooks, does not change CMS status/verification actions,
+  and has no CMS editor. The existing verification-send counters retain their semantics;
+  DNS/suppression preflight failures consume no send slot.

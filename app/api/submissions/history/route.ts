@@ -14,8 +14,8 @@ const headers = {
   "Cache-Control": "private, no-store",
 };
 export async function GET(request: NextRequest) {
-  const authorUuid = await submissionViewer(request);
-  if (!authorUuid) return clientJson({ code: "unauthorized" }, 401);
+  const clientUserId = await submissionViewer(request);
+  if (!clientUserId) return clientJson({ code: "unauthorized" }, 401);
   const parsed = HistorySchema.safeParse({
     search: request.nextUrl.searchParams.get("search") ?? undefined,
     page: request.nextUrl.searchParams.get("page") ?? undefined,
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   try {
     // Đếm và lấy trang cùng bộ lọc tài khoản/từ khóa; luôn giữ một trang cho trạng thái rỗng.
     const where = {
-      clientUserId: authorUuid,
+      clientUserId,
       ...(search
         ? {
             description: {

@@ -1,5 +1,5 @@
 import { apiRequest, type ApiRequestOptions } from "@/services/shared/api";
-import type { ClientCredentials, ClientSessionResponse } from "./types";
+import type { ClientCredentials, ClientSessionResponse, ClientRegistrationResponse } from "./types";
 const endpoint = "/api/client/auth";
 export function getClientSession(options?: ApiRequestOptions) {
   return apiRequest<ClientSessionResponse>(`${endpoint}/session`, {
@@ -17,7 +17,7 @@ export function loginClient(body: ClientCredentials, options?: ApiRequestOptions
   });
 }
 export function registerClient(body: ClientCredentials, options?: ApiRequestOptions) {
-  return apiRequest<ClientSessionResponse & { emailError: boolean }>(`${endpoint}/register`, {
+  return apiRequest<ClientRegistrationResponse>(`${endpoint}/register`, {
     ...options,
     method: "POST",
     body,
