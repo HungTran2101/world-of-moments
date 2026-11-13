@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LogOut, Map } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { checkPermission } from "@/services/permission";
 import { sidebarItems, type SidebarItem } from "@/components/CmsSidebar/sidebar";
 import { useCmsStore } from "@/store/cmsStore";
@@ -185,7 +185,7 @@ function CmsSidebarContent({ children }: { children: ReactNode }) {
 
 export function CmsSidebar({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider className="cms-shell">
+    <SidebarProvider className="cms-shell" style={{ "--sidebar-width": "14rem" } as CSSProperties}>
       <CmsSidebarContent>{children}</CmsSidebarContent>
     </SidebarProvider>
   );

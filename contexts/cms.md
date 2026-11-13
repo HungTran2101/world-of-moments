@@ -13,6 +13,10 @@ task. Client accounts use a separate cookie-session configuration; see `contexts
   Public registration belongs to separate client auth; CMS has no public signup or email recovery.
 - Use a restrained, readable interface with shared spacing, controls and subtle
   transitions. No glass dashboard styling or decorative statistics panels.
+- CMS uses compact default sizing at all desktop widths: 13px base text,
+  a 60px header, 34px form controls, 18px form padding and 10px by 12px
+  table-cell padding. Desktop navigation is 14rem wide; shell panels sit 8px from the screen edges; mobile
+  navigation keeps its existing accessible toggle sizing.
 
 ## Code organization
 
@@ -913,8 +917,10 @@ fresh `pnpm exec tsc --noEmit --incremental false` succeeds.
 ## Client user management
 
 - `/cms/client-users` owns its Header, columns, selection, filters and shared Table,
-  calling `useCRUDPage`. Default status is All; email search and pagination use URL
-  state. `createdAt` is explicitly second last using `formatDateTime`.
+  calling `useCRUDPage`. An empty status selection shows all statuses, using the
+  localized All statuses placeholder and a clear control, matching Submissions;
+  the options contain only actual client statuses. Email search and pagination
+  use URL state. `createdAt` is explicitly second last using `formatDateTime`.
 - `/cms/client-users/detail` creates without id and displays operational account
   details with `?id=...`. Existing email/password are read-only; status is the only
   editable field. Passwords, credential hashes and session/verification tokens are

@@ -8,10 +8,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
-  min-height: 80px;
-  padding: 12px var(--cms-content-padding-inline);
+  min-height: 60px;
+  padding: 8px var(--cms-content-padding-inline);
   border: 1px solid var(--color-border);
   border-radius: var(--cms-panel-radius);
   background: #fff;
@@ -21,7 +21,7 @@
 .cms-headerTitle {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -47,7 +47,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
 }
 
 @media (width <=760px) {

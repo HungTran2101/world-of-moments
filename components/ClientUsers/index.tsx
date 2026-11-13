@@ -241,18 +241,15 @@ export function ClientUsersPage({ permission }: CmsPageProps) {
               <Select
                 id="client-user-status-filter"
                 popupClassName="cms-popup"
-                allowClear={false}
-                value={crud.filters.status || "all"}
-                onValueChange={(status) =>
-                  crud.onChangeFilters({ status: status === "all" ? "" : status })
-                }
-                options={[
-                  { value: "all", label: t("clientUser.allStatuses") },
-                  ...CLIENT_STATUSES.map((value) => ({
-                    value,
-                    label: t(`clientUser.statuses.${value}`),
-                  })),
-                ]}
+                aria-label={t("clientUser.status")}
+                labels={{ clear: `${t("common.clearSelection")}: ${t("clientUser.status")}` }}
+                placeholder={t("clientUser.allStatuses")}
+                value={crud.filters.status}
+                onValueChange={(status) => crud.onChangeFilters({ status })}
+                options={CLIENT_STATUSES.map((value) => ({
+                  value,
+                  label: t(`clientUser.statuses.${value}`),
+                }))}
               />
             </div>
           }
