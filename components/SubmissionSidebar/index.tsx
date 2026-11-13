@@ -51,7 +51,7 @@ const SubmissionSidebar = () => {
     if (!vh || !vw) return undefined;
     const w = Math.min(vw, sw);
     const margin = 8;
-    const buttonLeft = 20;
+    const buttonLeft = margin;
     const openInset = 30;
     const panelWidth = Math.min(vw, sw + margin);
     const panelHeight = vh - margin * 2;

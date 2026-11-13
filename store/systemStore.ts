@@ -21,7 +21,7 @@ interface SystemState {
 }
 
 export const useSystemStore = create<SystemState>((set) => ({
-  sidebarWidth: 400,
+  sidebarWidth: 320,
   mapReady: false,
   isSpaceView: false,
   mapTimeMode: 'auto',

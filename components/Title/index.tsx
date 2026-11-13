@@ -33,8 +33,8 @@ const Title = () => {
       className="title pointer-events-none fixed z-10 left-1/2 -translate-x-1/2 top-2"
     >
       <RefractiveGlass>
-        <div className="w-fit px-4 py-4 rounded-[30px] flex flex-col justify-center items-center">
-          <div className="gradient-text font-lemonada text-nowrap text-[20px] lg:text-[30px] font-semibold uppercase">
+        <div className="title-panel w-fit rounded-[30px] flex flex-col justify-center items-center">
+          <div className="title-text gradient-text font-lemonada text-nowrap font-semibold uppercase">
             {t("title")}
           </div>
         </div>
