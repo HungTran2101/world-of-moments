@@ -1,0 +1,106 @@
+@use "./base";
+
+// Tách viền để trình duyệt vẽ box-shadow trên ô sticky; border-spacing vẫn bằng 0.
+.cms-tableScroll table {
+  border-collapse: separate;
+}
+
+.cms-tableScroll--fixedHeader thead {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+}
+
+.cms-tableSection {
+  --cms-fixed-column-shadow-offset: 4px;
+  --cms-fixed-column-shadow-blur: 10px;
+  --cms-fixed-column-shadow-spread: -4px;
+  --cms-fixed-column-shadow-color: rgb(36 40 48 / 14%);
+
+  overflow: hidden;
+  border: 1px solid #dde1e7;
+  border-radius: var(--cms-panel-radius);
+  background: #fff;
+}
+
+.cms-tableToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px 12px;
+}
+
+.cms-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cms .cms-fixedRight,
+.cms .cms-selection {
+  position: sticky;
+  z-index: 1;
+}
+
+.cms-fixedColumnShadow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--cms-fixed-column-shadow-offset) + var(--cms-fixed-column-shadow-blur));
+  overflow: clip;
+  pointer-events: none;
+  opacity: 0;
+
+  // Cắt góc mờ trong khung cao bằng ô để bóng thẳng mà không tăng vùng cuộn dọc.
+  &::after {
+    content: "";
+    position: absolute;
+    top: calc(-1 * var(--cms-fixed-column-shadow-blur));
+    bottom: calc(-1 * var(--cms-fixed-column-shadow-blur));
+    left: 0;
+    width: 100%;
+  }
+}
+
+.cms .cms-fixedRight {
+  right: 0;
+
+  >.cms-fixedColumnShadow {
+    right: 100%;
+
+    &::after {
+      box-shadow: inset calc(-1 * var(--cms-fixed-column-shadow-offset)) 0 var(--cms-fixed-column-shadow-blur) var(--cms-fixed-column-shadow-spread) var(--cms-fixed-column-shadow-color);
+    }
+  }
+}
+
+.cms .cms-selection {
+  left: 0;
+  width: 44px;
+
+  >.cms-fixedColumnShadow {
+    left: 100%;
+
+    &::after {
+      box-shadow: inset var(--cms-fixed-column-shadow-offset) 0 var(--cms-fixed-column-shadow-blur) var(--cms-fixed-column-shadow-spread) var(--cms-fixed-column-shadow-color);
+    }
+  }
+}
+
+.cms .cms-tableScroll[data-scroll-left="true"] .cms-selection>.cms-fixedColumnShadow,
+.cms .cms-tableScroll[data-scroll-right="true"] .cms-fixedRight>.cms-fixedColumnShadow {
+  opacity: 1;
+}
+
+.cms .cms-tableScroll tr[data-state="selected"]>td {
+  background: var(--secondary-color);
+}
+
+.cms-tableEmpty {
+  padding: 48px 18px !important;
+  color: #7a808b;
+  text-align: center;
+}

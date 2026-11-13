@@ -1,0 +1,16 @@
+model ClientEmailSuppression {
+  email           String                       @id
+  reason          ClientEmailSuppressionReason
+  providerEmailId String
+  providerEventId String
+  eventAt         DateTime
+  createdAt       DateTime                     @default(now())
+
+  @@map("client_email_suppressions")
+}
+
+enum ClientEmailSuppressionReason {
+  hard_bounce
+  complaint
+  provider_suppressed
+}

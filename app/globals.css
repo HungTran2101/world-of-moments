@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
-@custom-variant dark (&:where(.dark, .dark *));
-@variant data-open (&[data-state="open"]);
-@variant data-closed (&[data-state="closed"]);
+@custom-variant dark (&:where(.dark, .dark *):not(:where(.cms, .cms *, .cms-popup, .cms-popup *)));
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
 
 @theme {
   --color-background: var(--color-surface);
@@ -27,6 +27,15 @@
   --radius: 0.5rem;
   --font-lemonada: var(--font-lemonada), sans-serif;
   --font-mitr: var(--font-mitr), sans-serif;
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 /* Radix fix (still needed) */
@@ -63,14 +72,14 @@ h6 {
 }
 
 p {
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
-a {
+a:not([data-slot="button"]) {
   color: var(--primary-color);
 }
 
-a:hover {
+a:not([data-slot="button"]):hover {
   text-decoration: underline;
 }
 

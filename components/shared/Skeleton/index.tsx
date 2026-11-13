@@ -7,9 +7,9 @@ interface SkeletonProps {
 
 export function Skeleton({ row = 3, className }: SkeletonProps) {
   return (
-    <span className={cn("Skeleton", className)} aria-hidden="true">
+    <span className={cn("skeleton", className)} aria-hidden="true">
       {Array.from({ length: row }, (_, index) => (
-        <span key={index} className="Skeleton-row" />
+        <span key={index} className="skeleton-row" />
       ))}
     </span>
   );

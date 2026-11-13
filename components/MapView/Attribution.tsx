@@ -1,40 +1,43 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import { Dialog } from "@/components/ui/dialog";
 import { GlassButton } from "@/components/ui/glass-button";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { Info, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { memo } from "react";
 
-const Attribution = () => {
+const Attribution = memo(function Attribution() {
   const t = useTranslations("map");
 
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild aria-controls="map-attribution-dialog">
         <RefractiveGlass glassThickness={20} bezelWidth={10}>
-          <button type="button" className="MapView-attribution" aria-label={t("attributionLabel")}>
+          <Button type="button" className="mapView-attribution" aria-label={t("attributionLabel")}>
             <span>© OpenStreetMap · CARTO · OpenMapTiles · EOX · Open-Meteo</span>
-            <Info size={12} aria-hidden="true" />
-          </button>
+            <Info size={12} className="size-3" aria-hidden="true" />
+          </Button>
         </RefractiveGlass>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="MapView-attributionOverlay" />
+        <Dialog.Overlay className="mapView-attributionOverlay" />
         <RefractiveGlass brightness={1.1}>
           <Dialog.Content
             id="map-attribution-dialog"
-            className="MapView-attributionModal"
+            className="mapView-attributionModal"
           >
-            <div className="MapView-attributionHeader">
+            <div className="mapView-attributionHeader">
               <Dialog.Title>{t("attributionLabel")}</Dialog.Title>
               <Dialog.Close asChild>
-                <button type="button" className="MapView-attributionClose" aria-label={t("attributionDetails.close")}>
-                  <X size={20} aria-hidden="true" />
-                </button>
+                <Button type="button" className="mapView-attributionClose" aria-label={t("attributionDetails.close")}>
+                  <X size={20} className="size-5" aria-hidden="true" />
+                </Button>
               </Dialog.Close>
             </div>
-            <div className="MapView-attributionBody">
+            <div className="mapView-attributionBody">
               <Dialog.Description>
                 {t("attributionDetails.description")}
               </Dialog.Description>
@@ -81,7 +84,7 @@ const Attribution = () => {
                 <p>{t("disclaimer")}</p>
               </section>
             </div>
-            <div className="MapView-attributionFooter">
+            <div className="mapView-attributionFooter">
               <a href="/third-party-notices.txt" target="_blank" rel="noopener noreferrer" className="mr-auto self-center text-xs underline underline-offset-2">
                 {t("attributionDetails.thirdPartyNotices")}
               </a>
@@ -94,6 +97,6 @@ const Attribution = () => {
       </Dialog.Portal>
     </Dialog.Root>
   );
-};
+});
 
 export default Attribution;

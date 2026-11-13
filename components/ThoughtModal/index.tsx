@@ -1,11 +1,23 @@
 "use client";
 
+import { useClientSession } from "@/components/ClientSession";
 import { Dialog } from "@/components/ui/dialog";
 import { GlassButton } from "@/components/ui/glass-button";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError } from "@/services/shared/errors";
-import { getSubmissionById, type Submission } from "@/services/submissions";
-import { ArrowLeft, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSun, Snowflake, Sun } from "lucide-react";
+import { getSubmissionById } from "@/services/submissions";
+import type { Submission } from "@/services/submissions/types";
+import {
+  ArrowLeft,
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSun,
+  Snowflake,
+  Sun,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -21,7 +33,11 @@ interface ThoughtModalProps {
 }
 
 function WeatherIcon({ code }: { code: number }) {
-  const props = { size: 20, strokeWidth: 1.5, "aria-hidden": true } as const;
+  const props = {
+    size: 20,
+    strokeWidth: 1.5,
+    "aria-hidden": true,
+  } as const;
   if (code === 0) return <Sun {...props} />;
   if (code === 1 || code === 2) return <CloudSun {...props} />;
   if (code === 45 || code === 48) return <CloudFog {...props} />;
@@ -33,48 +49,94 @@ function WeatherIcon({ code }: { code: number }) {
 }
 
 type DetailState =
-  | { id: string; status: "loading" }
-  | { id: string; status: "ready"; submission: Submission }
-  | { id: string; status: "error"; notFound: boolean };
+  | {
+      id: string;
+      identityKey: string;
+      status: "loading";
+    }
+  | {
+      id: string;
+      identityKey: string;
+      status: "ready";
+      submission: Submission;
+    }
+  | {
+      id: string;
+      identityKey: string;
+      status: "error";
+      notFound: boolean;
+    };
 
-export default function ThoughtModal({ open, submissionId, onOpenChange, onReturnFocus }: ThoughtModalProps) {
+export default function ThoughtModal({
+  open,
+  submissionId,
+  onOpenChange,
+  onReturnFocus,
+}: ThoughtModalProps) {
+  const identityKey = useClientSession().user?.id ?? "guest";
   const t = useTranslations("popup");
   const weather = useTranslations("weather");
   const [detail, setDetail] = useState<DetailState | null>(null);
   const [retry, setRetry] = useState(0);
-
   useEffect(() => {
     if (!open || !submissionId) return;
     const controller = new AbortController();
-    setDetail({ id: submissionId, status: "loading" });
+    setDetail({
+      id: submissionId,
+      identityKey,
+      status: "loading",
+    });
     // Mỗi lần chọn suy nghĩ chỉ tải chi tiết của ID đó; hủy phản hồi khi đóng hoặc chọn ID khác.
-    void getSubmissionById(submissionId, { signal: controller.signal })
+    void getSubmissionById(submissionId, {
+      signal: controller.signal,
+    })
       .then((submission) => {
-        if (!controller.signal.aborted) setDetail({ id: submissionId, status: "ready", submission });
+        if (controller.signal.aborted) return;
+        // Dùng tọa độ bài đã tải để URL luôn mở lại đúng nơi, kể cả khi mở từ marker hoặc bài vừa gửi.
+        const url = new URL(window.location.href);
+        url.searchParams.set("thought", submission.id);
+        url.searchParams.set("lat", String(submission.lat));
+        url.searchParams.set("lng", String(submission.lng));
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+        setDetail({
+          id: submissionId,
+          identityKey,
+          status: "ready",
+          submission,
+        });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setDetail({ id: submissionId, status: "error", notFound: error instanceof ApiError && error.status === 404 });
+        setDetail({
+          id: submissionId,
+          identityKey,
+          status: "error",
+          notFound: error instanceof ApiError && error.status === 404,
+        });
       });
     return () => controller.abort();
-  }, [open, submissionId, retry]);
-
-  const currentDetail = detail?.id === submissionId ? detail : null;
+  }, [open, submissionId, retry, identityKey]);
+  const currentDetail =
+    detail?.id === submissionId && detail.identityKey === identityKey ? detail : null;
   const submission = currentDetail?.status === "ready" ? currentDetail.submission : null;
   const loading = !currentDetail || currentDetail.status === "loading";
-
   const weatherKey = submission?.weather_code == null ? "" : String(submission.weather_code);
   // Ưu tiên câu thời tiết theo ngôn ngữ hiện tại; chỉ dùng mô tả từ API khi mã chưa có bản dịch.
-  const atmosphere = weatherKey && weather.has(weatherKey)
-    ? weather(weatherKey)
-    : submission?.weather_summary;
-
+  const atmosphere =
+    weatherKey && weather.has(weatherKey) ? weather(weatherKey) : submission?.weather_summary;
   return (
-    <Dialog.Root key={submissionId} modal={false} open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root
+      key={submissionId}
+      modal={false}
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <Dialog.Portal>
-        <RefractiveGlass
-          blur={2.5}
-        >
+        <RefractiveGlass blur={2.5}>
           <Dialog.Content
             className="thoughtModal-content"
             // style={{
@@ -90,28 +152,36 @@ export default function ThoughtModal({ open, submissionId, onOpenChange, onRetur
             }}
           >
             <div className="thoughtModal-header">
-              <Image className="thoughtModal-bubble" src={thoughtBubbleImg} alt="" sizes="44px" />
+              <Image
+                className="thoughtModal-bubble"
+                src={thoughtBubbleImg}
+                alt=""
+                sizes="44px"
+              />
               <Dialog.Title className="thoughtModal-title">{t("title")}</Dialog.Title>
             </div>
 
-            <Dialog.Description className="thoughtModal-thought" aria-live="polite" aria-busy={loading}>
-              {loading
-                ? (
-                  <>
-                    <span className="visually-hidden">{t("loading")}</span>
-                    <LoadingDots color="var(--secondary-color)" />
-                  </>
-                )
-                : currentDetail?.status === "error"
-                  ? t(currentDetail.notFound
-                    ? "notFound"
-                    : "loadError")
-                  : (
-                    <TextTyping text={submission?.description || ''} />
-                  )}
+            <Dialog.Description
+              className="thoughtModal-thought"
+              aria-live="polite"
+              aria-busy={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="visually-hidden">{t("loading")}</span>
+                  <LoadingDots color="var(--secondary-color)" />
+                </>
+              ) : currentDetail?.status === "error" ? (
+                t(currentDetail.notFound ? "notFound" : "loadError")
+              ) : (
+                <TextTyping text={submission?.description || ""} />
+              )}
             </Dialog.Description>
             {currentDetail?.status === "error" && !currentDetail.notFound && (
-              <GlassButton type="button" onClick={() => setRetry((value) => value + 1)}>
+              <GlassButton
+                type="button"
+                onClick={() => setRetry((value) => value + 1)}
+              >
                 {t("retry")}
               </GlassButton>
             )}
@@ -123,7 +193,12 @@ export default function ThoughtModal({ open, submissionId, onOpenChange, onRetur
               </p>
               <div className="thoughtModal-actions">
                 {atmosphere && (
-                  <a className="thoughtModal-attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+                  <a
+                    className="thoughtModal-attribution"
+                    href="https://open-meteo.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {weather("attribution")}
                   </a>
                 )}

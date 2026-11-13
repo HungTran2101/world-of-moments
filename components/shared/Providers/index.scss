@@ -1,0 +1,222 @@
+.cms,
+.cms-popup {
+  --color-text: #242830;
+  --color-text-muted: #646b76;
+  --color-text-inverted: #fff;
+  --color-surface: #fff;
+  --color-surface-alt: #f0f3f7;
+  --color-border: #dde1e7;
+  --color-input: #cbd1d9;
+  --color-ring: #4e769f;
+  --primary-color: #283b51;
+  --secondary-color: #edf1f6;
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--primary-color);
+  --color-primary-foreground: var(--color-text-inverted);
+  --color-secondary: var(--secondary-color);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted: var(--color-surface-alt);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-surface-alt);
+  --color-accent-foreground: var(--color-text);
+  --radius-lg: 8px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-text);
+  --sidebar-accent: var(--color-surface-alt);
+  --sidebar-accent-foreground: var(--color-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--color-ring);
+  --cms-shell-gap: 8px;
+  --cms-panel-radius: 12px;
+
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color-scheme: light;
+}
+
+.cms {
+  --cms-content-padding-inline: 12px;
+  --cms-content-padding-top: 14px;
+  --cms-content-padding-bottom: 24px;
+
+  min-height: 100dvh;
+  background: #f7f8fa;
+
+  input,
+  select {
+    font: inherit;
+  }
+
+  .cms-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid #cbd1d9;
+    border-radius: 8px;
+    color: #24354a;
+    background: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: #f0f3f7;
+    }
+  }
+
+  :focus-visible:not([data-slot]) {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+
+  :disabled:not([data-slot]),
+  [aria-disabled="true"]:not([data-slot]) {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 12px;
+  }
+
+  a:not([data-slot="button"]) {
+    color: #304d6b;
+  }
+
+  small {
+    display: block;
+  }
+}
+
+.cms-muted {
+  color: #717986;
+  font-size: 13px;
+}
+
+.cms [data-slot="button"],
+.cms-popup [data-slot="button"],
+.cms [data-slot="input"],
+.cms [data-slot="textarea"],
+.cms [data-slot="select-trigger"],
+.cms [data-slot="combobox-chips"],
+.cms-sidebar [data-slot="sidebar-menu-button"] {
+  font-size: 13px;
+}
+
+.cms-sessionLoading {
+  display: grid;
+  min-height: 100dvh;
+  padding: 32px;
+  place-content: center center;
+  gap: 16px;
+}
+
+@media (width <=760px) {
+  .cms {
+    --cms-shell-gap: 8px;
+    --cms-content-padding-inline: 10px;
+    --cms-content-padding-top: 14px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cms *,
+  .cms *::before,
+  .cms *::after,
+  .cms-popup,
+  .cms-popup *,
+  .cms-popup *::before,
+  .cms-popup *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.cms [data-slot="input"],
+.cms [data-slot="select-trigger"] {
+  height: 34px;
+}
+
+.cms [data-slot="combobox-chips"] {
+  min-height: 34px;
+  background: var(--color-surface);
+}
+
+.cms [data-slot="combobox-chip"] {
+  max-width: 100%;
+  height: auto;
+  min-height: 26px;
+}
+
+.cms [data-slot="combobox-chip-remove"] {
+  border: 0;
+  transition-property: color, background-color, opacity;
+}
+
+.cms [data-slot="checkbox"] {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.cms-popup [data-slot="select-item"],
+.cms-popup [data-slot="combobox-item"] {
+  min-height: 36px;
+}
+
+.cms-popup [data-slot="select-item"] {
+  white-space: normal;
+}
+
+.cms [data-slot="select-trigger"] {
+  background: var(--color-surface);
+}
+
+.cms [data-slot="combobox-chip-input"] {
+  width: 0;
+  min-width: 80px;
+  min-height: 28px;
+}
+
+.cms [data-slot="combobox-chips"][data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cms [data-slot="combobox-chip-label"] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}

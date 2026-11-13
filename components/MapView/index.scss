@@ -1,4 +1,4 @@
-.MapView {
+.mapView {
   &-wrapper {
     position: relative;
     width: 100%;
@@ -88,12 +88,11 @@
     width: 100%;
     height: 100%;
     opacity: 0;
-    filter: blur(10px);
-    transition: all 2.5s ease;
+    // Chỉ chuyển opacity để tránh lọc lại toàn bộ bản đồ trong từng khung hình khi xuất hiện.
+    transition: opacity 2.5s ease;
 
     &.is-ready {
       opacity: 1;
-      filter: blur(0);
     }
 
     .maplibregl-marker {
@@ -137,6 +136,12 @@
     transform: translateX(-50%);
 
     button {
+      height: auto;
+      padding: 0 inherit;
+      color: inherit;
+      background: transparent;
+      font: inherit;
+      white-space: normal;
       margin-top: 0.25rem;
       text-decoration: underline;
       cursor: pointer;
@@ -144,6 +149,10 @@
   }
 
   &-attribution {
+    height: auto;
+    background: transparent;
+    font-weight: 400;
+    white-space: normal;
     position: absolute;
     right: 0.5rem;
     bottom: 0.5rem;
@@ -218,7 +227,9 @@
     place-items: center;
     width: 2rem;
     height: 2rem;
+    padding: 0;
     border-radius: 50%;
+    background: transparent;
     color: var(--primary-color-dark);
     cursor: pointer;
 
@@ -236,7 +247,7 @@
     line-height: 1.65;
     overflow-wrap: anywhere;
 
-    > p {
+    >p {
       color: var(--color-text-muted);
     }
 
@@ -271,88 +282,10 @@
     margin-top: 1.25rem;
   }
 
-  &-loader {
-    position: absolute;
-    inset: 0;
-    isolation: isolate;
-    background: var(--map-loading-background);
-    perspective: 1400px;
-    transform-style: preserve-3d;
-    overflow: hidden;
-    opacity: 1;
-    transition: all 2s ease;
-
-    &.is-exiting {
-      opacity: 0;
-      pointer-events: none;
-    }
-  }
-
-  &-loaderSky {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  &-loaderSky {
-    background:
-      radial-gradient(circle at 22% 18%, rgb(255 255 255 / 32%), transparent 18%),
-      radial-gradient(circle at 79% 28%, rgb(255 255 255 / 20%), transparent 14%),
-      radial-gradient(circle at 32% 76%, rgb(255 255 255 / 16%), transparent 16%);
-    opacity: 0.7;
-  }
-
-  &-loaderCloud {
-    position: absolute;
-    transform-style: preserve-3d;
-    width: 30rem;
-    height: auto;
-    object-fit: contain;
-    opacity: 0;
-    mix-blend-mode: screen;
-    will-change: transform, opacity, filter;
-    animation-name: cloud-fly-through;
-    animation-duration: var(--cloud-duration);
-    animation-delay: var(--cloud-delay);
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    transform-origin: center center;
-    filter: blur(2px);
-
-    &--far {
-      z-index: 1;
-    }
-
-    &--mid {
-      z-index: 2;
-    }
-
-    &--near {
-      z-index: 3;
-    }
-  }
-
-  @media (width <=768px) {
-    &-loaderCloud {
-      width: 22rem;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     &-map {
       transition: opacity 0.25s linear;
       transform: none;
-      filter: none;
-    }
-
-    &-loaderCloud {
-      animation: none;
-    }
-
-    &-loaderCloud {
-      opacity: 0.38;
-      transform: translate3d(-50%, -50%, 0) scale(calc(var(--cloud-scale) * 0.92));
-      filter: blur(1px);
     }
   }
 }

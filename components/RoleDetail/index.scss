@@ -1,0 +1,18 @@
+@use "../shared/Table/base";
+
+.cms-permissions {
+  min-width: 780px !important;
+}
+
+.cms-permissions th:not(:first-child),
+.cms-permissions td:not(:last-child) {
+  text-align: center;
+}
+
+.cms-permissions [data-slot="combobox-chips"] {
+  width: 100%;
+  min-width: 220px;
+
+  // Không để nội dung thẻ đã chọn làm bảng tính lại độ rộng cột.
+  contain: inline-size;
+}

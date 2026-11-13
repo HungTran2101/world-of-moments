@@ -1,0 +1,81 @@
+.sidebar {
+  position: absolute;
+  z-index: 1;
+  inset: 0.5rem 0.5rem 0.5rem 0;
+  padding: 0 0.5rem;
+  width: 100%;
+  max-width: calc(var(--sidebar-width) + 0.5rem);
+  max-height: 100dvh;
+
+  .sidebar-content {
+    padding: 14px;
+    border-radius: var(--radius-lg);
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    // clip-path và opacity tạo backdrop root, khiến ::after không lấy được nền bản đồ.
+    // Lọc ngay trên panel để giữ khúc xạ trong suốt chuyển động mở/đóng hình tròn.
+    @media (prefers-reduced-motion: no-preference) {
+      &[data-refractive-glass='active'] {
+        backdrop-filter: var(--refraction-filter) saturate(1.08);
+
+        &::after {
+          backdrop-filter: none;
+        }
+      }
+    }
+
+    // transition-property: clip-path, opacity;
+    // transition-duration: 0.5s;
+    // transition-timing-function: ease-in-out;
+
+    // &.open {
+    //   clip-path: circle(150% at 50% 50%);
+    //   opacity: 1;
+    // }
+
+    // &.close {
+    //   clip-path: circle(0px at 0 100%);
+    //   opacity: 0.5;
+    // }
+  }
+
+  .sidebar-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 4px;
+    overscroll-behavior-y: contain;
+  }
+
+  .sidebar-button {
+    position: absolute;
+    top: 50%;
+    left: 0.5rem;
+    cursor: pointer;
+    will-change: offset-distance;
+
+    &:hover {
+      svg {
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+    }
+
+    &-glass {
+      width: 40px;
+      height: 40px;
+      border-radius: 100%;
+
+    }
+
+    svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform ease-in-out .2s;
+    }
+  }
+
+}

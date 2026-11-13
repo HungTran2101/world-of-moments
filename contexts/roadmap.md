@@ -1,6 +1,6 @@
 Phase 1 — MVP
 
-Current status: the core map, submission flow, and personal history are implemented. History opens from the toolbar with debounced search and 50-item pagination for the saved local UUID.
+Current status: the core map, submission flow, and personal history are implemented. History opens from the toolbar with debounced search, 10-item pagination and deletion for the signed-in client account.
 
 Goal: core experience working.
 
@@ -10,7 +10,7 @@ Features:
 click-to-place pin submission — implemented with a description-only form (up to 600 characters)
 view markers — implemented with viewport loading, client-side clustering, and on-demand thought details
 weather atmosphere text — implemented with server-side weather lookup and localized display
-local UUID identity — implemented with browser LocalStorage
+client email/password accounts — implemented with verified email and isolated cookie sessions
 personal history — implemented with a floating glass panel, search, and TanStack Query pagination (50 thoughts per page)
 
 Tech goals:
@@ -45,6 +45,11 @@ Implementation:
 WebSocket or SSE
 Phase 4 — Future Message System
 
+Status: disabled pending a new client-account-based flow. Legacy create/list APIs,
+services, anonymous-identity bootstrap/cookies and limiter have been removed. Existing
+messages are retained with nullable `clientUserId` ownership; existing anonymous
+messages remain unclaimed. The planned UI remains unconnected.
+
 Features:
 
 send message to future self
@@ -70,7 +75,7 @@ Phase 6 — Moderation and Stability
 Add:
 
 report system
-admin moderation dashboard
+admin moderation dashboard — implemented in CMS with separate publication/validity permissions, bulk actions, and record audit fields
 stronger spam protection
 Phase 7 — Scaling
 

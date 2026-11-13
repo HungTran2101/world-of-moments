@@ -1,0 +1,36 @@
+import { permissions } from "@/services/permission";
+import { prisma } from "@/lib/prisma";
+import { requireCmsSession } from "@/app/api/_handlers/auth";
+import { cmsJson, CmsHttpError, parseBody, withCmsRequest } from "@/app/api/_handlers/http";
+import { hashPassword } from "better-auth/crypto";
+import { resetPasswordSchema } from "@/services/schemas";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Login required - Permission: account.resetPasswordPermission
+export async function POST(
+  request: Request,
+  context: RouteContext<"/api/cms/accounts/[id]/reset-password">,
+) {
+  return withCmsRequest(request, async () => {
+    const { id } = await context.params;
+    const actor = await requireCmsSession(request.headers, permissions.ACCOUNT_RESET_PASSWORD);
+    const body = await parseBody(request, resetPasswordSchema);
+    const password = await hashPassword(body.newPassword);
+    await prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: { id, isSystem: false, kind: "cms" },
+        select: { id: true },
+      });
+      if (!user) throw new CmsHttpError(404, "errors.notFound");
+      await tx.account.updateMany({
+        where: { userId: id, providerId: "credential" },
+        data: { password },
+      });
+      await tx.user.update({ where: { id }, data: { updatedBy: actor.name } });
+      await tx.session.deleteMany({ where: { userId: id } });
+    });
+    return cmsJson({ ok: true });
+  });
+}

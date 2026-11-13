@@ -1,0 +1,26 @@
+.cms-breadcrumbs {
+  margin-bottom: 14px;
+  color: #717986;
+  font-size: 13px;
+}
+
+.cms-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cms-breadcrumbs li+li::before {
+  margin-right: 10px;
+  color: #a2a8b1;
+  content: "/";
+}
+
+@media (width <=760px) {
+  .cms-breadcrumbs {
+    margin-bottom: 16px;
+  }
+}

@@ -1,4 +1,4 @@
-.ErrorModal {
+.errorModal {
   &-overlay {
     z-index: 100;
     background: #7776763d;
@@ -28,7 +28,7 @@
   }
 
   &-description {
-    margin: 1rem 0 1.5rem;
+    margin: 1rem 0;
     color: var(--color-text-muted);
     line-height: 1.7;
   }

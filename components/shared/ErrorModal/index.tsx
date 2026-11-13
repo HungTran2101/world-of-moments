@@ -22,28 +22,42 @@ export default function ErrorModal({ open, error, onOpenChange }: ErrorModalProp
   // Provider xóa lỗi ngay khi đóng; giữ nội dung cũ đến hết hiệu ứng thoát để không nháy chữ.
   if (open && lastError !== error) setLastError(error);
   const visibleError = open ? error : lastError;
-
   const isRateLimitError = visibleError?.status === 429;
-
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <Dialog.Portal>
-        <Dialog.Overlay className="ErrorModal-overlay" />
-        <RefractiveGlass
-          brightness={1.1}
-        >
-          <Dialog.Content className="ErrorModal-content">
+        <Dialog.Overlay className="errorModal-overlay" />
+        <RefractiveGlass brightness={1.1}>
+          <Dialog.Content className="errorModal-content">
             {isRateLimitError ? (
-              <ClockFading className={cn("ErrorModal-icon", "ErrorModal-icon--rateLimited")} size={32} aria-hidden="true" />
+              <ClockFading
+                className={cn("errorModal-icon", "errorModal-icon--rateLimited")}
+                size={32}
+                aria-hidden="true"
+              />
             ) : (
-              <TriangleAlert className="ErrorModal-icon" size={32} aria-hidden="true" />
+              <TriangleAlert
+                className="errorModal-icon"
+                size={32}
+                aria-hidden="true"
+              />
             )}
-            <Dialog.Title className="ErrorModal-title">{isRateLimitError ? t('rateLimitedTitle') : t("title")}</Dialog.Title>
-            <Dialog.Description className="ErrorModal-description">
+            <Dialog.Title className="errorModal-title">
+              {t(isRateLimitError ? "rateLimitedTitle" : "title")}
+            </Dialog.Title>
+            <Dialog.Description className="errorModal-description">
               {t(visibleError ? getErrorMessageKey(visibleError) : "unexpected")}
             </Dialog.Description>
             <Dialog.Close asChild>
-              <GlassButton primaryColor="blue" type="button">{t("dismiss")}</GlassButton>
+              <GlassButton
+                primaryColor="blue"
+                type="button"
+              >
+                {t("dismiss")}
+              </GlassButton>
             </Dialog.Close>
           </Dialog.Content>
         </RefractiveGlass>

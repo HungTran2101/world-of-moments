@@ -1,23 +1,33 @@
+import {
+  submissionViewer,
+  visibleSubmissionWhere,
+  SUBMISSION_PRIVATE_HEADERS,
+} from "@/lib/submissionModeration";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
+import { requireClientSession } from "@/app/api/_handlers/clientAuth";
+import { withClientRequest } from "@/app/api/_handlers/clientHttp";
+import { readClient } from "@/lib/clientAccounts";
+import { ClientHttpError } from "@/lib/clientErrors";
 import { compressedJson } from "@/lib/compressedJson";
-
-const UpdateSchema = z.object({
-  title: z.string().min(1).max(120).optional(),
-  description: z.string().min(1).max(600).optional(),
-  author_uuid: z.string().uuid(),
-});
 
 // GET /api/submissions/:id
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+    }>;
+  },
 ) {
   const { id } = await params;
-
-  const submission = await prisma.submission.findUnique({
-    where: { id },
+  const submission = await prisma.submission.findFirst({
+    where: {
+      id,
+      ...visibleSubmissionWhere(await submissionViewer(request)),
+    },
     select: {
       id: true,
       // title: true,
@@ -28,67 +38,35 @@ export async function GET(
       weather_code: true,
     },
   });
-
   if (!submission) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(
+      {
+        error: "Not found",
+      },
+      {
+        status: 404,
+        headers: SUBMISSION_PRIVATE_HEADERS,
+      },
+    );
   }
-
-  return compressedJson(submission, request);
+  return compressedJson(submission, request, SUBMISSION_PRIVATE_HEADERS);
 }
 
-// PATCH /api/submissions/:id
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const parsed = UpdateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues }, { status: 422 });
-  }
-
-  const { author_uuid, ...updates } = parsed.data;
-
-  const existing = await prisma.submission.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (existing.author_uuid !== author_uuid) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const updated = await prisma.submission.update({
-    where: { id },
-    data: updates,
-  });
-
-  return NextResponse.json(updated);
-}
-
-// DELETE /api/submissions/:id
+// Không có PATCH: nội dung và tọa độ không thay đổi sau khi gửi.
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
-
-  const author_uuid = request.headers.get("x-author-uuid");
-  if (!author_uuid) {
-    return NextResponse.json({ error: "Missing author identity" }, { status: 400 });
-  }
-
-  const existing = await prisma.submission.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (existing.author_uuid !== author_uuid) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  await prisma.submission.delete({ where: { id } });
-  return new NextResponse(null, { status: 204 });
+  return withClientRequest(request, async () => {
+    const user = await requireClientSession(request.headers);
+    const { id } = await params;
+    const removed = await prisma.$transaction(async (tx) => {
+      const current = await readClient(tx, user.id);
+      if (!current) return false;
+      const result = await tx.submission.deleteMany({ where: { id, clientUserId: user.id } });
+      return result.count > 0;
+    });
+    if (!removed) throw new ClientHttpError(404, "notFound");
+    return new NextResponse(null, { status: 204, headers: SUBMISSION_PRIVATE_HEADERS });
+  });
 }

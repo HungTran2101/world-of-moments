@@ -1,0 +1,22 @@
+model ClientSubmissionLimit {
+  userId          String     @id
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day             String
+  submissions     Int        @default(0)
+  lastSubmittedAt DateTime?
+  rejectedAt      DateTime[]
+
+  @@map("client_submission_limits")
+}
+
+model ClientAuthIpLimit {
+  key               String     @id
+  attemptsAt        DateTime[]
+  requestsAt        DateTime[] @default([])
+  createdAccountsAt DateTime[] @default([])
+  blockedUntil      DateTime?
+  expiresAt         DateTime
+
+  @@index([expiresAt])
+  @@map("client_auth_ip_limits")
+}

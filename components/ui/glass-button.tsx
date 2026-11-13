@@ -32,6 +32,7 @@ function GlassButton({ children,
   ...props }: GlassButtonProps) {
   return (
     <Button
+      variant="default"
       size={size}
       asChild={asChild}
       style={{

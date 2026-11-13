@@ -1,15 +1,38 @@
 model Submission {
-  id              String   @id @default(cuid())
-  description     String   @db.VarChar(600)
+  id              String             @id @default(cuid())
+  description     String             @db.VarChar(600)
   lat             Float
   lng             Float
   weather_summary String?
   weather_code    Int?
-  author_uuid     String
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  clientUserId    String?
+  clientUser      User?              @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
+  created_at      DateTime           @default(now())
+  updated_at      DateTime           @updatedAt
+  status          SubmissionStatus   @default(published)
+  validity        SubmissionValidity @default(need_inspect)
+  createdBy       String             @default("client")
+  createdFrom     SubmissionSource   @default(client)
+  updatedBy       String?
 
-  @@index([author_uuid])
+  @@index([clientUserId])
   @@index([lat, lng])
+  @@index([created_at])
   @@map("submissions")
+}
+
+enum SubmissionStatus {
+  published
+  unpublished
+}
+
+enum SubmissionValidity {
+  valid
+  invalid
+  need_inspect @map("need-inspect")
+}
+
+enum SubmissionSource {
+  cms
+  client
 }

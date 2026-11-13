@@ -1,7 +1,7 @@
-.SubmissionForm {
+.submissionForm {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.875rem;
 
   &-label {
     display: flex;
@@ -20,9 +20,9 @@
     color: var(--color-text);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    padding: 0.625rem 0.875rem;
+    padding: 0.5rem 0.75rem;
     font-family: inherit;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus-within {
@@ -40,7 +40,7 @@
   &-textarea {
     display: block;
     width: 100%;
-    padding: 0.625rem 0.875rem 0;
+    padding: 0.5rem 0.75rem 0;
     border: none;
     border-radius: inherit;
     outline: none;
@@ -81,12 +81,12 @@
   }
 
   &-button {
-    padding: 0.75rem 1.25rem;
+    padding: 0.5rem 0.75rem;
     background: var(--primary-color);
     color: #fff;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s ease, transform 0.15s ease;
@@ -108,9 +108,10 @@
     width: 20px;
     height: 20px;
   }
+
 }
 
-.SubmissionFlight {
+.submissionFlight {
   position: fixed;
   z-index: 50;
   top: 0;
@@ -210,12 +211,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .SubmissionForm-textarea--flash-error {
+  .submissionForm-textarea--flash-error {
     animation-duration: 0.01ms;
   }
 
-  .SubmissionFlight-bubble.is-waiting,
-  .SubmissionFlight-dots span {
+  .submissionFlight-bubble.is-waiting,
+  .submissionFlight-dots span {
     animation: none;
   }
 }

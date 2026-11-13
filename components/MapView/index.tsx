@@ -1,8 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 import ThoughtModal from "@/components/ThoughtModal";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { cn } from "@/lib/utils";
+import { readThoughtMapTarget } from "@/lib/thoughtMapLink";
+import { useError } from "@/components/shared/ErrorProvider";
 import { useSystemStore } from "@/store/systemStore";
 import { usePinStore } from "@/store/usePinStore";
 import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
@@ -10,7 +14,7 @@ import type { Map as MapLibreMap, Point } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import MapLoading from "./MapLoading";
+import MapLoading from "@/components/shared/MapLoading";
 import { createSpaceScene } from "./spaceScene";
 import { getSpaceMinZoom, SPACE_DETAIL_MIN_ZOOM } from "./spaceStyle";
 import {
@@ -23,9 +27,9 @@ import {
 import { createTimeReveal } from "./timeReveal";
 import { createSunRay } from "./sunRay";
 import { getMapSunPosition, getTimeMapStyle, resolveMapTimeStage } from "./timeStyle";
-import { constants } from "@/app/api/constant";
 import Attribution from "./Attribution";
 
+const CARTO_BASEMAP_API_KEY = process.env.NEXT_PUBLIC_CARTO_BASEMAP_API_KEY?.trim();
 const LOADER_EXIT_DELAY_MS = 2100;
 const INITIAL_MAP_CENTER: [number, number] = [106, 16];
 const INITIAL_MAP_ZOOM = 5.5;
@@ -38,6 +42,9 @@ const MIN_ROTATION_DELTA = 2;
 
 export default function MapView() {
   const t = useTranslations("map");
+  const { showError } = useError();
+  const submissionMap = useSubmissionMapStore((state) => state.map);
+  const initialThoughtVisitedRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const spaceRef = useRef<HTMLCanvasElement>(null);
@@ -61,6 +68,18 @@ export default function MapView() {
   const [submissionsRetry, setSubmissionsRetry] = useState(0);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [thoughtModalOpen, setThoughtModalOpen] = useState(false);
+
+  const handleThoughtModalOpenChange = (open: boolean) => {
+    setThoughtModalOpen(open);
+    if (open) return;
+
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("thought")) return;
+    url.searchParams.delete("thought");
+    url.searchParams.delete("lat");
+    url.searchParams.delete("lng");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  };
 
   const handleSubmissionClick = useCallback((submissionId: string) => {
     // Chọn marker khác sẽ hủy chuyến đi cũ, tránh modal cũ mở lại sau khi camera dừng.
@@ -135,8 +154,8 @@ export default function MapView() {
           const isCarto = requestUrl.hostname === "basemaps.cartocdn.com"
             || requestUrl.hostname.endsWith(".basemaps.cartocdn.com");
           // Gắn khóa cho cả tile, font và sprite, kể cả URL do TileJSON trả về.
-          if (isCarto) {
-            requestUrl.searchParams.set("key", constants.CARTO_BASEMAP_API_KEY);
+          if (isCarto && CARTO_BASEMAP_API_KEY) {
+            requestUrl.searchParams.set("key", CARTO_BASEMAP_API_KEY);
             return { url: requestUrl.toString() };
           }
           return { url };
@@ -466,34 +485,44 @@ export default function MapView() {
     };
   }, [mapReady]);
 
+  useEffect(() => {
+    if (!submissionMap || showLoader || initialThoughtVisitedRef.current) return;
+    initialThoughtVisitedRef.current = true;
+    const target = readThoughtMapTarget(window.location.search);
+    if (!target) return;
+    // Chờ layer và màn tải sẵn sàng rồi dùng lại chuyến đi từ lịch sử, chỉ một lần mỗi lần mở map.
+    submissionMap.focus();
+    void submissionMap.goToThought(target).catch((error: unknown) => showError(error));
+  }, [submissionMap, showLoader, showError]);
+
   return (
-    <div className="MapView-wrapper">
-      <canvas ref={spaceRef} className="MapView-space" aria-hidden="true" />
+    <div className="mapView-wrapper">
+      <canvas ref={spaceRef} className="mapView-space" aria-hidden="true" />
       <div
         ref={containerRef}
-        className={cn("MapView-map", mapReady && "is-ready")}
+        className={cn("mapView-map", mapReady && "is-ready")}
       />
-      <div ref={sunRayRef} className="MapView-sunRay" aria-hidden="true">
-        <div className="MapView-sunRayLight">
-          <div className="MapView-sunRayGlow" />
+      <div ref={sunRayRef} className="mapView-sunRay" aria-hidden="true">
+        <div className="mapView-sunRayLight">
+          <div className="mapView-sunRayGlow" />
         </div>
       </div>
       <Attribution />
       {submissionsError && (
         <RefractiveGlass>
-          <div className="MapView-submissionsError" role="status">
+          <div className="mapView-submissionsError" role="status">
             <p>{t("submissionsLoadError")}</p>
-            <button type="button" onClick={() => setSubmissionsRetry((value) => value + 1)}>
+            <Button type="button" onClick={() => setSubmissionsRetry((value) => value + 1)}>
               {t("retry")}
-            </button>
+            </Button>
           </div>
         </RefractiveGlass>
       )}
-      {showLoader && <MapLoading />}
+      {showLoader && <MapLoading isExiting={mapReady} />}
       <ThoughtModal
         open={thoughtModalOpen}
         submissionId={selectedSubmissionId}
-        onOpenChange={setThoughtModalOpen}
+        onOpenChange={handleThoughtModalOpenChange}
         onReturnFocus={() => mapRef.current?.getCanvas().focus({ preventScroll: true })}
       />
     </div>

@@ -88,21 +88,21 @@ export default function SubmissionAnimation({ origin, getDestination, subscribeT
 
   return createPortal(
     <>
-      <div ref={bubbleRef} className="SubmissionFlight" aria-hidden="true">
+      <div ref={bubbleRef} className="submissionFlight" aria-hidden="true">
         <Image
           src={thoughtBubbleImg}
           alt=""
           loading="eager"
           width={BUBBLE_WIDTH}
           height={BUBBLE_HEIGHT}
-          className={waiting ? "SubmissionFlight-bubble is-waiting" : "SubmissionFlight-bubble"}
+          className={waiting ? "submissionFlight-bubble is-waiting" : "submissionFlight-bubble"}
         />
       </div>
       <AnimatePresence>
         {waiting && (
           <RefractiveGlass>
             <motion.div
-              className="SubmissionFlight-notification"
+              className="submissionFlight-notification"
               role="status"
               initial={{ y: "calc(100% + 2rem)", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -110,7 +110,7 @@ export default function SubmissionAnimation({ origin, getDestination, subscribeT
               transition={{ duration: 0.3 }}
             >
               <span>{t("sendingThought")}</span>
-              <span className="SubmissionFlight-dots" aria-hidden="true">
+              <span className="submissionFlight-dots" aria-hidden="true">
                 <span>.</span>
                 <span>.</span>
                 <span>.</span>

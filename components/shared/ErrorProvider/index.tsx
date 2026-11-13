@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  APP_ERROR_EVENT,
-  AppError,
-  RUNTIME_ERROR_STATUS,
-  toAppError,
-} from "@/services/shared/errors";
+import { APP_ERROR_EVENT, RUNTIME_ERROR_STATUS } from "@/services/constant";
+import { AppError, toAppError } from "@/services/shared/errors";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import ErrorModal from "@/components/shared/ErrorModal";
 

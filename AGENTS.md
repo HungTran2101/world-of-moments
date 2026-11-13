@@ -9,9 +9,17 @@ activity or popularity.
 
 ## Always-on product rules
 
-- Preserve the anonymous identity model. Identity is only a UUID stored in browser
-  LocalStorage; do not introduce accounts, NextAuth, JWT sessions, or similar
-  authentication systems.
+- Keep map browsing public and thoughts anonymous in public responses. Creating a
+  thought requires a verified client account with a database-backed cookie session.
+  CMS/client accounts share tables but have separate kinds, secrets, cookies and checks.
+  Never trust client-supplied ownership IDs. Future messages remain disabled; their
+  old anonymous-identity routes, services and cookie flow are removed. Any future
+  implementation must use client-account authentication. Preserve existing storage
+  until its account-ownership redesign is explicitly implemented.
+- Submitted thought content and coordinates are immutable. Authors may delete their
+  own thoughts; CMS deletion requires `submission.delete`. CMS moderation remains separate.
+- Development schema changes use `prisma db push` and Prisma generation. Do not add
+  migration files or database-reset flows. Preserve unrelated records when removing tables.
 - Do not introduce social mechanics such as likes, comments, followers, feeds,
   rankings, popularity metrics, or intrusive notifications.
 - Never expose author identities or exact timestamps in public responses. Exact
@@ -37,6 +45,34 @@ activity or popularity.
   Include `.ts` and `.css` files explicitly when needed, since the scripts above
   only target `.tsx` and `.scss` files.
 
+## CMS API services
+
+- CMS UI must import named functions from `services/cms/<module>` instead of
+  calling `cmsRequest`, `apiRequest`, or `fetch` directly for CMS APIs.
+- Keep CMS endpoint URLs, HTTP methods, ID encoding, payloads and response types
+  inside service modules. Accept optional `ApiRequestOptions` for cancellation
+  and existing request options. Keep service functions in `index.ts` and their
+  response types in `types.ts`.
+- Keep UI state, query keys/invalidation, navigation and logout broadcasting in
+  the UI. Shared session-expiry helpers may still be used directly.
+
+## CMS CRUD tables
+
+- Each list page owns its Header, breadcrumbs, columns, row actions, selection
+  and Table composition. Reuse `useCRUDPage` for list/query/mutation behavior and
+  shared UI primitives; do not add a generic CRUD page wrapper.
+- Every CMS CRUD list, including future lists, must define a `createdAt` column
+  in its own page-level `columns` array, immediately before the Actions column
+  (second last).
+- Use the localized `common.createdAt` label and display the timestamp as
+  `HH:mm dd/MM/yyyy` (24-hour time, zero-padded day/month) in the browser time zone,
+  regardless of UI locale. CMS record APIs must provide an ISO `createdAt` timestamp.
+- Use `formatDateTime` from `lib/utils.ts` for this display format.
+- Keep this column explicit in each page; do not inject it into the shared
+  `Table` or require `createdAt` on its generic record type.
+- Center the Actions header and cells. Use icon controls with localized tooltips
+  and accessible labels, retaining links for navigation and buttons for mutations.
+
 ## API pagination
 
 - All paginated list APIs, including future endpoints, return
@@ -59,8 +95,23 @@ Read only the documents relevant to the task:
 
 - Product behavior and philosophy: `contexts/project.md`
 - System structure and technical boundaries: `contexts/architecture.md`
+- Client authentication, ownership, limits and cleanup: `contexts/client-auth.md`
 - Planned phases and feature priority: `contexts/roadmap.md`
 - General repository overview and setup: `README.md`
+- CMS architecture, contracts, setup, and implementation status: `contexts/cms.md`
+
+For every future CMS change, read `contexts/cms.md` and update its affected
+contracts, behavior, or status in the same task.
 
 When documentation and implementation differ, do not silently choose one. Verify
 whether the difference is an intentional product decision before changing behavior.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
