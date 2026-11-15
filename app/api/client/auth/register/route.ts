@@ -2,7 +2,7 @@ import { registerClientAccount, getClientRecord, clientIdentity } from "@/lib/cl
 import { getClientAuth } from "@/app/api/_handlers/clientAuth";
 import { sendClientVerification } from "@/lib/clientVerification";
 import { withAuthCaptcha } from "@/lib/clientCaptcha";
-import { admitAuthRequest } from "@/lib/clientAuthLimits";
+import { admitAuthRequest, countAuthRequest } from "@/lib/clientAuthLimits";
 import { clientJson, withClientRequest } from "@/app/api/_handlers/clientHttp";
 import { ClientHttpError } from "@/lib/clientErrors";
 import type { ClientVerificationEmailError } from "@/services/client-auth/types";
@@ -14,8 +14,16 @@ import {
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   return withClientRequest(request, async () => {
-    const admission = await admitAuthRequest(request, "register");
-    const body = clientCredentialsSchema.parse(await request.json());
+    // Kiểm tra lệnh chặn trước; yêu cầu lấy CAPTCHA chưa tiêu thụ lượt đăng ký.
+    const admission = await admitAuthRequest(request, "register", false);
+    const body = await (async () => {
+      try {
+        return clientCredentialsSchema.parse(await request.json());
+      } catch (error) {
+        await countAuthRequest(admission);
+        throw error;
+      }
+    })();
     getClientAuth();
     const user = await withAuthCaptcha(request, admission, body.captchaToken, () =>
       registerClientAccount(body.email, body.password, admission),

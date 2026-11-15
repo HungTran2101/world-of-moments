@@ -8,6 +8,7 @@ import {
   lockAuthIp,
   readAuthIpState,
   persistAuthIpState,
+  countAuthRequest,
   type AuthIpAdmission,
 } from "@/lib/clientAuthLimits";
 
@@ -67,19 +68,18 @@ export async function withAuthCaptcha<T>(
     await lockAuthIp(tx, admission.key);
     const now = new Date();
     const state = await readAuthIpState(tx, admission.key, now);
-    const required = state.attemptsAt.length >= captchaAttemptLimit(admission.action);
-    if (admission.action === "register" && !required) {
-      state.attemptsAt.push(now);
-      await persistAuthIpState(tx, admission.key, state, now);
-    }
-    return required;
+    return state.attemptsAt.length >= captchaAttemptLimit(admission.action);
   }, { timeout: CLIENT_LIMITS.AUTH_TRANSACTION_TIMEOUT_MS });
+
+  // Yêu cầu lấy CAPTCHA chưa xử lý tài khoản; lần gửi lại có token mới tính một lượt.
+  if (requiresCaptcha && !token) throw new ClientHttpError(403, "captchaRequired");
+  await countAuthRequest(admission);
 
   // CAPTCHA và kiểm tra mật khẩu chạy ngoài transaction để không giữ kết nối/khóa khi chờ mạng.
   if (requiresCaptcha) {
     await validateCaptcha(token, admission.action, request);
-    if (admission.action === "register") await recordCaptchaAttempt(admission);
   }
+  if (admission.action === "register") await recordCaptchaAttempt(admission);
   try {
     return await authenticate();
   } catch (error) {

@@ -53,8 +53,8 @@ length limit in [`constants.MAX_DESCRIPTION_LENGTH`](../app/api/constant.ts).
 | Flow | Rule | Limit and behavior | Scope |
 | --- | --- | --- | --- |
 | Login / registration | Password length | 8–128 characters. Invalid payloads consume a hard-limit request but do not affect the CAPTCHA counter. | Per request |
-| Login | Request cap | Maximum ten same-origin POSTs within a rolling 30 minutes. The 11th starts a fixed 24-hour login block. | Per IP, login only |
-| Registration | Request cap | Maximum five same-origin POSTs within a rolling 30 minutes. The sixth starts a fixed 24-hour registration block. | Per IP, registration only |
+| Login | Request cap | Maximum ten counted login attempts within a rolling 30 minutes. A valid payload that only requests a required CAPTCHA (no token) does not count. The 11th counted attempt starts a fixed 24-hour login block. | Per IP, login only |
+| Registration | Request cap | Maximum five counted registration attempts within a rolling 30 minutes. A valid payload that only requests a required CAPTCHA (no token) does not count. The sixth counted attempt starts a fixed 24-hour registration block. | Per IP, registration only |
 | Registration | Account creation cap | Maximum ten committed account creations within a rolling 12 hours. Further creations wait until the oldest creation leaves the window. Deletion does not restore allowance; CMS-created accounts do not count. | Per IP |
 | Login | CAPTCHA threshold | After five credential failures within a rolling five-minute window, the sixth attempt requires invisible Turnstile. Successful login and passing CAPTCHA do not clear earlier failures. | Per IP, login CAPTCHA counter |
 | Registration | CAPTCHA threshold | The first three requests passing payload validation proceed without CAPTCHA; the fourth within a rolling five-minute window requires invisible Turnstile. Requests passing any required CAPTCHA are counted before account creation, including duplicate-email and creation-quota failures. Passing CAPTCHA does not clear the counter. | Per IP, registration CAPTCHA counter |
@@ -71,9 +71,12 @@ length limit in [`constants.MAX_DESCRIPTION_LENGTH`](../app/api/constant.ts).
 | Submission | Restriction escalation | First and second suspensions last seven days; the third suspension trigger bans immediately and resets the suspension count. Manual suspensions count; an already-active suspension adds no strike. Expiry restores verified status on access while retaining the count. Only an authorized revoke-ban action can restore a banned account. | Per account |
 
 Request admission runs after the same-origin check and before JSON parsing, CAPTCHA,
-password work or account creation. Every admitted POST counts, including malformed
-payloads, successful logins, unknown emails, missing/invalid CAPTCHA and automatic
-CAPTCHA retries. A challenge and its retry consume two requests. Active-block requests
+password work or account creation. Login and registration check the active block first, then count
+the attempt after payload validation and determining whether CAPTCHA is required.
+Malformed payloads, successful logins, unknown emails and invalid CAPTCHA tokens count.
+A valid login or registration payload without a token that receives `captchaRequired`
+does not count; its automatic retry with a token counts once, before token verification.
+Active-block requests
 are rejected without extending the block. Blocks are action-specific and never change
 account status, restrict an email across IPs or revoke existing sessions.
 
@@ -103,8 +106,9 @@ same POST performs all checks; no public email-check endpoint exists. Temporary 
 failure (`503 emailDnsTemporary`) shows Retry; invalid domains (`422 emailDomainInvalid`)
 and suppressed recipients (`422 emailUndeliverable`) show Edit email. Credentials stay
 in component memory and confirm-password is never sent. CAPTCHA remains available
-on the checking panel and retry obtains a fresh token when required. DNS retries and
-CAPTCHA retries still count as new requests under the existing hard limits.
+on the checking panel and retry obtains a fresh token when required. DNS retries count
+as new attempts under the hard limits. A CAPTCHA challenge and its automatic token
+retry together consume one attempt.
 
 DNS uses a five-second overall deadline, cancelling outstanding queries. Ordinary MX
 records are accepted; absent MX permits A/AAAA fallback. NXDOMAIN, explicit Null MX
@@ -147,9 +151,9 @@ cancel a send already in flight. Old delivery history is not backfilled automati
 
 ### Auth and limit review opportunities (not implemented)
 
-- Retry accounting: registration permits five requests per 30 minutes and blocks on
-  the sixth for 24 hours. DNS Retry and automatic CAPTCHA retry each consume requests;
-  evaluate separate transport-abuse and logical-registration budgets before changing policy.
+- Retry accounting: registration permits five counted attempts per 30 minutes and blocks
+  on the sixth for 24 hours. DNS Retry consumes another attempt; a missing-token CAPTCHA
+  challenge does not. Evaluate a separate transport-abuse budget for challenge-only requests.
 - Error classification: `signInClient` maps every Better Auth `APIError` to credentials;
   distinguish invalid credentials from service failures to avoid false login-failure counts.
 - Concurrent login checks: simultaneous requests can pass the CAPTCHA threshold before

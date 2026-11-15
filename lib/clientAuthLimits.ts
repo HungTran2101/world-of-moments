@@ -67,13 +67,24 @@ export async function persistAuthIpState(
 export async function admitAuthRequest<TAction extends AuthAction>(
   request: Request,
   action: TAction,
+  countRequest = true,
 ): Promise<AuthIpAdmission<TAction>> {
   const key = `${action}:${createHash("sha256").update(clientIp(request)).digest("hex")}`;
+  await checkAuthRequest({ key, action }, countRequest);
+  return { key, action };
+}
+
+export async function countAuthRequest(admission: AuthIpAdmission) {
+  await checkAuthRequest(admission, true);
+}
+
+async function checkAuthRequest({ key, action }: AuthIpAdmission, countRequest: boolean) {
   const retryAt = await prisma.$transaction(async (tx) => {
     await lockAuthIp(tx, key);
     const now = new Date();
     const state = await readAuthIpState(tx, key, now);
     if (state.blockedUntil) return state.blockedUntil;
+    if (!countRequest) return null;
     const maximum = action === "register"
       ? CLIENT_LIMITS.REGISTER_MAX_REQUESTS_PER_IP
       : CLIENT_LIMITS.LOGIN_MAX_REQUESTS_PER_IP;
@@ -87,7 +98,6 @@ export async function admitAuthRequest<TAction extends AuthAction>(
   }, { timeout: CLIENT_LIMITS.AUTH_TRANSACTION_TIMEOUT_MS });
   // Trả lỗi sau commit để lần vượt ngưỡng không làm rollback lệnh chặn.
   if (retryAt) throw new ClientHttpError(429, "authRateLimited", retryAt);
-  return { key, action };
 }
 
 function assertCreationAllowance(state: AuthIpState) {
