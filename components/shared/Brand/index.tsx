@@ -24,7 +24,7 @@ export function Brand({
         alt=""
       />
       <span>
-        World of Moments<small>CMS</small>
+        Dear World<small>CMS</small>
       </span>
     </div>
   );

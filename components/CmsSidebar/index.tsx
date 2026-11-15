@@ -110,7 +110,7 @@ function CmsSidebarContent({ children }: { children: ReactNode }) {
           <Link
             href={landingPath ?? ROUTE_PATHS.DASHBOARD}
             className="cms-sidebarBrand"
-            aria-label="World of Moments CMS"
+            aria-label="Dear World CMS"
             onClick={closeMobile}
           >
             <Brand imageSize={SIDEBAR_BRAND_IMAGE_SIZE_PX} />

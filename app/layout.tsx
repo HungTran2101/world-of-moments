@@ -30,18 +30,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const messages = await getMessages();
   const meta = messages.meta as { title: string; description: string };
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://dearworld.space"),
     title: meta.title,
+    applicationName: "Dear World",
     description: meta.description,
     openGraph: {
+      siteName: "Dear World",
       title: meta.title,
       description: meta.description,
       type: "website",
       images: [
         {
-          url: "/favicon/metadata-image.png",
-          width: 1065,
-          height: 356,
+          url: "/favicon/metadata-image.png?v=dear-world",
+          width: 2169,
+          height: 725,
           alt: meta.title,
         },
       ],
@@ -50,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
-      images: [{ url: "/favicon/metadata-image.png", alt: meta.title }],
+      images: [{ url: "/favicon/metadata-image.png?v=dear-world", alt: meta.title }],
     },
     icons: {
       icon: [
