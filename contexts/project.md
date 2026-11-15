@@ -1,5 +1,9 @@
 Project Overview
 
+Dear World is the product name. “A world of moments” describes the experience:
+anonymous thoughts left in meaningful places around the world. Public and CMS
+branding, metadata, verification emails and illustrated covers use Dear World.
+
 A map-based anonymous reflection web application where people can leave small thoughts tied to locations around the world.
 
 The product focuses on quiet reflection rather than social interaction. Users can explore messages scattered across the planet and occasionally receive something written by their past self.

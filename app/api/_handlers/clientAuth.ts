@@ -21,7 +21,7 @@ export function clientAuthSecret() {
 }
 function createClientAuth() {
   return betterAuth({
-    appName: "World of Moments",
+    appName: "Dear World",
     baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     basePath: "/api/client/auth",
     secret: clientAuthSecret(),

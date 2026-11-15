@@ -34,7 +34,7 @@ function createAuth() {
     process.env.CMS_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   return betterAuth({
-    appName: "World of Moments CMS",
+    appName: "Dear World CMS",
     baseURL,
     basePath: "/api/cms/auth",
     secret: process.env.BETTER_AUTH_SECRET,

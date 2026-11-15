@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "World of Moments",
-    "description": "Chia sẻ khoảnh khắc của bạn"
+    "title": "Dear World",
+    "description": "Một thế giới của những khoảnh khắc và tâm tư. Gửi những lời ẩn danh đến nơi có ý nghĩa với bạn."
   },
   "nav": {
     "myHistory": "Khoảnh khắc của tôi",
@@ -25,7 +25,7 @@
       "description": "Nguồn dữ liệu và giấy phép cho bản đồ, ảnh vệ tinh, thông tin thời tiết và hình ảnh mây.",
       "close": "Đóng",
       "osm": "© <source>Cộng đồng đóng góp OpenStreetMap</source>. Dữ liệu bản đồ được cung cấp theo <license>Giấy phép Cơ sở dữ liệu Mở (ODbL)</license>.",
-      "carto": "© <source>CARTO</source>, sử dụng cấu trúc dữ liệu <schema>OpenMapTiles</schema>. Mã nguồn kiểu bản đồ: <codeLicense>BSD 3-Clause</codeLicense>. Thiết kế bản đồ: <license>CC BY 4.0</license>. Màu sắc và nhãn đã được điều chỉnh cho World of Moments.",
+      "carto": "© <source>CARTO</source>, sử dụng cấu trúc dữ liệu <schema>OpenMapTiles</schema>. Mã nguồn kiểu bản đồ: <codeLicense>BSD 3-Clause</codeLicense>. Thiết kế bản đồ: <license>CC BY 4.0</license>. Màu sắc và nhãn đã được điều chỉnh cho Dear World.",
       "eox": "<source>EOxCloudless</source> của <provider>EOX IT Services GmbH</provider> (chứa dữ liệu Copernicus Sentinel năm 2016 đã được chỉnh sửa). Ảnh được cấp phép theo <license>CC BY 4.0</license>.",
       "weather": "Dữ liệu thời tiết từ <source>Open-Meteo</source>, được cấp phép theo <license>CC BY 4.0</license>. Mã thời tiết được chuyển thành những câu mô tả ngắn về bầu không khí.",
       "clouds": "Hình ảnh mây từ <source>Pngtree</source>. <license>Điều khoản cấp phép hình ảnh</license>.",
@@ -45,7 +45,7 @@
   },
   "guidance": {
     "title": "Gửi một chút lòng mình ở lại",
-    "about": "World of Moments là tấm bản đồ của những tâm tư ẩn danh. Bạn có thể dạo qua những lời ai đó để lại, hoặc chọn một nơi trên bản đồ để gửi gắm khoảnh khắc của riêng mình.",
+    "about": "Dear World là một thế giới của những khoảnh khắc, được lưu lại trên tấm bản đồ của những tâm tư ẩn danh. Bạn có thể dạo qua những lời ai đó để lại, hoặc chọn một nơi trên bản đồ để gửi gắm khoảnh khắc của riêng mình.",
     "writingTitle": "Mình có thể viết gì?",
     "writing": "Một ký ức về nơi này, một điều nhỏ vừa bắt gặp, cảm xúc đang mang trong lòng, hay lời chưa kịp nói. Niềm vui, nỗi nhớ, cả những ngày khó khăn đều có chỗ ở đây. Vài dòng thật lòng là đủ rồi.",
     "example": "“Ngày trước mình hay đi con đường này về nhà cùng với em ấy...”",
@@ -81,7 +81,7 @@
     "description": "Xin lỗi vì đã làm gián đoạn trải nghiệm chia sẻ của bạn. Bạn hãy thử lại hoặc báo lỗi để mình khắc phục sớm nhất có thể nhé!",
     "retry": "Thử lại",
     "report": "Báo lỗi",
-    "reportSubject": "World of Moments error report",
+    "reportSubject": "Dear World error report",
     "reportUnavailable": "Hãy cấu hình NEXT_PUBLIC_ERROR_REPORT_EMAIL để báo lỗi.",
     "reportTooltip": "Nội dung email sẽ được điền sẵn, bạn chỉ cần gửi đi là xong nhé :3",
     "reportThanks": "Cảm ơn bạn đã gửi báo lỗi! Chúng mình sẽ xem xét và khắc phục sớm nhất có thể."
@@ -197,8 +197,8 @@
     "bannedTitle": "Lời viết cần dừng lại ở đây",
     "bannedBody": "Tài khoản này không còn có thể gửi suy nghĩ. Bản đồ vẫn luôn mở để bạn khám phá. Nếu muốn chúng mình xem xét lại, hãy liên hệ nhé.",
     "contact": "Liên hệ với chúng mình",
-    "appealSubject": "World of Moments — xem xét tài khoản",
-    "appealBody": "Chào World of Moments,\n\nVui lòng xem xét lại hạn chế của tài khoản tôi.\nMã tài khoản: {id}\nEmail: {email}\n\nCảm ơn bạn.",
+    "appealSubject": "Dear World — xem xét tài khoản",
+    "appealBody": "Chào Dear World,\n\nVui lòng xem xét lại hạn chế của tài khoản tôi.\nMã tài khoản: {id}\nEmail: {email}\n\nCảm ơn bạn.",
     "retry": "Thử lại",
     "privacy": "Thông tin tài khoản của bạn được giữ riêng tư, và suy nghĩ được chia sẻ ẩn danh. Đọc <policy>ghi chú quyền riêng tư</policy>.",
     "privacyTitle": "Một chút về quyền riêng tư",

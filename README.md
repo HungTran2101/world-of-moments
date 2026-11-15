@@ -2,7 +2,9 @@
   <img src="public/favicon/cover-image.png" alt="A hand-drawn world covered in little notes, beneath clouds and sunshine" width="100%" />
 </p>
 
-<h1 align="center">World of Moments</h1>
+<h1 align="center">Dear World</h1>
+
+<p align="center"><a href="https://dearworld.space">dearworld.space</a></p>
 
 <p align="center">
   <em>A quiet map of human thoughts.</em>
@@ -24,7 +26,7 @@
 
 ## A little of you, left somewhere
 
-World of Moments is an anonymous map where people leave small thoughts tied to places around the world. Wander through words left by others, or choose a place that means something to you and leave a moment of your own.
+Dear World is a world of moments: an anonymous map where people leave small thoughts tied to places around the world. Wander through words left by others, or choose a place that means something to you and leave a moment of your own.
 
 | 🌍 Wander | 📍 Leave a thought | 🌦 Pause a little |
 | :--- | :--- | :--- |
@@ -76,7 +78,7 @@ Zoom out to see the Earth against a quiet star field, with satellite imagery fro
 
 ## Still unfolding
 
-World of Moments is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search, pagination and deletion for thoughts owned by your signed-in account. Submitted thoughts cannot be edited. Future messages remain disabled: the old anonymous-identity APIs, services, cookie bootstrap and limiter have been removed. Stored messages use nullable client-account ownership, preserving existing anonymous messages as unclaimed, while the new flow remains unimplemented. The roadmap also makes room for subtle realtime arrivals and a secondary globe view as the project grows.
+Dear World is in early development, with map exploration, thought submission, and weather atmosphere at its heart. Personal history opens from the toolbar, with search, pagination and deletion for thoughts owned by your signed-in account. Submitted thoughts cannot be edited. Future messages remain disabled: the old anonymous-identity APIs, services, cookie bootstrap and limiter have been removed. Stored messages use nullable client-account ownership, preserving existing anonymous messages as unclaimed, while the new flow remains unimplemented. The roadmap also makes room for subtle realtime arrivals and a secondary globe view as the project grows.
 
 ---
 
@@ -93,6 +95,10 @@ and application origin. Apply the schema with `pnpm db:push`, then run
 `pnpm prisma:generate`. Schema files are the development source of truth; migration
 files and reset flows are not used. Run `pnpm cms:seed` only with the intended bootstrap
 password configured. Run `pnpm dev` to start the app.
+
+The production site is https://dearworld.space. Set
+`NEXT_PUBLIC_APP_URL=https://dearworld.space` in the hosting environment so auth
+redirects, verification links and social images use the correct origin.
 
 Schedule `pnpm client-users:cleanup` hourly on the host and use the same `TZ` across
 server instances. See [client authentication](contexts/client-auth.md) and

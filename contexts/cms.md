@@ -1,10 +1,14 @@
-# CMS — World of Moments
+# CMS — Dear World
 
 This is the maintained CMS specification and implementation reference. Read it
 before changing CMS behavior and update the affected contracts/status in the same
 task. Client accounts use a separate cookie-session configuration; see `contexts/client-auth.md`.
 
 ## Scope and architecture
+
+- The CMS uses Dear World in its page title, brand, navigation labels and login
+  description, matching the public app and verification emails. Rebranding does
+  not change account kinds, cookies, session secrets or stored ownership.
 
 - Internal CMS only: `/cms` and `/api/cms`.
 - Next.js App Router, Better Auth hosted in Next.js, Neon PostgreSQL through the

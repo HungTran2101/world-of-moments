@@ -5,7 +5,7 @@ import "@/styles/cms-import.scss";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "CMS · World of Moments",
+  title: "CMS · Dear World",
   robots: { index: false, follow: false },
 };
 

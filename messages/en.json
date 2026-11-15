@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "World of Moments",
-    "description": "Leave your moment to the world"
+    "title": "Dear World",
+    "description": "A world of moments, one quiet thought at a time. Leave anonymous words in places that matter to you."
   },
   "nav": {
     "myHistory": "My moments",
@@ -25,7 +25,7 @@
       "description": "Sources and licenses for the map, satellite imagery, weather information, and cloud illustrations.",
       "close": "Close",
       "osm": "© <source>OpenStreetMap contributors</source>. Map data is available under the <license>Open Database License (ODbL)</license>.",
-      "carto": "© <source>CARTO</source>, using the <schema>OpenMapTiles</schema> schema. Style code: <codeLicense>BSD 3-Clause</codeLicense>. Map design: <license>CC BY 4.0</license>. Colors and labels have been adapted for World of Moments.",
+      "carto": "© <source>CARTO</source>, using the <schema>OpenMapTiles</schema> schema. Style code: <codeLicense>BSD 3-Clause</codeLicense>. Map design: <license>CC BY 4.0</license>. Colors and labels have been adapted for Dear World.",
       "eox": "<source>EOxCloudless</source> by <provider>EOX IT Services GmbH</provider> (Contains modified Copernicus Sentinel data 2016). Imagery licensed under <license>CC BY 4.0</license>.",
       "weather": "Weather data by <source>Open-Meteo</source>, licensed under <license>CC BY 4.0</license>. Weather codes are adapted into short atmospheric descriptions.",
       "clouds": "Cloud images from <source>Pngtree</source>. <license>Image license terms</license>.",
@@ -45,7 +45,7 @@
   },
   "guidance": {
     "title": "A little of you, left somewhere",
-    "about": "World of Moments is a quiet map of anonymous thoughts. Wander through words left by others, or choose a place on the map and leave a moment of your own.",
+    "about": "Dear World is a world of moments: a quiet map of anonymous thoughts. Wander through words left by others, or choose a place on the map and leave a moment of your own.",
     "writingTitle": "What can I write?",
     "writing": "A memory of this place, something small you noticed, a feeling you're carrying, or words you never said. Joy, longing, and hard days all belong here. A few honest lines are enough.",
     "example": "“I used to take this road home. Today, the rain brought it all back.”",
@@ -81,7 +81,7 @@
     "description": "The page ran into an error we could not recover from automatically. Please try again, or send us the details so we can fix it.",
     "retry": "Try again",
     "report": "Report",
-    "reportSubject": "World of Moments error report",
+    "reportSubject": "Dear World error report",
     "reportUnavailable": "Set NEXT_PUBLIC_ERROR_REPORT_EMAIL to enable report.",
     "reportTooltip": "The email content will be pre-filled, you just need to send it :3",
     "reportThanks": "Thank you for sending the report! We will look into it and fix it as soon as possible."
@@ -197,8 +197,8 @@
     "bannedTitle": "Your words need a pause here",
     "bannedBody": "This account can no longer leave thoughts. The map is still open for you to explore. If you'd like us to take another look, please get in touch.",
     "contact": "Get in touch",
-    "appealSubject": "World of Moments — account review",
-    "appealBody": "Hello World of Moments,\n\nPlease review the restriction on my account.\nAccount reference: {id}\nEmail: {email}\n\nThank you.",
+    "appealSubject": "Dear World — account review",
+    "appealBody": "Hello Dear World,\n\nPlease review the restriction on my account.\nAccount reference: {id}\nEmail: {email}\n\nThank you.",
     "retry": "Try again",
     "privacy": "Your account details stay private, and thoughts are shared anonymously. Read our <policy>privacy note</policy>.",
     "privacyTitle": "A little about privacy",

@@ -1,8 +1,8 @@
-WORLD OF MOMENTS — THIRD-PARTY LICENSES AND NOTICES
+DEAR WORLD — THIRD-PARTY LICENSES AND NOTICES
 
 Snapshot: 30 October 2026. Refresh this file when changing distributed dependencies, fonts, or map styles.
 
-Scope: installed dependency trees rooted in package.json dependencies, plus the font and map-style assets below. This conservative collection also includes some server/build packages and modules removed by tree shaking. Installed optional platform packages are included. Each component retains its own license; these licenses do not relicense World of Moments. Existing source notices must also be retained. Additional obligations may apply when distributing native binaries or containers.
+Scope: installed dependency trees rooted in package.json dependencies, plus the font and map-style assets below. This conservative collection also includes some server/build packages and modules removed by tree shaking. Installed optional platform packages are included. Each component retains its own license; these licenses do not relicense Dear World. Existing source notices must also be retained. Additional obligations may apply when distributing native binaries or containers.
 
 Dependency package versions: 510
 
@@ -10,7 +10,7 @@ Dependency package versions: 510
 
 CARTO basemap style
 
-Copyright (c) 2018, CartoDB Inc. Positron style colors and labels have been adapted for World of Moments. Tile-service terms are separate: https://carto.com/legal/basemap-terms/ .
+Copyright (c) 2018, CartoDB Inc. Positron style colors and labels have been adapted for Dear World. Tile-service terms are separate: https://carto.com/legal/basemap-terms/ .
 
 carto-basemap-styles.txt
 Source: https://raw.githubusercontent.com/CartoDB/basemap-styles/c007232a7351e25ed539100118f007c8b8708591/LICENSE.md
