@@ -7,6 +7,8 @@ import { ClientHttpError } from "@/lib/clientErrors";
 import { Prisma } from "@prisma/client";
 
 export class CmsHttpError extends Error {
+  retryAt?: Date;
+
   constructor(
     public status: number,
     message: string,
@@ -65,8 +67,8 @@ export async function parseBody<S extends AnyObjectSchema>(
 export function cmsError(error: unknown) {
   if (error instanceof ClientHttpError)
     return cmsJson({ error: `clientUser.errors.${error.code}` }, error.status);
-  if (error instanceof CmsHttpError)
-    return cmsJson(
+  if (error instanceof CmsHttpError) {
+    const response = cmsJson(
       {
         error: error.message,
         ...(error.details ? { details: error.details } : {}),
@@ -74,6 +76,13 @@ export function cmsError(error: unknown) {
       },
       error.status,
     );
+    if (error.retryAt) {
+      response.headers.set("Retry-After", String(Math.max(
+        1, Math.ceil((error.retryAt.getTime() - Date.now()) / 1_000),
+      )));
+    }
+    return response;
+  }
   if (error instanceof ValidationError) {
     const fieldErrors: Record<string, string[]> = {};
     for (const issue of error.inner.length ? error.inner : [error]) {

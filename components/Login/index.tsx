@@ -12,9 +12,13 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { loginCms } from "@/services/cms/auth";
+import type { CmsLoginRequest } from "@/services/cms/auth/types";
+import { ApiError } from "@/services/shared/errors";
+import { constants } from "@/app/api/constant";
+import { Turnstile } from "@/components/Turnstile";
 import { setLocale } from "@/services/locale";
 import { locales } from "@/i18n/config";
 import { loginSchema, type LoginValues } from "@/services/schemas";
@@ -35,6 +39,15 @@ export function LoginPage() {
     queryClient.clear();
   }, [queryClient]);
   const [error, setError] = useState<unknown>(null);
+  const pending = useRef<LoginValues | null>(null);
+  const inFlight = useRef(false);
+  const [captchaNeeded, setCaptchaNeeded] = useState(false);
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
+  useEffect(() => () => {
+    // Không giữ thông tin đăng nhập của lần gửi dở khi rời trang.
+    pending.current = null;
+    inFlight.current = false;
+  }, []);
   const {
     register,
     handleSubmit,
@@ -45,24 +58,42 @@ export function LoginPage() {
     defaultValues: { username: "", password: "" },
   });
   const login = useMutation({
-    mutationFn: (values: LoginValues) => loginCms(values),
+    gcTime: 0,
+    retry: false,
+    mutationFn: (values: CmsLoginRequest) => loginCms(values),
     onMutate: () => setError(null),
     onSuccess: ({ user }) => {
       router.replace(getCmsLandingPath(user.scopes) ?? ROUTE_PATHS.DASHBOARD);
       router.refresh();
     },
     onError: (error) => {
+      inFlight.current = false;
       setError(error);
       applyFormError(error, setFieldError);
     },
   });
+  const { mutate } = login;
+  const onCaptchaToken = useCallback((captchaToken: string) => {
+    const credentials = pending.current;
+    if (!credentials) return;
+    pending.current = null;
+    setCaptchaNeeded(false);
+    mutate({ ...credentials, captchaToken });
+  }, [mutate]);
+  const onCaptchaError = useCallback(() => {
+    if (!pending.current) return;
+    pending.current = null;
+    inFlight.current = false;
+    setCaptchaNeeded(false);
+    setError(new ApiError("errors.captchaRequired", 403));
+  }, []);
   const language = useMutation({
     mutationFn: (next: (typeof locales)[number]) => setLocale(next),
     onMutate: () => setError(null),
     onSuccess: () => router.refresh(),
     onError: setError,
   });
-  const isSubmitting = formSubmitting || login.isPending;
+  const isSubmitting = formSubmitting || captchaNeeded || login.isPending;
 
   return (
     <main className="cms-login">
@@ -74,9 +105,16 @@ export function LoginPage() {
         <h1>{t("login.title")}</h1>
         <p className="cms-muted">{t("login.description")}</p>
         <form
-          onSubmit={handleSubmit((values) => {
-            if (!login.isPending) login.mutate(values);
-          })}
+          onSubmit={(event) => {
+            void handleSubmit((values) => {
+              if (inFlight.current) return;
+              inFlight.current = true;
+              setError(null);
+              pending.current = values;
+              setCaptchaAttempt((attempt) => attempt + 1);
+              setCaptchaNeeded(true);
+            })(event);
+          }}
         >
           {Boolean(error) && <ErrorNotice error={error} />}
           <fieldset disabled={isSubmitting}>
@@ -124,6 +162,14 @@ export function LoginPage() {
             </Button>
           </fieldset>
         </form>
+        {captchaNeeded && (
+          <Turnstile
+            action={constants.CMS_LOGIN_CAPTCHA_ACTION}
+            attempt={captchaAttempt}
+            onToken={onCaptchaToken}
+            onError={onCaptchaError}
+          />
+        )}
         <FieldLabel className="visually-hidden" htmlFor="cms-login-locale">
           {t("common.language")}
         </FieldLabel>

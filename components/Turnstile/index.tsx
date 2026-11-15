@@ -28,7 +28,7 @@ export function Turnstile({
   onToken,
   onError,
 }: {
-  action: "login" | "register";
+  action: "login" | "register" | "cms_login";
   attempt: number;
   onToken: (token: string) => void;
   onError: () => void;

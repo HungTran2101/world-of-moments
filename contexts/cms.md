@@ -225,11 +225,35 @@ task. Client accounts use a separate cookie-session configuration; see `contexts
   are explicit same-origin absolute URLs; no ESLint suppression is required.
 - Deactivation/deletion/password reset revoke sessions. Self-service password
   changes require the current password and revoke other sessions.
-- Login limits are shared in PostgreSQL: 30/IP and 8/username per 15-minute fixed
-  window. Configure them in `app/api/constant.ts` using
+- Every CMS login runs invisible Turnstile before submitting one credentials/token
+  POST. Tokens use action `cms_login`, must match the hostname from `CMS_AUTH_URL`
+  (falling back to `NEXT_PUBLIC_APP_URL`), and are verified before password checking.
+  Missing/invalid tokens return 403 `errors.captchaRequired`; provider/configuration
+  failure returns 503 `errors.loginUnavailable`, without bypassing verification.
+  The form keeps credentials only in memory, obtains a fresh token on each submit,
+  prevents duplicate submits, and does not automatically retry login POSTs.
+- Login limits are shared in PostgreSQL: 30/IP and 8/IP + normalized username in
+  the previous 15 minutes. There is no global username block. Configure them in `app/api/constant.ts` using
   `CMS_LOGIN_RATE_LIMIT_WINDOW_MS`, `CMS_LOGIN_MAX_ATTEMPTS_PER_IP` and
-  `CMS_LOGIN_MAX_ATTEMPTS_PER_USERNAME`. Expired limiter rows are cleaned up.
-  Configure trusted proxy headers.
+  `CMS_LOGIN_MAX_ATTEMPTS_PER_IP_USERNAME`. Each admitted attempt expires individually;
+  rejected requests do not extend the wait. Both counters are checked/updated atomically
+  under ordered PostgreSQL advisory locks; CAPTCHA/password work runs outside locks.
+  All same-origin login POSTs count toward the IP limit, including malformed payloads,
+  missing/invalid tokens, successful logins and credential failures. A valid username
+  also consumes its combined IP/username allowance. Malformed JSON has no username scope.
+  The 31st IP or ninth combined attempt returns 429 `errors.rateLimited` with
+  `Retry-After` seconds until all applicable scopes have room (minimum one second).
+- `CmsLoginLimit.attemptsAt` stores bounded rolling histories (30/IP, 8/IP + username).
+  The legacy `attempts` column remains and mirrors the current history length;
+  `expiresAt` supports cleanup. New `rolling:` keys start fresh after deployment;
+  legacy fixed-window rows remain until expiry and are cleaned up on login requests.
+  Apply the additive schema change with `pnpm db:push`, then `pnpm prisma:generate`,
+  before deploying this code. No migration files or reset are required.
+- CMS login uses the shared normalized IP helper and trusts only proxy-overwritten
+  `X-Real-IP`. Configure the production proxy to overwrite that header and prevent
+  direct origin access that could bypass it. Missing/invalid production IP returns
+  503 `errors.loginUnavailable`; local development defaults to `127.0.0.1` only when
+  the header is absent. Caller-supplied `X-Forwarded-For` is not used.
 - State-changing requests require the configured same-origin `Origin`; no blanket
   Better Auth HTTP handler is exposed, so registration/admin endpoints are absent.
 
@@ -739,6 +763,9 @@ page 1 after a page-size change.
   `Login not required - Permission: none`. Automatic HEAD inherits GET's access
   requirements; framework-generated OPTIONS requires no session or permission.
 - Auth: POST `/auth/login`, `/auth/logout`, `/auth/change-password`.
+  Login accepts `{ username, password, captchaToken }`; its success user/cookie
+  contract is unchanged. Invalid JSON/payloads are rate-limited before returning
+  400/422. Login failures remain localized form errors, without logout broadcasting.
 - Accounts: GET/POST `/accounts`, GET/PATCH `/accounts/:id`,
   POST `/accounts/:id/reset-password`.
 - Roles: GET/POST `/roles`, GET/PATCH `/roles/:id`.

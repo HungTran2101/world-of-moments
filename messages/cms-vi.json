@@ -149,6 +149,8 @@
     "conflict": "Dữ liệu đã thay đổi trong lúc xử lý. Vui lòng tải lại và thử lại.",
     "currentPassword": "Mật khẩu hiện tại không đúng.",
     "rateLimited": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.",
+    "captchaRequired": "Chưa thể hoàn tất kiểm tra trình duyệt. Vui lòng thử đăng nhập lại.",
+    "loginUnavailable": "Tạm thời chưa thể đăng nhập. Vui lòng thử lại sau.",
     "server": "Không thể hoàn tất yêu cầu. Vui lòng thử lại.",
     "confirmPublish": "Vui lòng xác nhận hiển thị các bài chưa hợp lệ.",
     "noPagePermissions": "Liên hệ người phụ trách để được cấp quyền xem"

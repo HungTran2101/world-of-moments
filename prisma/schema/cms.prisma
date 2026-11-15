@@ -114,9 +114,10 @@ model CmsUserRole {
 }
 
 model CmsLoginLimit {
-  key       String   @id
-  attempts  Int
-  expiresAt DateTime
+  key        String     @id
+  attempts   Int
+  attemptsAt DateTime[] @default([])
+  expiresAt  DateTime
 
   @@index([expiresAt])
   @@map("cms_login_limits")

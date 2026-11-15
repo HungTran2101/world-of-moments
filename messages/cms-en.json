@@ -149,6 +149,8 @@
     "conflict": "The records changed during this request. Refresh and try again.",
     "currentPassword": "Your current password is incorrect.",
     "rateLimited": "Too many sign-in attempts. Please try again later.",
+    "captchaRequired": "We couldn't complete the browser check. Please try signing in again.",
+    "loginUnavailable": "Sign-in is temporarily unavailable. Please try again later.",
     "server": "Unable to complete the request. Please try again.",
     "confirmPublish": "Confirm publication of non-valid submissions before continuing.",
     "noPagePermissions": "Contact your supervisor for permissions view"
