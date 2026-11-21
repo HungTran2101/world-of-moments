@@ -820,7 +820,7 @@ See `contexts/client-auth.md` for provider keys, hosting timezone and hourly cle
 
 ### Development compiler
 
-The application uses Next.js 16.4.3 with the matching `eslint-config-next` version.
+The application uses Next.js 16.4.6 with the matching `eslint-config-next` version.
 `pnpm dev` uses Turbopack by default; `pnpm dev --webpack` is the fallback command.
 In the earlier Next.js 16.1.6/Turbopack development session, compilation kept the
 CPU busy and repeated heap-threshold restarts occurred. The underlying cause of

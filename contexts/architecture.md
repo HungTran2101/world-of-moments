@@ -15,7 +15,7 @@ Tech Stack
 
 Frontend + Backend Framework
 
-Next.js 16.4.3 (App Router; Turbopack for development, Webpack available with `pnpm dev --webpack`)
+Next.js 16.4.6 (App Router; Turbopack for development, Webpack available with `pnpm dev --webpack`)
 React 19
 TypeScript
 next-intl for English and Vietnamese, with a cookie-backed locale
