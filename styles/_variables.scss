@@ -115,6 +115,8 @@
   --color-success: #88d9bf;
   --color-error: #ffa8b9;
   --color-warning: #f0d590;
+  --color-badge-orange-surface: oklch(92.4% 0.12 95.746deg);
+  --color-badge-orange-text: oklch(27.9% 0.077 45.635deg);
 }
 
 @property --button-angle {

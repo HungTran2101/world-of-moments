@@ -24,6 +24,7 @@ export function ClientSession({ children }: { children: ReactNode }) {
     retry: false,
   });
   const user = query.data?.user ?? null;
+  const isUnverified = user?.status === "unverified";
   const refresh = useCallback(async () => {
     await client.invalidateQueries({ queryKey: CLIENT_SESSION_KEY });
   }, [client]);
@@ -72,6 +73,25 @@ export function ClientSession({ children }: { children: ReactNode }) {
       };
     return () => channel?.close();
   }, [client, refresh]);
+  useEffect(() => {
+    if (!isUnverified) return;
+    let frame: number | null = null;
+    const refreshWhenVisible = () => {
+      if (document.visibilityState !== "visible" || frame !== null) return;
+      // Khi trở lại tab bản đồ, focus và visibilitychange có thể đến cùng lúc.
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        void refresh();
+      });
+    };
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, [isUnverified, refresh]);
   useEffect(() => {
     const deadline = user?.status === "suspended" ? user.suspendedUntil : user?.availableAt;
     if (!deadline) return;

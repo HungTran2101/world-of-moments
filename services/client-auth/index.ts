@@ -1,5 +1,11 @@
 import { apiRequest, type ApiRequestOptions } from "@/services/shared/api";
-import type { ClientCredentials, ClientSessionResponse, ClientRegistrationResponse } from "./types";
+import type {
+  ClientCredentials,
+  ClientRegistrationResponse,
+  ClientSessionResponse,
+  ClientVerificationResendResponse,
+  ClientVerificationResponse,
+} from "./types";
 const endpoint = "/api/client/auth";
 export function getClientSession(options?: ApiRequestOptions) {
   return apiRequest<ClientSessionResponse>(`${endpoint}/session`, {
@@ -32,10 +38,18 @@ export function logoutClient(options?: ApiRequestOptions) {
   });
 }
 export function resendClientVerification(locale: "en" | "vi", options?: ApiRequestOptions) {
-  return apiRequest<{ ok: true }>(`${endpoint}/resend`, {
+  return apiRequest<ClientVerificationResendResponse>(`${endpoint}/resend`, {
     ...options,
     method: "POST",
     body: { locale },
     credentials: "same-origin",
+  });
+}
+export function verifyClientEmail(token: string) {
+  return apiRequest<ClientVerificationResponse>(`${endpoint}/verify`, {
+    method: "POST",
+    body: { token },
+    credentials: "same-origin",
+    cache: "no-store",
   });
 }

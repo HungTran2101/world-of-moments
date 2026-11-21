@@ -23,10 +23,6 @@ const SubmissionSidebar = () => {
 
   const [closing, setClosing] = useState(sidebarOpen);
 
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).has("verification")) setSidebarOpen(true);
-  }, [setSidebarOpen]);
-
   useEffect(
     () =>
       usePinStore.subscribe((state) => {

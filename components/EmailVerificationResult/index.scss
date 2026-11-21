@@ -1,0 +1,50 @@
+.emailVerify {
+  display: grid;
+  min-height: 100dvh;
+  padding: 1rem;
+  place-items: center;
+  color: #2b2a35;
+  font-family: var(--font-mitr), sans-serif;
+
+  &-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(30rem, 100%);
+    gap: 1.5rem;
+    padding: clamp(1.5rem, 6vw, 2.75rem);
+    border-radius: 2rem;
+    text-align: center;
+  }
+
+  &-result {
+    display: grid;
+    gap: 0.875rem;
+    justify-items: center;
+
+    h1 {
+      font-family: var(--font-lemonada), serif;
+      font-size: clamp(1.0625rem, 4.5vw, 1.5rem);
+      line-height: 1.6;
+      text-wrap: balance;
+    }
+
+    p {
+      max-width: 38ch;
+      color: #51607f;
+      line-height: 1.65;
+      text-wrap: pretty;
+    }
+  }
+
+  &-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: #5a5e90;
+    stroke-width: 1.5;
+  }
+
+  &-close {
+    font-size: 0.875rem;
+  }
+}

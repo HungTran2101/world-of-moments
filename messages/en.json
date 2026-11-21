@@ -159,6 +159,26 @@
     "browserIdCopied": "Browser ID copied.",
     "browserIdCopyFailed": "Could not copy. Please select and copy the ID manually."
   },
+  "emailVerify": {
+    "checking": {
+      "title": "Verifying your email"
+    },
+    "success": {
+      "title": "Your email is verified",
+      "body": "You can now leave a thought on the map.",
+      "close": "You can close this tab."
+    },
+    "invalid": {
+      "title": "This verification link is invalid",
+      "body": "This link is no longer available. If your account is still awaiting verification, sign in to see if you can request another link."
+    },
+    "unavailable": {
+      "title": "We couldn't verify your email just now",
+      "body": "Please try again in a moment."
+    },
+    "retry": "Try again",
+    "backToMap": "Back to the map"
+  },
   "clientAuth": {
     "loginTitle": "A place for your thoughts",
     "loginIntro": "Sign in to leave a moment on the map. Your words will still appear without a name.",
@@ -170,6 +190,7 @@
     "login": "Sign in",
     "register": "Create account",
     "logout": "Sign out",
+    "logoutHint": "Click to sign out",
     "toLogin": "Already have an account? Sign in",
     "toRegister": "New here? Create an account",
     "showPassword": "Show password",
@@ -184,6 +205,8 @@
     "unverifiedBody": "We just sent a verification email. Check your email for our verification link.",
     "verificationDeadline": "Please verify your account within seven days of registration, or it will be deleted.",
     "resend": "Send the link again",
+    "resendSending": "Sending the verification link",
+    "resendWaiting": "Waiting to send the link again",
     "alreadyVerified": "Already verified? Click here",
     "sendLimit": "All verification emails have been sent. You can still use a link already in your inbox until your account's verification deadline.",
     "emailSent": "A verification link is on its way. Take a look in your inbox or spam folder.",
@@ -214,9 +237,7 @@
       "captchaUnavailable": "We couldn't complete the browser check. Please try again later.",
       "emailFailed": "Your account is ready, but the mail system have a little trouble. Please retry later.",
       "resendCooldown": "Please give the last email a moment to arrive before trying again.",
-      "resendLimit": "Please use the verification link from the mail we sent in your inbox.",
-      "invalidLink": "This verification link is no longer available. Sign in to request another if your account is still awaiting verification.",
-      "alreadyVerified": "Your email is already verified. Reload to continue.",
+      "alreadyVerified": "Your email is already verified.",
       "unauthorized": "Please sign in again to continue.",
       "forbidden": "This action is not available.",
       "emailDomainInvalid": "This email domain doesn't appear to accept mail. Please check your email address.",
@@ -228,6 +249,6 @@
     "checkingEmailTitle": "We're checking your email",
     "checkingEmailBody": "Just a moment while we check your mail validity.",
     "editEmail": "Edit email",
-    "verificationPendingBody": "Your account is awaiting email verification. You can request a link below."
+    "verificationPendingBody": "Your account is awaiting email verification."
   }
 }

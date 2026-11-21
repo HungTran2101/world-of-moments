@@ -15,7 +15,7 @@ import { CLIENT_LIMITS } from "@/app/api/client/constant";
 import { verificationEmail } from "@/emails/verification";
 import { checkClientEmailDeliverability } from "@/lib/clientEmailSuppression";
 
-const VERIFICATION_EMAIL_TEMPLATE_VERSION = "v2";
+const VERIFICATION_EMAIL_TEMPLATE_VERSION = "v3";
 
 const tokenFor = (id: string) =>
   `${id}.${createHmac("sha256", clientAuthSecret()).update(`verify:${id}`).digest("base64url")}`;
@@ -68,27 +68,29 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
       });
     }
     await tx.user.update({ where: { id: userId }, data: { verificationLastSentAt: now } });
-    return { record: pending, email: user.email };
+    return { record: pending, email: user.email, sentAt: now };
   });
   if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL)
     throw new ClientHttpError(503, "emailFailed");
-  const url = new URL(
-    "/api/client/auth/verify",
+  const identifierParts = slot.record.identifier.split(":");
+  const templateVersion = identifierParts.at(-3);
+  const savedLocale = identifierParts.at(-2) === "vi" ? "vi" : "en";
+  const mail = verificationEmail(
+    tokenFor(slot.record.id),
+    savedLocale,
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   );
-  url.searchParams.set("token", tokenFor(slot.record.id));
-  const identifierParts = slot.record.identifier.split(":");
-  const savedLocale = identifierParts.at(-2) === "vi" ? "vi" : "en";
-  // Giữ nguyên mẫu của lượt gửi cũ để lần thử lại dùng cùng nội dung và khóa idempotency.
-  const useLegacyFont = identifierParts.at(-3) !== VERIFICATION_EMAIL_TEMPLATE_VERSION;
-  const mail = verificationEmail(url.href, savedLocale, useLegacyFont);
+  // Lượt từ mẫu cũ cần khóa riêng vì liên kết trong nội dung đã đổi.
+  const idempotencyKey = templateVersion === VERIFICATION_EMAIL_TEMPLATE_VERSION
+    ? `client-verification/${slot.record.id}`
+    : `client-verification/${VERIFICATION_EMAIL_TEMPLATE_VERSION}/${slot.record.id}`;
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": `client-verification/${slot.record.id}`,
+        "Idempotency-Key": idempotencyKey,
       },
       body: JSON.stringify({ from: process.env.RESEND_FROM_EMAIL, to: [slot.email], ...mail }),
       signal: AbortSignal.timeout(CLIENT_LIMITS.REQUEST_TIMEOUT_MS),
@@ -101,6 +103,7 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
     where: { id: slot.record.id },
     data: { identifier: slot.record.identifier.replace(/:pending$/, ":sent") },
   });
+  return new Date(slot.sentAt.getTime() + CLIENT_LIMITS.RESEND_COOLDOWN_MS).toISOString();
 }
 export async function verifyClientEmail(token: string) {
   const id = token.split(".")[0];

@@ -22,6 +22,13 @@ export interface ClientIdentity {
 export interface ClientSessionResponse {
   user: ClientIdentity | null;
 }
+export interface ClientVerificationResponse {
+  status: "success" | "invalid";
+}
+export interface ClientVerificationResendResponse {
+  ok: true;
+  resendAvailableAt: string;
+}
 export interface ClientRegistrationResponse extends ClientSessionResponse {
   emailError: boolean;
   emailErrorCode?: ClientVerificationEmailError;

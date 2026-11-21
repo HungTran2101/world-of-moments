@@ -7,12 +7,13 @@ import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { MailCheck, Pause, ShieldAlert, LogOut, Eye, EyeOff } from "lucide-react";
+import { MailCheck, Pause, ShieldAlert, Eye, EyeOff } from "lucide-react";
 import { useClientSession } from "@/components/ClientSession";
 import { Turnstile } from "@/components/Turnstile";
 import SubmissionForm from "@/components/SubmissionForm";
 import ThoughtGuidelines from "@/components/ThoughtGuidelines";
 import { GlassButton } from "@/components/ui/glass-button";
+import { Badge } from "@/components/ui/badge";
 import { LoadingDots } from "@/components/shared/LoadingDots";
 import {
   loginClient,
@@ -20,11 +21,13 @@ import {
   resendClientVerification,
 } from "@/services/client-auth";
 import { CLIENT_LIMITS } from "@/app/api/client/constant";
+import { constants } from "@/app/api/constant";
 import type { ClientCredentials } from "@/services/client-auth/types";
 import { useSystemStore } from "@/store/systemStore";
 import { ApiError } from "@/services/shared/errors";
 
 const AUTH_SLIDE_DURATION_SECONDS = 0.2;
+const { MILLISECONDS_PER_SECOND } = constants;
 
 const credentialsSchema = yup.object({
   email: yup
@@ -430,6 +433,50 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
   );
 }
 
+function ResendButton({ deadline, sending, showCountdown, onResend }: {
+  deadline: number;
+  sending: boolean;
+  showCountdown: boolean;
+  onResend: () => void;
+}) {
+  const t = useTranslations("clientAuth");
+  const [remaining, setRemaining] = useState(() => Math.max(0, deadline - Date.now()));
+
+  useEffect(() => {
+    if (!deadline) return;
+    let timer: number;
+    function tick() {
+      // Dựa vào mốc thời gian để đếm đúng cả khi trình duyệt tạm dừng timer trong tab nền.
+      const next = Math.max(0, deadline - Date.now());
+      setRemaining(next);
+      if (next > 0) timer = window.setTimeout(tick, Math.min(next, MILLISECONDS_PER_SECOND));
+    }
+    timer = window.setTimeout(tick, Math.min(Math.max(0, deadline - Date.now()), MILLISECONDS_PER_SECOND));
+    return () => window.clearTimeout(timer);
+  }, [deadline]);
+
+  const seconds = Math.min(
+    CLIENT_LIMITS.RESEND_COOLDOWN_MS / MILLISECONDS_PER_SECOND - 1,
+    Math.floor(remaining / MILLISECONDS_PER_SECOND),
+  );
+  const countingDown = remaining > 0;
+
+  return (
+    <GlassButton
+      type="button"
+      className="tabular-nums"
+      aria-label={sending ? t("resendSending") : countingDown ? t("resendWaiting") : undefined}
+      aria-busy={sending}
+      disabled={countingDown || sending}
+      onClick={onResend}
+    >
+      {sending ? <LoadingDots />
+        : countingDown && showCountdown ? <span aria-hidden="true">00:{String(seconds).padStart(2, "0")}</span>
+          : t("resend")}
+    </GlassButton>
+  );
+}
+
 export function ClientSidebarContent({
   inputRef,
 }: {
@@ -438,7 +485,7 @@ export function ClientSidebarContent({
   const t = useTranslations("clientAuth");
   const guidance = useTranslations("guidance");
   const locale = useLocale() === "vi" ? "vi" : "en";
-  const { user, loading, error, refresh, logout } = useClientSession();
+  const { user, loading, error, refresh } = useClientSession();
   const reducedMotion = useReducedMotion();
   const accountHeadingRef = useRef<HTMLHeadingElement>(null);
   const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
@@ -454,46 +501,22 @@ export function ClientSidebarContent({
   }, [sidebarOpen, user?.status, user?.availability, inputRef]);
 
   const [description, setDescription] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
-  const [resendReady, setResendReady] = useState(false);
-
-  useEffect(() => {
-    const readyAt = user?.resendAvailableAt;
-    const remaining = readyAt ? new Date(readyAt).getTime() - Date.now() : 0;
-    setResendReady(remaining <= 0);
-    if (remaining <= 0) {
-      return;
-    }
-    const timer = window.setTimeout(() => setResendReady(true), remaining);
-    return () => window.clearTimeout(timer);
-  }, [user?.resendAvailableAt]);
-
-  useEffect(() => {
-    const verification = new URLSearchParams(window.location.search).get(
-      "verification",
-    );
-    if (verification === "invalid") {
-      setNotice("invalidLink");
-    }
-  }, []);
+  const [registrationNotice, setRegistrationNotice] = useState<string | null>(null);
 
   const resend = useMutation({
-    mutationFn: () => resendClientVerification(locale),
-    onSuccess: () => setNotice("emailSent"),
-    onError: (error) => setNotice(errorCode(error)),
-    onSettled: () => void refresh(),
-  });
-
-  const signOut = useMutation({
-    mutationFn: logout,
-    onError: () => setNotice("unavailable"),
+    mutationFn: ({ locale }: { userId: string; locale: "en" | "vi" }) => resendClientVerification(locale),
+    onMutate: () => setRegistrationNotice(null),
+    onSuccess: () => {
+      void refresh();
+    },
+    onError: refresh,
   });
 
   if (loading) {
     return <LoadingDots />;
   }
 
-  if (error) {
+  if (error && !user) {
     return (
       <section className="clientSidebarContent clientSidebarContent-auth">
         <p role="alert">{t("errors.unavailable")}</p>
@@ -505,6 +528,20 @@ export function ClientSidebarContent({
   }
 
   const state = user?.status === "verified" ? user.availability : user?.status;
+  const resendForCurrentUser = resend.variables?.userId === user?.id;
+  const sending = resendForCurrentUser && resend.isPending;
+  const resendFailed = resendForCurrentUser && resend.isError;
+  const notice = resendFailed ? errorCode(resend.error)
+    : resendForCurrentUser && resend.isSuccess ? "emailSent" : registrationNotice;
+  const confirmedResendAt = resendForCurrentUser ? resend.data?.resendAvailableAt : undefined;
+  const resendDeadline = Math.max(
+    user?.resendAvailableAt ? Date.parse(user.resendAvailableAt) : 0,
+    confirmedResendAt ? Date.parse(confirmedResendAt) : 0,
+  );
+  const canResend = user?.canResend && notice !== "resendLimit";
+  const statusNotice = state === "unverified" && notice !== "resendLimit" &&
+    !(notice === "emailUndeliverable" && user?.verificationEmailBlocked) &&
+    !(notice === "emailSent" && !canResend) ? notice : null;
   const contact = process.env.NEXT_PUBLIC_ERROR_REPORT_EMAIL?.trim();
   const contactHref = contact && user
     ? `mailto:${encodeURIComponent(contact)}?subject=${encodeURIComponent(
@@ -529,7 +566,7 @@ export function ClientSidebarContent({
             exit={{ x: reducedMotion ? 0 : "-100%", opacity: 0 }}
             transition={{ duration: reducedMotion ? 0 : AUTH_SLIDE_DURATION_SECONDS }}
           >
-            <ClientLogin onEmailError={setNotice} />
+            <ClientLogin onEmailError={setRegistrationNotice} />
           </motion.div>
         ) : (
           <motion.div
@@ -541,24 +578,11 @@ export function ClientSidebarContent({
             transition={{ duration: reducedMotion ? 0 : AUTH_SLIDE_DURATION_SECONDS }}
             onAnimationComplete={() => accountHeadingRef.current?.focus({ preventScroll: true })}
           >
-            <header className="clientSidebarContent-account">
-              <span>{user.email}</span>
-              <GlassButton
-                type="button"
-                size="icon-sm"
-                primaryColor="darkBlue"
-                aria-label={t("logout")}
-                disabled={signOut.isPending}
-                onClick={() => signOut.mutate()}
-              >
-                <LogOut aria-hidden="true" />
-              </GlassButton>
-            </header>
-            {notice && (
+            {statusNotice && (
               <p role="status">
-                {t.has(`errors.${notice}`)
-                  ? t(`errors.${notice}`)
-                  : t(notice === "emailSent" ? "emailSent" : "errors.unavailable")}
+                {t.has(`errors.${statusNotice}`)
+                  ? t(`errors.${statusNotice}`)
+                  : statusNotice === "emailSent" ? "" : t("errors.unavailable")}
               </p>
             )}
             {state === "ready" ? (
@@ -601,33 +625,37 @@ export function ClientSidebarContent({
                   {t(`${state}Title`)}
                 </h1>
                 <p>
-                  {t(state === "unverified" && (notice || user.verificationEmailBlocked)
+                  {t(state === "unverified" && (notice || !canResend)
                     ? "verificationPendingBody"
                     : `${state}Body`)}
                 </p>
                 {state === "unverified" && (
                   <>
                     <small>{t("verificationDeadline")}</small>
-                    <GlassButton
-                      type="button"
-                      disabled={!user.canResend || !resendReady || resend.isPending}
-                      onClick={() => resend.mutate()}
-                    >
-                      {resend.isPending ? (
-                        <LoadingDots />
-                      ) : (
-                        t("resend")
-                      )}
-                    </GlassButton>
                     {user.verificationEmailBlocked ? (
                       <small>{t("errors.emailUndeliverable")}</small>
-                    ) : !user.canResend && (
-                      <small>{t("sendLimit")}</small>
+                    ) : canResend ? (
+                      <ResendButton
+                        key={resendDeadline}
+                        deadline={resendDeadline}
+                        sending={sending}
+                        showCountdown={!resendFailed}
+                        onResend={() => resend.mutate({ userId: user.id, locale })}
+                      />
+                    ) : (
+                      <Badge
+                        color="orange"
+                        opacity
+                        className="mx-auto max-w-full py-2 text-center whitespace-normal"
+                        role="status"
+                      >
+                        {t("sendLimit")}
+                      </Badge>
                     )}
                     <button
                       type="button"
                       className="clientSidebarContent-link"
-                      onClick={() => window.location.reload()}
+                      onClick={() => void refresh()}
                     >
                       {t("alreadyVerified")}
                     </button>

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 
-const TITLE_HIDE_BELOW_WIDTH_PX = 1300;
+const TITLE_HIDE_BELOW_WIDTH_PX = 1000;
 
 const Title = () => {
   const t = useTranslations("meta");

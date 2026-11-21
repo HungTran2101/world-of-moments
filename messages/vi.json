@@ -159,6 +159,26 @@
     "browserIdCopied": "Đã sao chép mã trình duyệt.",
     "browserIdCopyFailed": "Không thể sao chép. Vui lòng chọn và sao chép mã thủ công."
   },
+  "emailVerify": {
+    "checking": {
+      "title": "Đang xác minh email của bạn"
+    },
+    "success": {
+      "title": "Email đã được xác minh rùi",
+      "body": "Bạn đã có thể để lại tâm tư của mình trên bản đồ.",
+      "close": "Bạn có thể tắt tab này nhé."
+    },
+    "invalid": {
+      "title": "Liên kết xác minh không hợp lệ",
+      "body": "Liên kết này không còn khả dụng. Nếu tài khoản vẫn đang chờ xác minh, bạn có thể đăng nhập để kiểm tra lượt gửi còn lại."
+    },
+    "unavailable": {
+      "title": "Chưa thể xác minh email lúc này",
+      "body": "Vui lòng thử lại sau một chút."
+    },
+    "retry": "Thử lại",
+    "backToMap": "Trở lại bản đồ"
+  },
   "clientAuth": {
     "loginTitle": "Một nơi dành cho khoảnh khắc",
     "loginIntro": "Đăng nhập để gửi khoảnh khắc lên bản đồ. Những gì bạn chia sẻ sẽ được ẩn danh nhé.",
@@ -170,6 +190,7 @@
     "login": "Đăng nhập",
     "register": "Tạo tài khoản",
     "logout": "Đăng xuất",
+    "logoutHint": "Nhấn để đăng xuất",
     "toLogin": "Đã có tài khoản? Đăng nhập",
     "toRegister": "Lần đầu ghé thăm? Tạo tài khoản",
     "showPassword": "Hiện mật khẩu",
@@ -184,6 +205,8 @@
     "unverifiedBody": "Tụi mình đã gửi một mail xác minh đến email của bạn. Hãy mở mail và nhấn vào liên kết xác minh để tiếp tục nhé.",
     "verificationDeadline": "Vui lòng xác minh tài khoản trong vòng bảy ngày kể từ khi đăng ký, nếu không tài khoản sẽ bị xóa.",
     "resend": "Gửi lại liên kết",
+    "resendSending": "Đang gửi liên kết xác minh",
+    "resendWaiting": "Chờ để gửi lại liên kết",
     "alreadyVerified": "Đã xác minh? Nhấn vào đây",
     "sendLimit": "Các email xác minh đã được gửi hết. Bạn vẫn có thể dùng liên kết trong hộp thư trước hạn xác minh của tài khoản.",
     "emailSent": "Thư xác minh đang trên đường đến. Hãy kiểm tra cả hộp thư đến và thư rác nhé.",
@@ -214,9 +237,7 @@
       "captchaUnavailable": "Chưa thể hoàn tất kiểm tra trình duyệt. Vui lòng thử lại sau nhé.",
       "emailFailed": "Tài khoản của bạn đã được tạo nhưng hệ thống mail đang gặp sự cố. Hãy thử gửi lại sau nhé.",
       "resendCooldown": "Chờ một chút, email xác minh đang bay tới bạn đó.",
-      "resendLimit": "Vui lòng nhấn vào liên kết xác minh trong hộp thư mà chúng tôi đã cho bạn nhé.",
-      "invalidLink": "Liên kết xác minh này không còn khả dụng. Đăng nhập để gửi lại nếu tài khoản vẫn đang chờ xác minh.",
-      "alreadyVerified": "Email đã được xác minh. Tải lại trang để tiếp tục.",
+      "alreadyVerified": "Email đã được xác minh.",
       "unauthorized": "Vui lòng đăng nhập lại để tiếp tục.",
       "forbidden": "Thao tác này không khả dụng.",
       "emailDomainInvalid": "Tên miền email này có vẻ không nhận thư. Bạn kiểm tra lại địa chỉ email nhé.",
@@ -228,6 +249,6 @@
     "checkingEmailTitle": "Chúng mình đang kiểm tra email",
     "checkingEmailBody": "Chờ một chút để chúng mình kiểm tra email của bạn nhé.",
     "editEmail": "Sửa email",
-    "verificationPendingBody": "Tài khoản đang chờ xác minh email. Bạn có thể yêu cầu gửi liên kết bên dưới."
+    "verificationPendingBody": "Tài khoản đang chờ xác minh email."
   }
 }

@@ -36,8 +36,11 @@ Explicit public endpoints under `/api/client/auth`:
 - POST `login`: same credentials; restricted accounts can log in to see their status.
 - POST `logout`: revokes the current client session only.
 - GET `session`: `{ user: ClientIdentity | null }`, including sidebar availability.
-- POST `resend`: authenticated, unverified account only; optional locale.
-- GET `verify?token=...`: consumes verification and redirects to `/?verification=...`.
+- POST `resend`: authenticated, unverified account only; optional locale. Returns
+  `{ ok: true, resendAvailableAt }` with the ISO timestamp for the next send.
+- POST `verify`: accepts `{ token }` from the same origin and returns
+  `{ status: "success" | "invalid" }`. Missing, invalid, used and expired links return
+  `invalid`. Unexpected service failures return a retryable error.
 
 Client auth and thought mutations share the same-origin check in
 `app/api/_handlers/clientHttp.ts`, including the optional `SUBMISSION_PUBLIC_ORIGIN`
@@ -62,7 +65,7 @@ length limit in [`constants.MAX_DESCRIPTION_LENGTH`](../app/api/constant.ts).
 | Registration / verification | Verification deadline | Seven days from account creation. All verification links share this deadline; resending does not extend it. Expired unverified accounts are rejected and deleted on access or by scheduled cleanup. | Per account |
 | Verification email | Send cooldown | At least 60 seconds between send attempts, including retries after delivery failures. | Per account |
 | Verification email | Send allowance | Four durable send slots: the initial email and three resends. A failed delivery still reserves its slot. Exhaustion returns `429 resendLimit` unless a pending slot can be retried. | Per account |
-| Verification email | Pending delivery retry | Reuse the pending slot, token and Resend idempotency key within 24 hours of slot creation, subject to the cooldown and verification deadline. | Per send slot |
+| Verification email | Pending delivery retry | Reuse the pending slot and token within 24 hours of slot creation, subject to the cooldown and verification deadline. Reuse the Resend idempotency key for the same email payload. | Per send slot |
 | Submission | Account eligibility | A live session and verified account are required. Unverified, suspended and banned accounts cannot create thoughts. | Per account |
 | Submission | Content length | 1–600 characters after trimming. Invalid payloads are rejected before quota and rejection counting. | Per request |
 | Submission | Daily allowance | Three successful creations per hosting-server calendar day. Resets on request when the day changes; `TZ` must match across instances. Failed persistence consumes no allowance; deletion restores none. | Per account |
@@ -100,6 +103,10 @@ Random verification IDs and a secret-derived token allow identical retry payload
 only token hashes are stored in the existing Verification table. Tokens are bound to
 an account ID and cannot verify a later account reusing the same email. Verifying
 consumes every outstanding link. Send allowances, retries and expiry follow the table above.
+Verification emails link directly to `/email-verify?token=...`, which submits the
+token and displays the localized result. Previously queued sends use the current
+template and a separate idempotency key if their original payload used the API link.
+The map refreshes an unverified session when the tab regains focus or becomes visible again.
 
 Registration slides to “We're checking your email” after local form validation. The
 same POST performs all checks; no public email-check endpoint exists. Temporary DNS
@@ -118,8 +125,7 @@ and DNS outside transactions, then recheck account eligibility, cooldown, allowa
 and suppression under the account lock before reserving a slot. Rejected preflight
 consumes no email slot. An email failure after account creation preserves the account,
 session and pending slot; registration returns `201` with `emailError: true` and optional
-`emailErrorCode` rather than claiming successful delivery. Existing idempotent retry
-payloads and keys are preserved, including for slots created before this change.
+`emailErrorCode` rather than claiming successful delivery.
 
 Private `ClientIdentity` includes `verificationEmailBlocked`; a suppressed address has
 `canResend: false`. Suppression blocks email only, never verification of an existing

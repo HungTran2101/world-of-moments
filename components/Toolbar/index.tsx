@@ -2,10 +2,11 @@
 
 import { Locale, locales } from "@/i18n/config";
 import { useMutation } from "@tanstack/react-query";
+import { useClientSession } from "@/components/ClientSession";
 import { useError } from "@/components/shared/ErrorProvider";
 import { setLocale } from "@/services/locale";
 import { useSystemStore } from "@/store/systemStore";
-import { Clock3, History, Languages, Moon, Sun, Sunset } from "lucide-react";
+import { Clock3, History, Languages, LogOut, Moon, Sun, Sunset } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -19,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { RefractiveGlass } from "../ui/refractive-glass";
+import { Separator } from "../ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const TIME_ACTIONS = [
@@ -32,6 +34,7 @@ export default function Toolbar() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const historyTriggerRef = useRef<HTMLButtonElement>(null);
   const t = useTranslations("toolbar");
+  const auth = useTranslations("clientAuth");
   const nav = useTranslations("nav");
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -47,6 +50,11 @@ export default function Toolbar() {
   const language = useMutation({
     mutationFn: (nextLocale: Locale) => setLocale(nextLocale),
     onSuccess: () => router.refresh(),
+    onError: (error) => showError(error),
+  });
+  const { user, logout } = useClientSession();
+  const signOut = useMutation({
+    mutationFn: logout,
     onError: (error) => showError(error),
   });
 
@@ -158,6 +166,25 @@ export default function Toolbar() {
             </TooltipTrigger>
             <TooltipContent side="left" sideOffset={10}>{nav("myHistory")}</TooltipContent>
           </Tooltip>
+          {user && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ToolbarPrimitive.Button
+                  className="toolbar-action"
+                  aria-label={auth("logout")}
+                  disabled={signOut.isPending}
+                  onClick={() => signOut.mutate()}
+                >
+                  <LogOut aria-hidden="true" />
+                </ToolbarPrimitive.Button>
+              </TooltipTrigger>
+              <TooltipContent side="left" sideOffset={10} className="toolbar-logoutTooltip">
+                <span>{user.email}</span>
+                <Separator className="bg-background/30" />
+                <span>{auth("logoutHint")}</span>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </ToolbarPrimitive.Root>
       </RefractiveGlass>
       <HistoryPanel
