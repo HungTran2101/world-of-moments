@@ -110,11 +110,15 @@
     }
   }
 
-  &-notice>svg {
-    width: 36px;
-    height: 36px;
-    color: var(--secondary-color);
-    stroke-width: 1.25;
+  &-notice {
+    margin-top: 1rem;
+
+    svg {
+      width: 36px;
+      height: 36px;
+      color: var(--secondary-color);
+      stroke-width: 1.25;
+    }
   }
 
   &-guidance {

@@ -585,13 +585,15 @@ export function ClientSidebarContent({
                 className="clientSidebarContent-auth clientSidebarContent-notice"
                 aria-live="polite"
               >
-                {state === "unverified" ? (
-                  <MailCheck aria-hidden="true" />
-                ) : state === "banned" ? (
-                  <ShieldAlert aria-hidden="true" />
-                ) : (
-                  <Pause aria-hidden="true" />
-                )}
+                <div className="mx-auto">
+                  {state === "unverified" ? (
+                    <MailCheck aria-hidden="true" />
+                  ) : state === "banned" ? (
+                    <ShieldAlert aria-hidden="true" />
+                  ) : (
+                    <Pause aria-hidden="true" />
+                  )}
+                </div>
                 <h1
                   ref={accountHeadingRef}
                   tabIndex={-1}

@@ -15,6 +15,8 @@ import { CLIENT_LIMITS } from "@/app/api/client/constant";
 import { verificationEmail } from "@/emails/verification";
 import { checkClientEmailDeliverability } from "@/lib/clientEmailSuppression";
 
+const VERIFICATION_EMAIL_TEMPLATE_VERSION = "v2";
+
 const tokenFor = (id: string) =>
   `${id}.${createHmac("sha256", clientAuthSecret()).update(`verify:${id}`).digest("base64url")}`;
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -55,7 +57,7 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
       pending = await tx.verification.create({
         data: {
           id,
-          identifier: `${prefix}${user.verificationSendCount + 1}:${locale}:pending`,
+          identifier: `${prefix}${user.verificationSendCount + 1}:${VERIFICATION_EMAIL_TEMPLATE_VERSION}:${locale}:pending`,
           value: hashToken(tokenFor(id)),
           expiresAt: verificationDeadline(user),
         },
@@ -75,8 +77,11 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   );
   url.searchParams.set("token", tokenFor(slot.record.id));
-  const savedLocale = slot.record.identifier.split(":").at(-2) === "vi" ? "vi" : "en";
-  const mail = verificationEmail(url.href, savedLocale);
+  const identifierParts = slot.record.identifier.split(":");
+  const savedLocale = identifierParts.at(-2) === "vi" ? "vi" : "en";
+  // Giữ nguyên mẫu của lượt gửi cũ để lần thử lại dùng cùng nội dung và khóa idempotency.
+  const useLegacyFont = identifierParts.at(-3) !== VERIFICATION_EMAIL_TEMPLATE_VERSION;
+  const mail = verificationEmail(url.href, savedLocale, useLegacyFont);
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",

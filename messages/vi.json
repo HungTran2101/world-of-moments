@@ -181,12 +181,12 @@
     "validationPassword": "Dùng mật khẩu từ 8 đến 128 ký tự.",
     "validationPasswordMatch": "Mật khẩu xác nhận chưa khớp.",
     "unverifiedTitle": "Một bước nhỏ trước khi bắt đầu",
-    "unverifiedBody": "Hãy xác nhận đây thực sự là bạn. Kiểm tra email để tìm liên kết xác minh của chúng mình.",
+    "unverifiedBody": "Tụi mình đã gửi một mail xác minh đến email của bạn. Hãy mở mail và nhấn vào liên kết xác minh để tiếp tục nhé.",
     "verificationDeadline": "Vui lòng xác minh tài khoản trong vòng bảy ngày kể từ khi đăng ký, nếu không tài khoản sẽ bị xóa.",
     "resend": "Gửi lại liên kết",
     "alreadyVerified": "Đã xác minh? Nhấn vào đây",
     "sendLimit": "Các email xác minh đã được gửi hết. Bạn vẫn có thể dùng liên kết trong hộp thư trước hạn xác minh của tài khoản.",
-    "emailSent": "Liên kết xác minh đang trên đường đến. Hãy kiểm tra cả hộp thư đến và thư rác nhé.",
+    "emailSent": "Thư xác minh đang trên đường đến. Hãy kiểm tra cả hộp thư đến và thư rác nhé.",
     "cooldownTitle": "Để khoảnh khắc này lắng lại",
     "cooldownBody": "Suy nghĩ của bạn đã tìm được chỗ của mình. Hãy dừng lại một chút trước khi gửi thêm một điều khác.",
     "daily-limitTitle": "Để dành một chút cho ngày mai",
@@ -226,7 +226,7 @@
     "openSidebar": "Gửi một suy nghĩ",
     "closeSidebar": "Đóng thanh viết suy nghĩ",
     "checkingEmailTitle": "Chúng mình đang kiểm tra email",
-    "checkingEmailBody": "Chờ một chút để chúng mình kiểm tra xem có thể gửi liên kết xác minh đến email của bạn nhé.",
+    "checkingEmailBody": "Chờ một chút để chúng mình kiểm tra email của bạn nhé.",
     "editEmail": "Sửa email",
     "verificationPendingBody": "Tài khoản đang chờ xác minh email. Bạn có thể yêu cầu gửi liên kết bên dưới."
   }

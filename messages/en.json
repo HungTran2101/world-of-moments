@@ -181,7 +181,7 @@
     "validationPassword": "Use a password between 8 and 128 characters.",
     "validationPasswordMatch": "Passwords must match.",
     "unverifiedTitle": "One small step before you begin",
-    "unverifiedBody": "Please verify it's really you. Check your email for our verification link.",
+    "unverifiedBody": "We just sent a verification email. Check your email for our verification link.",
     "verificationDeadline": "Please verify your account within seven days of registration, or it will be deleted.",
     "resend": "Send the link again",
     "alreadyVerified": "Already verified? Click here",
@@ -226,7 +226,7 @@
     "openSidebar": "Leave a thought",
     "closeSidebar": "Close writing sidebar",
     "checkingEmailTitle": "We're checking your email",
-    "checkingEmailBody": "Just a moment while we check whether we can send your verification link.",
+    "checkingEmailBody": "Just a moment while we check your mail validity.",
     "editEmail": "Edit email",
     "verificationPendingBody": "Your account is awaiting email verification. You can request a link below."
   }
