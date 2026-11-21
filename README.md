@@ -94,7 +94,13 @@ database URL, independent CMS/client auth secrets, Resend sender/key, Turnstile 
 and application origin. Apply the schema with `pnpm db:push`, then run
 `pnpm prisma:generate`. Schema files are the development source of truth; migration
 files and reset flows are not used. Run `pnpm cms:seed` only with the intended bootstrap
-password configured. Run `pnpm dev` to start the app.
+password configured. Run `pnpm dev` to start the app and open the URL printed by
+Next.js in your default browser. Set `DEV_OPEN=0` to skip opening the browser.
+
+To reuse an existing tab, set `DEV_BROWSER_DEBUG_PORT` to the local debugging port
+of a running Chrome or Edge instance. The script checks that browser for a tab on
+the same origin before opening one. The default browser launcher does not inspect
+existing tabs.
 
 The production site is https://dearworld.space. Set
 `NEXT_PUBLIC_APP_URL=https://dearworld.space` in the hosting environment so auth

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test:client-email": "node --conditions=react-server --import tsx --test tests/client-email.test.ts",
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
