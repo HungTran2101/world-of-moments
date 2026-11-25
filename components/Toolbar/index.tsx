@@ -180,7 +180,7 @@ export default function Toolbar() {
               </TooltipTrigger>
               <TooltipContent side="left" sideOffset={10} className="toolbar-logoutTooltip">
                 <span>{user.email}</span>
-                <Separator className="bg-background/30" />
+                <Separator className="bg-background/30 h-px" />
                 <span>{auth("logoutHint")}</span>
               </TooltipContent>
             </Tooltip>
