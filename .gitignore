@@ -48,3 +48,4 @@ next-env.d.ts
 /.cursorrules
 /AI.md
 /.agents/rules/context.md
+/docs.local.md

@@ -1,36 +1,18 @@
-# Dear World branding
+# Brand identity
 
-The production website is https://dearworld.space. Production configuration uses
-this origin for `NEXT_PUBLIC_APP_URL`; local development uses localhost.
+Use **Dear World** as the product name in English and Vietnamese across the public app, CMS, email, metadata and artwork. “A world of moments” can appear in descriptive copy. The cover tagline is **A quiet map of human thoughts.**
 
-Dear World is the product name in both English and Vietnamese. “A world of
-moments” may appear as descriptive copy, rather than as the product name.
-The visual identity retains the lavender paper-note icon, calm map atmosphere
-and hand-drawn cover artwork. The cover tagline is “A quiet map of human thoughts.”
+## Visual language
 
-## Assets
+The lavender paper note is the identity mark. The cover and social preview pair hand-lettered type with a colored-pencil world map on cream paper. Small pinned notes, clouds, sun and rain connect the illustrations to the map experience. Keep the title legible at preview size and preserve the wide composition when adapting the artwork.
 
-- `public/favicon/cover-image.png`: README cover, 2025 × 777.
-- `public/favicon/metadata-image.png`: social-sharing artwork, 2169 × 725.
-- The existing favicon, touch icons and CMS note mark remain appropriate to the
-  new name and are retained. Neither illustration contains the former name.
-- `public/favicon/site.webmanifest` uses Dear World for both app names.
+## Brand assets
 
-The two illustrations were edited with the built-in imagegen tool from the
-existing assets. Final files are saved in the project at the paths above.
+| Asset | Use |
+| --- | --- |
+| [Cover illustration](../public/favicon/cover-image.png) | README banner, 2025 × 777 |
+| [Social preview](../public/favicon/metadata-image.png) | Link previews, 2169 × 725 |
+| [Browser and device icons](../public/favicon/) | Browser tabs, touch icons and installed shortcuts |
+| [Web manifest](../public/favicon/site.webmanifest) | Full and short application names |
 
-## Final artwork prompts
-
-### Cover
-
-Edit this existing project cover banner for a product rebrand. Preserve its very wide landscape aspect ratio, colored-pencil hand-drawn world map, little pinned paper notes, weather doodles, cream paper texture, blue and green colors and calm atmosphere. Replace only the large main heading 'World of Moments' with the exact heading 'Dear World', beautifully centered in the same dark hand-lettered style. Keep subtitle exactly 'A quiet map of human thoughts.' and the other small margin text and drawings. No old brand name anywhere. Finished production website/README banner, crisp and readable.
-
-### Social preview
-
-Edit this exact website social-sharing banner for a product rebrand. Retain its panoramic roughly 3:1 ratio, pencil/crayon illustration, cream paper texture, blue and green world globe with pinned notes, clouds, sun, moon and star details. Replace the large top heading 'World of Moments' with exact text 'Dear World', centered beautifully in the same black hand-lettered style. Keep the subtitle exactly 'A quiet map of human thoughts.' Preserve all existing illustration and overall layout with no new elements. No old brand name anywhere. Production social preview image.
-
-## Existing configuration
-
-The rebrand does not rename the database, repository directory, bootstrap
-password or browser storage/session identifiers. Their existing values preserve
-the current installation and are not public branding.
+Production metadata and sharing links use [dearworld.space](https://dearworld.space).
