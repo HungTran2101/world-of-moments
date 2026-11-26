@@ -5,7 +5,7 @@ import { GlassButton } from "@/components/ui/glass-button";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { verifyClientEmail } from "@/services/client-auth";
 import type { ClientVerificationResponse } from "@/services/client-auth/types";
-import { MailCheck, MailX } from "lucide-react";
+import { Check, MailX } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -51,9 +51,16 @@ export default function VerificationResult() {
     <RefractiveGlass>
       <section className="emailVerify-card">
         <div className="emailVerify-result" aria-live="polite">
-          {status === "success" && <MailCheck className="emailVerify-icon" aria-hidden="true" />}
+          {status === "success" && (
+            <span className="emailVerify-success" aria-hidden="true">
+              <svg className="emailVerify-success-ring" viewBox="0 0 60 60" fill="none">
+                <circle cx="30" cy="30" r="28.5" pathLength="1" transform="rotate(-90 30 30)" />
+              </svg>
+              <Check className="emailVerify-success-check" />
+            </span>
+          )}
           {status === "invalid" && <MailX className="emailVerify-icon" aria-hidden="true" />}
-          <h1 id="email-verify-title">{t(`${status}.title`)}</h1>
+          <h1 id="email-verify-title" data-status={status}>{t(`${status}.title`)}</h1>
           {status === "checking" ? <LoadingDots /> : <p>{t(`${status}.body`)}</p>}
           {status === "success" && <p className="emailVerify-close">{t("success.close")}</p>}
         </div>

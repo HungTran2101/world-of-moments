@@ -1,4 +1,6 @@
 .emailVerify {
+  --email-verify-success-color: #176b4b;
+
   display: grid;
   min-height: 100dvh;
   padding: 1rem;
@@ -27,6 +29,14 @@
       font-size: clamp(1.0625rem, 4.5vw, 1.5rem);
       line-height: 1.6;
       text-wrap: balance;
+
+      &[data-status='success'] {
+        color: var(--email-verify-success-color);
+      }
+
+      &[data-status='invalid'] {
+        color: #a52e43;
+      }
     }
 
     p {
@@ -42,6 +52,57 @@
     height: 2.25rem;
     color: #5a5e90;
     stroke-width: 1.5;
+  }
+
+  &-success {
+    position: relative;
+    display: grid;
+    width: 3.75rem;
+    height: 3.75rem;
+    place-items: center;
+    border-radius: 50%;
+    background: #dff5e7;
+    color: var(--email-verify-success-color);
+  }
+
+  &-success-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    stroke: #6bbf9f;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  &-success-check {
+    width: 2.75rem;
+    height: 2.75rem;
+    stroke-width: 2.5;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &-success {
+      animation: email-verify-success-appear 180ms ease-out both;
+    }
+
+    &-success-ring circle,
+    &-success-check path {
+      animation-duration: 600ms;
+      animation-timing-function: ease-out;
+      animation-delay: 80ms;
+      animation-fill-mode: both;
+    }
+
+    &-success-ring circle {
+      stroke-dasharray: 1;
+      animation-name: email-verify-success-ring;
+    }
+
+    &-success-check path {
+      stroke-dasharray: 24;
+      animation-name: email-verify-success-check;
+    }
   }
 
   &-close {
