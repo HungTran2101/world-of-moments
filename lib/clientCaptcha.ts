@@ -1,91 +1,39 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
 import { ClientHttpError } from "@/lib/clientErrors";
 import { CLIENT_LIMITS } from "@/app/api/client/constant";
+import { clientIp, countAuthRequest, type AuthIpAdmission } from "@/lib/clientAuthLimits";
 
-import {
-  clientIp,
-  lockAuthIp,
-  readAuthIpState,
-  persistAuthIpState,
-  countAuthRequest,
-  type AuthIpAdmission,
-} from "@/lib/clientAuthLimits";
-
-function captchaAttemptLimit(action: AuthIpAdmission["action"]) {
-  return action === "register"
-    ? CLIENT_LIMITS.REGISTER_ATTEMPTS_WITHOUT_CAPTCHA
-    : CLIENT_LIMITS.LOGIN_ATTEMPTS_WITHOUT_CAPTCHA;
-}
-
-export async function validateCaptcha(
-  token: string | undefined,
-  action: "login" | "register",
+export async function requireAuthCaptcha(
   request: Request,
+  admission: AuthIpAdmission,
+  token: string | undefined,
 ) {
+  // Yêu cầu hợp lệ thiếu token không xử lý tài khoản và không tính lượt theo IP.
   if (!token) throw new ClientHttpError(403, "captchaRequired");
-  if (!process.env.TURNSTILE_SECRET_KEY) throw new ClientHttpError(503, "unavailable");
-  let result;
+  await countAuthRequest(admission);
+
+  // Chốt lượt theo IP trước khi gọi Cloudflare để không giữ khóa giao dịch khi chờ mạng.
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) throw new ClientHttpError(503, "unavailable");
+  let result: { success?: boolean; hostname?: string; action?: string } | null;
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        secret: process.env.TURNSTILE_SECRET_KEY,
+        secret,
         response: token,
         remoteip: clientIp(request),
       }),
       signal: AbortSignal.timeout(CLIENT_LIMITS.REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) throw new Error("Siteverify unavailable");
-    result = (await response.json()) as { success?: boolean; hostname?: string; action?: string };
+    result = await response.json();
+    if (typeof result?.success !== "boolean") throw new Error("Invalid Siteverify response");
   } catch {
     throw new ClientHttpError(503, "unavailable");
   }
   const hostname = new URL(process.env.NEXT_PUBLIC_APP_URL || request.url).hostname;
-  if (result.success !== true || result.hostname !== hostname || result.action !== action)
+  if (result.success !== true || result.hostname !== hostname || result.action !== admission.action)
     throw new ClientHttpError(403, "captchaRequired");
-}
-async function recordCaptchaAttempt(admission: AuthIpAdmission) {
-  await prisma.$transaction(async (tx) => {
-    await lockAuthIp(tx, admission.key);
-    const now = new Date();
-    const state = await readAuthIpState(tx, admission.key, now);
-    state.attemptsAt = [...state.attemptsAt, now].slice(
-      -captchaAttemptLimit(admission.action),
-    );
-    await persistAuthIpState(tx, admission.key, state, now);
-  }, { timeout: CLIENT_LIMITS.AUTH_TRANSACTION_TIMEOUT_MS });
-}
-
-export async function withAuthCaptcha<T>(
-  request: Request,
-  admission: AuthIpAdmission,
-  token: string | undefined,
-  authenticate: () => Promise<T>,
-) {
-  const requiresCaptcha = await prisma.$transaction(async (tx) => {
-    await lockAuthIp(tx, admission.key);
-    const now = new Date();
-    const state = await readAuthIpState(tx, admission.key, now);
-    return state.attemptsAt.length >= captchaAttemptLimit(admission.action);
-  }, { timeout: CLIENT_LIMITS.AUTH_TRANSACTION_TIMEOUT_MS });
-
-  // Yêu cầu lấy CAPTCHA chưa xử lý tài khoản; lần gửi lại có token mới tính một lượt.
-  if (requiresCaptcha && !token) throw new ClientHttpError(403, "captchaRequired");
-  await countAuthRequest(admission);
-
-  // CAPTCHA và kiểm tra mật khẩu chạy ngoài transaction để không giữ kết nối/khóa khi chờ mạng.
-  if (requiresCaptcha) {
-    await validateCaptcha(token, admission.action, request);
-  }
-  if (admission.action === "register") await recordCaptchaAttempt(admission);
-  try {
-    return await authenticate();
-  } catch (error) {
-    if (admission.action === "login" && error instanceof ClientHttpError && error.code === "credentials") {
-      await recordCaptchaAttempt(admission);
-    }
-    throw error;
-  }
 }

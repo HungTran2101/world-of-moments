@@ -13,7 +13,7 @@ export interface AuthIpAdmission<TAction extends AuthAction = AuthAction> {
 }
 type AuthIpState = Pick<
   ClientAuthIpLimit,
-  "attemptsAt" | "requestsAt" | "createdAccountsAt" | "blockedUntil"
+  "requestsAt" | "createdAccountsAt" | "blockedUntil"
 >;
 
 export function clientIp(request: Request) {
@@ -22,37 +22,38 @@ export function clientIp(request: Request) {
   return ip;
 }
 
-export async function lockAuthIp(tx: Prisma.TransactionClient, key: string) {
+async function lockAuthIp(tx: Prisma.TransactionClient, key: string) {
   // Cùng IP/hành động dùng một khóa xuyên tiến trình; không giữ khóa khi gọi dịch vụ ngoài.
   await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${`client-auth:${key}`}, 0))`;
 }
 
-export async function readAuthIpState(
+async function readAuthIpState(
   tx: Prisma.TransactionClient,
   key: string,
   now: Date,
 ): Promise<AuthIpState> {
-  const row = await tx.clientAuthIpLimit.findUnique({ where: { key } });
+  const row = await tx.clientAuthIpLimit.findUnique({
+    where: { key },
+    select: { requestsAt: true, createdAccountsAt: true, blockedUntil: true },
+  });
   const recent = (dates: Date[] | undefined, windowMs: number) =>
     (dates ?? []).filter((date) => date.getTime() > now.getTime() - windowMs);
   return {
-    attemptsAt: recent(row?.attemptsAt, CLIENT_LIMITS.IP_WINDOW_MS),
     requestsAt: recent(row?.requestsAt, CLIENT_LIMITS.AUTH_REQUEST_WINDOW_MS),
     createdAccountsAt: recent(row?.createdAccountsAt, CLIENT_LIMITS.REGISTRATION_CREATION_WINDOW_MS),
     blockedUntil: row?.blockedUntil && row.blockedUntil > now ? row.blockedUntil : null,
   };
 }
 
-export async function persistAuthIpState(
+async function persistAuthIpState(
   tx: Prisma.TransactionClient,
   key: string,
   state: AuthIpState,
   now: Date,
 ) {
-  // Chỉ xóa hàng khi mọi cửa sổ và lệnh chặn đều hết hạn, kể cả lịch sử tạo tài khoản.
+  // Giữ hàng đến khi hết hạn cả lịch sử lượt thử, lượt tạo tài khoản và lệnh chặn.
   const expiresAt = new Date(Math.max(
     now.getTime(),
-    ...state.attemptsAt.map((date) => date.getTime() + CLIENT_LIMITS.IP_WINDOW_MS),
     ...state.requestsAt.map((date) => date.getTime() + CLIENT_LIMITS.AUTH_REQUEST_WINDOW_MS),
     ...state.createdAccountsAt.map((date) => date.getTime() + CLIENT_LIMITS.REGISTRATION_CREATION_WINDOW_MS),
     state.blockedUntil?.getTime() ?? now.getTime(),
@@ -67,10 +68,9 @@ export async function persistAuthIpState(
 export async function admitAuthRequest<TAction extends AuthAction>(
   request: Request,
   action: TAction,
-  countRequest = true,
 ): Promise<AuthIpAdmission<TAction>> {
   const key = `${action}:${createHash("sha256").update(clientIp(request)).digest("hex")}`;
-  await checkAuthRequest({ key, action }, countRequest);
+  await checkAuthRequest({ key, action }, false);
   return { key, action };
 }
 

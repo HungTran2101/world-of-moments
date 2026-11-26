@@ -76,7 +76,8 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
   const [failure, setFailure] = useState<string | null>(null);
   const [captchaNeeded, setCaptchaNeeded] = useState(false);
   const [captchaAttempt, setCaptchaAttempt] = useState(0);
-  const pending = useRef<ClientCredentials | null>(null);
+  const activeCaptchaAttempt = useRef<number | null>(null);
+  const pending = useRef<Omit<ClientCredentials, "captchaToken"> | null>(null);
   const inFlight = useRef(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const focusAfterSwitch = useRef(false);
@@ -88,6 +89,10 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
       headingRef.current?.focus({ preventScroll: true });
     }
   }, [switching]);
+
+  useEffect(() => () => {
+    activeCaptchaAttempt.current = null;
+  }, []);
 
   const {
     register,
@@ -118,34 +123,41 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
       await changed();
       inFlight.current = false;
     },
-    onError: (error, values) => {
+    onError: (error) => {
       const code = errorCode(error);
-      inFlight.current = code === "captchaRequired" && !values.captchaToken;
-      if (code === "captchaRequired" && !values.captchaToken) {
-        setFailure(null);
-        setCaptchaAttempt((value) => value + 1);
-        setCaptchaNeeded(true);
-      } else {
-        setFailure(code === "captchaRequired" ? "captchaUnavailable" : code);
-      }
+      inFlight.current = false;
+      setFailure(code === "captchaRequired" ? "captchaUnavailable" : code);
     },
   });
   const { mutate } = mutation;
   const onToken = useCallback(
     (token: string) => {
+      if (activeCaptchaAttempt.current !== captchaAttempt || !pending.current) return;
+      // Chỉ nhận một kết quả từ widget đang chạy, kể cả khi callback đến muộn.
+      activeCaptchaAttempt.current = null;
       setCaptchaNeeded(false);
-      if (pending.current) {
-        mutate({ ...pending.current, captchaToken: token });
-      }
+      mutate({ ...pending.current, captchaToken: token });
     },
-    [mutate],
+    [captchaAttempt, mutate],
   );
   const onCaptchaError = useCallback(() => {
+    if (activeCaptchaAttempt.current !== captchaAttempt) return;
+    activeCaptchaAttempt.current = null;
     setCaptchaNeeded(false);
     inFlight.current = false;
     setFailure("captchaUnavailable");
-  }, []);
+  }, [captchaAttempt]);
   const busy = mutation.isPending || captchaNeeded;
+
+  const startCaptcha = (credentials: Omit<ClientCredentials, "captchaToken">) => {
+    inFlight.current = true;
+    pending.current = credentials;
+    const attempt = captchaAttempt + 1;
+    activeCaptchaAttempt.current = attempt;
+    setFailure(null);
+    setCaptchaAttempt(attempt);
+    setCaptchaNeeded(true);
+  };
 
   return (
     <section
@@ -221,11 +233,8 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
                       type="button"
                       onClick={() => {
                         if (inFlight.current || !pending.current) return;
-                        inFlight.current = true;
-                        setFailure(null);
                         headingRef.current?.focus({ preventScroll: true });
-                        // Không lưu token Turnstile đã dùng vào payload gốc; mỗi lần thử lại nhận token mới.
-                        mutation.mutate(pending.current);
+                        startCaptcha(pending.current);
                       }}
                     >
                       {t("retry")}
@@ -263,19 +272,16 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
                     if (busy || inFlight.current) {
                       return;
                     }
-                    setFailure(null);
-                    inFlight.current = true;
                     if (creating) {
                       setSlideDirection(1);
                       setSwitching(true);
                       setChecking(true);
                     }
-                    pending.current = {
+                    startCaptcha({
                       email: values.email,
                       password: values.password,
                       locale,
-                    };
-                    mutation.mutate(pending.current);
+                    });
                   })(event);
                 }}
                 aria-busy={busy}
@@ -399,6 +405,7 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
                 className="clientSidebarContent-link"
                 disabled={busy}
                 onClick={() => {
+                  if (inFlight.current) return;
                   setSwitching(true);
                   setSlideDirection(creating ? -1 : 1);
                   setCreating((value) => !value);
@@ -578,7 +585,16 @@ export function ClientSidebarContent({
             transition={{ duration: reducedMotion ? 0 : AUTH_SLIDE_DURATION_SECONDS }}
             onAnimationComplete={() => accountHeadingRef.current?.focus({ preventScroll: true })}
           >
-            {statusNotice && (
+            {statusNotice === "emailFailed" || statusNotice === "emailQuotaExceeded" ? (
+              <Badge
+                color="error"
+                opacity
+                className="mx-auto max-w-full py-2 text-center whitespace-normal"
+                role="alert"
+              >
+                {t(`errors.${statusNotice}`)}
+              </Badge>
+            ) : statusNotice && (
               <p role="status">
                 {t.has(`errors.${statusNotice}`)
                   ? t(`errors.${statusNotice}`)
@@ -624,11 +640,7 @@ export function ClientSidebarContent({
                 >
                   {t(`${state}Title`)}
                 </h1>
-                <p>
-                  {t(state === "unverified" && (notice || !canResend)
-                    ? "verificationPendingBody"
-                    : `${state}Body`)}
-                </p>
+                <p>{t(`${state}Body`)}</p>
                 {state === "unverified" && (
                   <>
                     <small>{t("verificationDeadline")}</small>

@@ -208,7 +208,7 @@
     "resendSending": "Đang gửi liên kết xác minh",
     "resendWaiting": "Chờ để gửi lại liên kết",
     "alreadyVerified": "Đã xác minh? Nhấn vào đây",
-    "sendLimit": "Các email xác minh đã được gửi hết. Bạn vẫn có thể dùng liên kết trong hộp thư trước hạn xác minh của tài khoản.",
+    "sendLimit": "Đã đạt giới hạn gửi mail xác thực của tài khoản này. Bạn vẫn có thể dùng liên kết trong hộp thư trước hạn xác minh của tài khoản.",
     "emailSent": "Thư xác minh đang trên đường đến. Hãy kiểm tra cả hộp thư đến và thư rác nhé.",
     "cooldownTitle": "Để khoảnh khắc này lắng lại",
     "cooldownBody": "Suy nghĩ của bạn đã tìm được chỗ của mình. Hãy dừng lại một chút trước khi gửi thêm một điều khác.",
@@ -236,6 +236,7 @@
       "unavailable": "Chưa thể kết nối với góc nhỏ này. Bạn thử lại sau nhé.",
       "captchaUnavailable": "Chưa thể hoàn tất kiểm tra trình duyệt. Vui lòng thử lại sau nhé.",
       "emailFailed": "Tài khoản của bạn đã được tạo nhưng hệ thống mail đang gặp sự cố. Hãy thử gửi lại sau nhé.",
+      "emailQuotaExceeded": "Hệ thống mail đang quá tải mất rùi :( vui lòng thử lại sau nhé",
       "resendCooldown": "Chờ một chút, email xác minh đang bay tới bạn đó.",
       "alreadyVerified": "Email đã được xác minh.",
       "unauthorized": "Vui lòng đăng nhập lại để tiếp tục.",
@@ -248,7 +249,6 @@
     "closeSidebar": "Đóng thanh viết suy nghĩ",
     "checkingEmailTitle": "Chúng mình đang kiểm tra email",
     "checkingEmailBody": "Chờ một chút để chúng mình kiểm tra email của bạn nhé.",
-    "editEmail": "Sửa email",
-    "verificationPendingBody": "Tài khoản đang chờ xác minh email."
+    "editEmail": "Sửa email"
   }
 }

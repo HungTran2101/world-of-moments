@@ -4,13 +4,15 @@ Visitors can read the map anonymously. A verified client account can publish tho
 
 ## Account flow
 
-The sidebar offers registration and sign-in with email and password. Registration validates password confirmation locally and sends the credentials and selected locale to the server. A new account receives a verification link. Opening it shows a localized result, and returning to the map refreshes the account status. Verifying in another browser does not sign that browser in.
+The sidebar offers registration and sign-in with email and password. Registration validates password confirmation locally. After the form passes local validation, the sidebar obtains a fresh Turnstile token and sends it with the credentials and selected locale. A new account receives a verification link. Opening it shows a localized result, and returning to the map refreshes the account status. Verifying in another browser does not sign that browser in.
 
 During registration, a temporary email-check failure offers Retry. An invalid or undeliverable address offers Edit email. The form keeps the entered credentials in component memory while the user corrects the address. Restricted accounts can sign in to read their status.
 
 ## Authentication API
 
 Routes are under `/api/client/auth`. Client mutations require the trusted application origin.
+
+Both `register` and `login` require a `captchaToken` for the corresponding Turnstile action. The server verifies the token and its hostname before handling the account. A valid request body with a missing or rejected token returns `403` with `captchaRequired`. Malformed requests and requests that include a token count toward the IP limit, including successful attempts. A valid request body missing only the token uses no attempt. A Turnstile service or configuration failure returns `503` with `unavailable`.
 
 | Method and route | Contract |
 | --- | --- |
@@ -20,6 +22,8 @@ Routes are under `/api/client/auth`. Client mutations require the trusted applic
 | POST `resend` | Request another verification email for the signed-in, unverified account and return the next send time. |
 | POST `verify` | Consume the submitted token and return a success or invalid result. Service failures allow a retry. |
 | POST `logout` | Revoke the current client session. |
+
+If Resend rejects an email because its daily or monthly quota is exhausted, registration keeps the account and session and returns `201` with `emailErrorCode: "emailQuotaExceeded"`. The resend endpoint returns `503` with the same error code. The service refunds any new verification send it reserved for that request. A retry of a previously reserved send retains its original token and does not use an additional attempt. The resend cooldown still applies.
 
 ## Visibility and author actions
 

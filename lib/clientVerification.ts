@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import type { Verification } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   readClient,
@@ -33,6 +34,29 @@ function assertVerificationAvailable(user: ClientRecord | null): asserts user is
   if (user.verificationSendCount >= CLIENT_LIMITS.VERIFICATION_SEND_SLOTS && !user.hasPendingVerification)
     throw new ClientHttpError(429, "resendLimit");
 }
+
+async function refundVerificationSend(
+  userId: string,
+  record: Pick<Verification, "id" | "identifier">,
+  sentAt: Date,
+) {
+  await prisma.$transaction(async (tx) => {
+    await lockClient(tx, userId);
+    // Chỉ hoàn lượt nếu lần gửi mới hơn chưa dùng lại token và bản ghi vẫn đang chờ.
+    const user = await tx.user.findFirst({
+      where: { id: userId, kind: "client", verificationLastSentAt: sentAt, verificationSendCount: { gt: 0 } },
+      select: { id: true },
+    });
+    if (!user) return;
+    const deleted = await tx.verification.deleteMany({
+      where: { id: record.id, identifier: record.identifier },
+    });
+    if (deleted.count === 1) {
+      await tx.user.update({ where: { id: userId }, data: { verificationSendCount: { decrement: 1 } } });
+    }
+  });
+}
+
 export async function sendClientVerification(userId: string, locale: "en" | "vi") {
   const current = await getClientRecord(userId);
   assertVerificationAvailable(current);
@@ -50,6 +74,7 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
         createdAt: { gt: new Date(now.getTime() - CLIENT_LIMITS.EMAIL_IDEMPOTENCY_WINDOW_MS) },
       },
     });
+    const reservedNewSend = !pending;
     if (!pending) {
       if (user.verificationSendCount >= CLIENT_LIMITS.VERIFICATION_SEND_SLOTS)
         throw new ClientHttpError(429, "resendLimit");
@@ -68,7 +93,7 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
       });
     }
     await tx.user.update({ where: { id: userId }, data: { verificationLastSentAt: now } });
-    return { record: pending, email: user.email, sentAt: now };
+    return { record: pending, email: user.email, sentAt: now, reservedNewSend };
   });
   if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL)
     throw new ClientHttpError(503, "emailFailed");
@@ -84,8 +109,9 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
   const idempotencyKey = templateVersion === VERIFICATION_EMAIL_TEMPLATE_VERSION
     ? `client-verification/${slot.record.id}`
     : `client-verification/${VERIFICATION_EMAIL_TEMPLATE_VERSION}/${slot.record.id}`;
+  let response: Response;
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
@@ -95,8 +121,17 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
       body: JSON.stringify({ from: process.env.RESEND_FROM_EMAIL, to: [slot.email], ...mail }),
       signal: AbortSignal.timeout(CLIENT_LIMITS.REQUEST_TIMEOUT_MS),
     });
-    if (!response.ok) throw new Error("Email delivery unavailable");
   } catch {
+    throw new ClientHttpError(503, "emailFailed");
+  }
+  if (!response.ok) {
+    const error: unknown = response.status === 429 ? await response.json().catch(() => null) : null;
+    if (error && typeof error === "object" && "name" in error &&
+      (error.name === "daily_quota_exceeded" || error.name === "monthly_quota_exceeded")) {
+      // Token của lượt cũ có thể đã được gửi trước khi kết nối bị gián đoạn.
+      if (slot.reservedNewSend) await refundVerificationSend(userId, slot.record, slot.sentAt);
+      throw new ClientHttpError(503, "emailQuotaExceeded");
+    }
     throw new ClientHttpError(503, "emailFailed");
   }
   await prisma.verification.updateMany({

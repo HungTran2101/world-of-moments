@@ -1,5 +1,5 @@
 import { getClientRecord, clientIdentity } from "@/lib/clientAccounts";
-import { withAuthCaptcha } from "@/lib/clientCaptcha";
+import { requireAuthCaptcha } from "@/lib/clientCaptcha";
 import { admitAuthRequest, countAuthRequest } from "@/lib/clientAuthLimits";
 import { ClientHttpError } from "@/lib/clientErrors";
 import { clientJson, withClientRequest } from "@/app/api/_handlers/clientHttp";
@@ -11,8 +11,8 @@ import {
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   return withClientRequest(request, async () => {
-    // Kiểm tra lệnh chặn trước; chỉ tính lượt sau khi biết đây có phải yêu cầu lấy CAPTCHA.
-    const admission = await admitAuthRequest(request, "login", false);
+    // Kiểm tra lệnh chặn trước khi đọc dữ liệu và xác minh CAPTCHA.
+    const admission = await admitAuthRequest(request, "login");
     const body = await (async () => {
       try {
         return clientCredentialsSchema.parse(await request.json());
@@ -21,9 +21,8 @@ export async function POST(request: Request) {
         throw error;
       }
     })();
-    const result = await withAuthCaptcha(request, admission, body.captchaToken, () =>
-      signInClient(request, body.email, body.password),
-    );
+    await requireAuthCaptcha(request, admission, body.captchaToken);
+    const result = await signInClient(request, body.email, body.password);
     const user = await getClientRecord(result.response.user.id);
     if (!user) throw new ClientHttpError(401, "credentials");
     return appendAuthCookies(clientJson({ user: clientIdentity(user) }), result.headers);

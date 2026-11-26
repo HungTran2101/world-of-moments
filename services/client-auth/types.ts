@@ -4,6 +4,7 @@ export type ClientStatus = (typeof CLIENT_STATUSES)[number];
 export type SubmissionAvailability = "ready" | "cooldown" | "daily-limit";
 export type ClientVerificationEmailError =
   | "emailFailed"
+  | "emailQuotaExceeded"
   | "emailDomainInvalid"
   | "emailDnsTemporary"
   | "emailUndeliverable";
@@ -36,6 +37,6 @@ export interface ClientRegistrationResponse extends ClientSessionResponse {
 export interface ClientCredentials {
   email: string;
   password: string;
-  captchaToken?: string;
+  captchaToken: string;
   locale?: "en" | "vi";
 }
