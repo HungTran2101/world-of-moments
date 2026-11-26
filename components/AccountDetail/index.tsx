@@ -108,11 +108,10 @@ function ResetPassword({
             </Field>
             <div className="cms-formActions">
               <Dialog.Close asChild>
-                <Button variant="outline" className="h-10" type="button">{t("common.cancel")}</Button>
+                <Button variant="outline" type="button">{t("common.cancel")}</Button>
               </Dialog.Close>
               <Button
                 variant="primary"
-                className="h-10"
                 type="submit"
                 aria-label={t(isSubmitting ? "common.saving" : "common.save")}
                 loading={isSubmitting}
@@ -208,7 +207,6 @@ function AccountEditor({
               permission.custom.includes(permissions.ACCOUNT_RESET_PASSWORD) && (
                 <Button
                   variant="outline"
-                  className="h-10"
                   type="button"
                   onClick={() => setResetOpen(true)}
                   disabled={!query.data}
@@ -218,7 +216,6 @@ function AccountEditor({
               )}
             <Button
               variant="primary"
-              className="h-10"
               type="submit"
               form="cms-account-form"
               aria-label={t(isSubmitting ? "common.saving" : "common.save")}

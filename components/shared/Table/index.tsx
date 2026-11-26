@@ -393,7 +393,6 @@ export function Table<T extends object>({
               />
               <Button
                 variant={action === "delete" ? "destructive" : "primary"}
-                className="h-10"
                 type="button"
                 disabled={!canExecute || fetching}
                 onClick={() => void execute()}

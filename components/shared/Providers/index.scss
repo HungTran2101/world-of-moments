@@ -33,12 +33,24 @@
   --sidebar-ring: var(--color-ring);
   --cms-shell-gap: 8px;
   --cms-panel-radius: 12px;
+  --cms-control-height: 36px;
 
   color: var(--color-text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 13px;
   line-height: 1.5;
   color-scheme: light;
+}
+
+@layer base {
+  // Control HTML thuần dùng cùng chiều cao mặc định và vẫn nhận utility ghi đè.
+  :where(.cms, .cms-popup) :where(
+    button:not([role="checkbox"], [role="radio"], [role="switch"]),
+    input:not([type="hidden"], [type="checkbox"], [type="radio"], [data-slot="combobox-chip-input"]),
+    select
+  ) {
+    height: var(--cms-control-height);
+  }
 }
 
 .cms {
@@ -59,7 +71,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 34px;
+    min-height: var(--cms-control-height);
     padding: 6px 10px;
     border: 1px solid #cbd1d9;
     border-radius: 8px;
@@ -165,13 +177,7 @@
   }
 }
 
-.cms [data-slot="input"],
-.cms [data-slot="select-trigger"] {
-  height: 34px;
-}
-
 .cms [data-slot="combobox-chips"] {
-  min-height: 34px;
   background: var(--color-surface);
 }
 
@@ -207,7 +213,6 @@
 .cms [data-slot="combobox-chip-input"] {
   width: 0;
   min-width: 80px;
-  min-height: 28px;
 }
 
 .cms [data-slot="combobox-chips"][data-disabled] {

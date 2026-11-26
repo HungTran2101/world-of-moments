@@ -127,25 +127,33 @@ function ClientUserEditor({ permission, id }: CmsPageProps & { id: string | null
     onError: setError,
   });
   const busy = save.isPending || revoke.isPending;
-  const fields = record
+  const detailGroups = record
     ? ([
-        ["id", record.id],
-        ["email", record.email],
-        ["emailVerified", t(record.emailVerified ? "clientUser.yes" : "clientUser.no")],
-        ["suspendedUntil", record.suspendedUntil ? formatDateTime(record.suspendedUntil) : "—"],
-        ["suspensionCount", record.suspensionCount],
-        ["verificationSendCount", record.verificationSendCount],
-        [
-          "verificationLastSentAt",
-          record.verificationLastSentAt ? formatDateTime(record.verificationLastSentAt) : "—",
-        ],
-        [
-          "verificationDeadline",
-          record.emailVerified ? "—" : formatDateTime(record.verificationDeadline),
-        ],
-        ["dailySubmissions", record.dailySubmissions],
-        ["lastSubmittedAt", record.lastSubmittedAt ? formatDateTime(record.lastSubmittedAt) : "—"],
-        ["recentRejectedAttempts", record.recentRejectedAttempts],
+        {
+          heading: "verificationSection",
+          fields: [
+            ["emailVerified", t(record.emailVerified ? "clientUser.yes" : "clientUser.no")],
+            ["verificationSendCount", record.verificationSendCount],
+            [
+              "verificationLastSentAt",
+              record.verificationLastSentAt ? formatDateTime(record.verificationLastSentAt) : "—",
+            ],
+            [
+              "verificationDeadline",
+              record.emailVerified ? "—" : formatDateTime(record.verificationDeadline),
+            ],
+          ],
+        },
+        {
+          heading: "activitySection",
+          fields: [
+            ["suspendedUntil", record.suspendedUntil ? formatDateTime(record.suspendedUntil) : "—"],
+            ["suspensionCount", record.suspensionCount],
+            ["dailySubmissions", record.dailySubmissions],
+            ["lastSubmittedAt", record.lastSubmittedAt ? formatDateTime(record.lastSubmittedAt) : "—"],
+            ["recentRejectedAttempts", record.recentRejectedAttempts],
+          ],
+        },
       ] as const)
     : [];
   return (
@@ -253,50 +261,71 @@ function ClientUserEditor({ permission, id }: CmsPageProps & { id: string | null
                   </Field>
                 </>
               )}
-              <Field className="cms-field">
-                <FieldLabel
-                  htmlFor="cms-client-status"
-                  required
-                >
-                  {t("clientUser.status")}
-                </FieldLabel>
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      id="cms-client-status"
-                      popupClassName="cms-popup"
-                      allowClear={false}
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value as ClientStatus)}
-                      disabled={busy || !canSave}
-                      options={CLIENT_STATUSES.filter(
-                        (status) => !record?.emailVerified || status !== "unverified",
-                      ).map((value) => ({
-                        value,
-                        label: t(`clientUser.statuses.${value}`),
-                        disabled: !id && value !== "unverified" && !canChangeStatus,
-                      }))}
-                      aria-invalid={Boolean(errors.status)}
-                      aria-describedby={errors.status ? "cms-client-status-error" : undefined}
-                    />
-                  )}
-                />
-                <FieldError id="cms-client-status-error">
-                  {errors.status?.message && text(errors.status.message)}
-                </FieldError>
-              </Field>
+              <div className={record ? "clientUserDetail-summary" : undefined}>
+                {record && (
+                  <dl className="clientUserDetail-identity">
+                    <div>
+                      <dt>{t("clientUser.email")}</dt>
+                      <dd className="clientUserDetail-email">{record.email}</dd>
+                    </div>
+                    <div>
+                      <dt>{t("clientUser.id")}</dt>
+                      <dd>{record.id}</dd>
+                    </div>
+                  </dl>
+                )}
+                <Field className="cms-field clientUserDetail-status">
+                  <FieldLabel
+                    htmlFor="cms-client-status"
+                    required
+                  >
+                    {t("clientUser.status")}
+                  </FieldLabel>
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        id="cms-client-status"
+                        popupClassName="cms-popup"
+                        allowClear={false}
+                        value={field.value}
+                        onValueChange={(value) => field.onChange(value as ClientStatus)}
+                        disabled={busy || !canSave}
+                        options={CLIENT_STATUSES.filter(
+                          (status) => !record?.emailVerified || status !== "unverified",
+                        ).map((value) => ({
+                          value,
+                          label: t(`clientUser.statuses.${value}`),
+                          disabled: !id && value !== "unverified" && !canChangeStatus,
+                        }))}
+                        aria-invalid={Boolean(errors.status)}
+                        aria-describedby={errors.status ? "cms-client-status-error" : undefined}
+                      />
+                    )}
+                  />
+                  <FieldError id="cms-client-status-error">
+                    {errors.status?.message && text(errors.status.message)}
+                  </FieldError>
+                </Field>
+              </div>
               {record && (
                 <>
-                  <dl className="clientUserDetail-info">
-                    {fields.map(([key, value]) => (
-                      <div key={key}>
-                        <dt>{t(`clientUser.${key}`)}</dt>
-                        <dd>{value}</dd>
-                      </div>
+                  <div className="clientUserDetail-groups">
+                    {detailGroups.map(({ heading, fields }) => (
+                      <section key={heading} aria-labelledby={`cms-client-user-${heading}`}>
+                        <h2 id={`cms-client-user-${heading}`}>{t(`clientUser.${heading}`)}</h2>
+                        <dl className="clientUserDetail-info">
+                          {fields.map(([key, value]) => (
+                            <div key={key}>
+                              <dt>{t(`clientUser.${key}`)}</dt>
+                              <dd>{value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </section>
                     ))}
-                  </dl>
+                  </div>
                   <RecordAudit
                     record={{
                       ...record,

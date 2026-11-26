@@ -61,7 +61,6 @@ export function ChangePasswordPage() {
         actions={
           <Button
             variant="primary"
-            className="h-10"
             type="submit"
             form="cms-password-form"
             aria-label={t(isSubmitting ? "common.saving" : "common.save")}

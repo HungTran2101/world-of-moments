@@ -14,7 +14,7 @@ export default function CmsError({
   return (
     <div className="cms-sessionLoading" role="alert">
       <p>{t("errors.server")}</p>
-      <Button variant="outline" className="h-10" type="button" onClick={reset}>
+      <Button variant="outline" type="button" onClick={reset}>
         {t("common.retry")}
       </Button>
     </div>

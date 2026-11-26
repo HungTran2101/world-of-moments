@@ -31,6 +31,8 @@ New thoughts default to `published` and `need-inspect`. Creating or moderating a
 
 **Client users.** The list supports email search and a status filter. Existing email and password are read-only. Creating an account, changing its status, deleting it and revoking a ban each require the corresponding permission. Choosing a non-default initial status also requires status-change permission. A verified account retains its verification. Client status audit fields identify the latest change and its CMS actor when available.
 
+The detail panel places the account email, reference and status above two sections titled Email verification and Activity and limits. Narrow screens stack the sections and move the status below the account identity. The status dropdown is at most `14rem` wide in both the detail and creation forms.
+
 **Accounts and roles.** Staff accounts can hold multiple roles. Account creation and editing use session-authorized role options. Password reset has its own permission. Deactivation and administrative password reset revoke sessions. A self-service password change requires the current password and revokes other sessions. Roles assign code-defined permissions through a module matrix with standard actions and module-specific extras. Assigned roles are protected from deletion.
 
 ### Dashboard periods
@@ -44,6 +46,8 @@ Each CRUD list owns its header, breadcrumbs, columns, row actions, selection and
 Every list declares `createdAt` immediately before Actions. Use `common.createdAt` and `formatDateTime` for `HH:mm dd/MM/yyyy` in the browser time zone. Center the Actions heading and cells. Navigation uses links and mutations use buttons. Icon controls need localized tooltips and accessible names.
 
 Forms use React Hook Form and shared Yup schemas. Keep labels, field errors, focus handling and pending states accessible in both languages. A detail form hydrates for its record identity and preserves edits during background refreshes. Destructive actions require confirmation. Failed mutations preserve user input or selection. The UI owns confirmation, query invalidation, navigation and logout broadcasting.
+
+The CMS sets `--cms-control-height` to `36px` on `.cms` and `.cms-popup`, including dialogs rendered through a portal. Inputs, buttons and selects use this height by default. Use an explicit size variant, a height utility or component CSS for a control that needs a different height. Checkboxes keep their compact size, and multiselects use the default as a minimum so selected values can wrap.
 
 ### Search, selection and dialogs
 

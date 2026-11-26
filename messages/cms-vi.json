@@ -241,6 +241,8 @@
     "confirmRevoke": "Khôi phục tài khoản về đã xác minh? Lượt gửi hiện tại sẽ được giữ nguyên.",
     "emailError": "Tài khoản đã được tạo nhưng chưa gửi được email xác minh. Người dùng có thể đăng nhập để gửi lại.",
     "id": "Mã tài khoản",
+    "verificationSection": "Xác minh email",
+    "activitySection": "Hoạt động và giới hạn",
     "emailVerified": "Email đã xác minh",
     "yes": "Có",
     "no": "Không",

@@ -103,7 +103,6 @@ function RoleEditor({ permission, id }: CmsPageProps & { id: string | null }) {
         actions={
           <Button
             variant="primary"
-            className="h-10"
             type="submit"
             form="cms-role-form"
             aria-label={t(isSubmitting ? "common.saving" : "common.save")}

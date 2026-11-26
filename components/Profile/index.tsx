@@ -18,7 +18,7 @@ export function ProfilePage() {
       <Header
         title={t("nav.profile")}
         actions={
-          <Button variant="secondary" className="h-10" asChild>
+          <Button variant="secondary" asChild>
             <Link href={ROUTE_PATHS.CHANGE_PASSWORD}>
               {t("nav.changePassword")}
             </Link>

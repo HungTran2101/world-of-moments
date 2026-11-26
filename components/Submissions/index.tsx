@@ -349,7 +349,7 @@ export function SubmissionsPage({ permission }: CmsPageProps) {
           <Button
             asChild
             variant="primary"
-            className="h-10 aria-disabled:cursor-not-allowed aria-disabled:opacity-70"
+            className="aria-disabled:cursor-not-allowed aria-disabled:opacity-70"
           >
             <Link
               href={detailHref()}

@@ -44,6 +44,9 @@ activity or popularity.
 - Run the relevant linter with `--fix` on changed files before completing the task.
   Include `.ts` and `.css` files explicitly when needed, since the scripts above
   only target `.tsx` and `.scss` files.
+- Use Tailwind CSS v4 sizing shorthand for CSS variables, such as
+  `h-(--cms-control-height,--spacing(8))` or `w-(--panel-width)`. ESLint fixes the
+  bracketed `var()` form in JSX class names and shared class helpers.
 
 ## CMS API services
 

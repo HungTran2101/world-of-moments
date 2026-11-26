@@ -42,7 +42,6 @@ export const Pagination = memo(function Pagination({
       <div className="cms-paginationPages">
         <Button
           variant="outline"
-          className="h-10"
           type="button"
           aria-label={t("common.previous")}
           disabled={disabled || pagination.page <= FIRST_PAGE}
@@ -58,7 +57,6 @@ export const Pagination = memo(function Pagination({
         </span>
         <Button
           variant="outline"
-          className="h-10"
           type="button"
           aria-label={t("common.next")}
           disabled={disabled || pagination.page >= pagination.totalPages}

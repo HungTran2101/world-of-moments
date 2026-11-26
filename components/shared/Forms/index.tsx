@@ -58,7 +58,6 @@ export function ErrorNotice({
       {onRetry && (
         <Button
           variant="outline"
-          className="h-10"
           type="button"
           onClick={onRetry}
           aria-label={t("common.retry")}
