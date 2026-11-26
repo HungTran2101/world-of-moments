@@ -1,9 +1,8 @@
 "use client";
 
 import { GlassButton } from "@/components/ui/glass-button";
-import { cn } from "@/lib/utils";
 import { getErrorMessageKey, type AppError } from "@/services/shared/errors";
-import { ClockFading, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -22,7 +21,6 @@ export default function ErrorModal({ open, error, onOpenChange }: ErrorModalProp
   // Provider xóa lỗi ngay khi đóng; giữ nội dung cũ đến hết hiệu ứng thoát để không nháy chữ.
   if (open && lastError !== error) setLastError(error);
   const visibleError = open ? error : lastError;
-  const isRateLimitError = visibleError?.status === 429;
   return (
     <Dialog.Root
       open={open}
@@ -32,21 +30,13 @@ export default function ErrorModal({ open, error, onOpenChange }: ErrorModalProp
         <Dialog.Overlay className="errorModal-overlay" />
         <RefractiveGlass brightness={1.1}>
           <Dialog.Content className="errorModal-content">
-            {isRateLimitError ? (
-              <ClockFading
-                className={cn("errorModal-icon", "errorModal-icon--rateLimited")}
-                size={32}
-                aria-hidden="true"
-              />
-            ) : (
-              <TriangleAlert
-                className="errorModal-icon"
-                size={32}
-                aria-hidden="true"
-              />
-            )}
+            <TriangleAlert
+              className="errorModal-icon"
+              size={32}
+              aria-hidden="true"
+            />
             <Dialog.Title className="errorModal-title">
-              {t(isRateLimitError ? "rateLimitedTitle" : "title")}
+              {t("title")}
             </Dialog.Title>
             <Dialog.Description className="errorModal-description">
               {t(visibleError ? getErrorMessageKey(visibleError) : "unexpected")}

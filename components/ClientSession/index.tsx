@@ -105,15 +105,37 @@ export function ClientSession({ children }: { children: ReactNode }) {
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, [client]);
+  const deadline = user?.status === "suspended" ? user.suspendedUntil
+    : user?.status === "verified" ? user.availableAt : null;
+  const deadlineUserId = user?.id;
   useEffect(() => {
-    const deadline = user?.status === "suspended" ? user.suspendedUntil : user?.availableAt;
     if (!deadline) return;
-    const timer = window.setTimeout(
-      () => void refresh(),
-      Math.max(0, new Date(deadline).getTime() - Date.now()),
-    );
-    return () => window.clearTimeout(timer);
-  }, [user?.status, user?.suspendedUntil, user?.availableAt, refresh]);
+    const expiresAt = Date.parse(deadline);
+    if (!Number.isFinite(expiresAt)) return;
+    let started = false;
+    const refreshAtDeadline = () => {
+      if (started) return;
+      window.clearTimeout(timer);
+      const remaining = expiresAt - Date.now();
+      if (remaining > 0) {
+        timer = window.setTimeout(refreshAtDeadline, remaining);
+        return;
+      }
+      started = true;
+      document.removeEventListener("visibilitychange", refreshWhenShown);
+      // Hết hạn và quay lại tab có thể xảy ra cùng lúc với một lần tải phiên đang chạy.
+      void client.invalidateQueries({ queryKey: CLIENT_SESSION_KEY }, { cancelRefetch: false });
+    };
+    const refreshWhenShown = () => {
+      if (document.visibilityState === "visible" && expiresAt <= Date.now()) refreshAtDeadline();
+    };
+    let timer = window.setTimeout(refreshAtDeadline, Math.max(0, expiresAt - Date.now()));
+    document.addEventListener("visibilitychange", refreshWhenShown);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", refreshWhenShown);
+    };
+  }, [client, deadline, deadlineUserId]);
   const value = useMemo(
     () => ({ user, loading: query.isPending, refreshingOnFocus, error: query.error, refresh, changed, logout }),
     [user, query.isPending, refreshingOnFocus, query.error, refresh, changed, logout],

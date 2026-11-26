@@ -274,7 +274,11 @@ export async function saveClientThought(
         return { code: restriction.clientStatus, status: 403 };
       }
       await tx.clientSubmissionLimit.update({ where: { userId: id }, data: { rejectedAt } });
-      return { code: identity.availability, status: 429 };
+      return {
+        code: identity.availability,
+        status: 429,
+        retryAt: identity.availableAt ? new Date(identity.availableAt) : undefined,
+      };
     }
     const submission = await tx.submission.create({
       data: { ...data, clientUserId: id, updatedBy: "client" },
@@ -296,6 +300,6 @@ export async function saveClientThought(
     });
     return { submission };
   });
-  if ("code" in result) throw new ClientHttpError(result.status!, result.code!);
+  if ("code" in result) throw new ClientHttpError(result.status!, result.code!, result.retryAt);
   return result.submission;
 }

@@ -25,6 +25,8 @@ import { constants } from "@/app/api/constant";
 import type { ClientCredentials } from "@/services/client-auth/types";
 import { useSystemStore } from "@/store/systemStore";
 import { ApiError } from "@/services/shared/errors";
+import { useCountdown } from "@/hooks/useDeadline";
+import { useSubmissionDraft } from "@/hooks/useSubmissionDraft";
 
 const AUTH_SLIDE_DURATION_SECONDS = 0.2;
 const { MILLISECONDS_PER_SECOND } = constants;
@@ -440,27 +442,33 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
   );
 }
 
-function ResendButton({ deadline, sending, showCountdown, onResend }: {
+function ThoughtCountdown({ deadline, active }: { deadline: number; active: boolean }) {
+  const t = useTranslations("clientAuth");
+  const remaining = useCountdown(deadline, active);
+  const seconds = Math.ceil(remaining / MILLISECONDS_PER_SECOND);
+  const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+  return (
+    <div
+      aria-live="off"
+      className="flex flex-col items-center gap-2 text-center"
+    >
+      <p>{t("cooldownRemaining")}</p>
+      <code className="rounded-lg border border-(--color-border) bg-(--color-input-bg) px-3 py-2 font-mono text-sm tabular-nums">
+        {`${minutes}:${String(seconds % 60).padStart(2, "0")}`}
+      </code>
+    </div>
+  );
+}
+
+function ResendButton({ deadline, active, sending, showCountdown, onResend }: {
   deadline: number;
+  active: boolean;
   sending: boolean;
   showCountdown: boolean;
   onResend: () => void;
 }) {
   const t = useTranslations("clientAuth");
-  const [remaining, setRemaining] = useState(() => Math.max(0, deadline - Date.now()));
-
-  useEffect(() => {
-    if (!deadline) return;
-    let timer: number;
-    function tick() {
-      // Dựa vào mốc thời gian để đếm đúng cả khi trình duyệt tạm dừng timer trong tab nền.
-      const next = Math.max(0, deadline - Date.now());
-      setRemaining(next);
-      if (next > 0) timer = window.setTimeout(tick, Math.min(next, MILLISECONDS_PER_SECOND));
-    }
-    timer = window.setTimeout(tick, Math.min(Math.max(0, deadline - Date.now()), MILLISECONDS_PER_SECOND));
-    return () => window.clearTimeout(timer);
-  }, [deadline]);
+  const remaining = useCountdown(deadline, active && !sending, showCountdown);
 
   const seconds = Math.min(
     CLIENT_LIMITS.RESEND_COOLDOWN_MS / MILLISECONDS_PER_SECOND - 1,
@@ -475,7 +483,9 @@ function ResendButton({ deadline, sending, showCountdown, onResend }: {
       aria-label={sending ? t("resendSending") : countingDown ? t("resendWaiting") : undefined}
       aria-busy={sending}
       disabled={countingDown || sending}
-      onClick={onResend}
+      onClick={() => {
+        if (active && Date.now() >= deadline) onResend();
+      }}
     >
       {sending ? <LoadingDots />
         : countingDown && showCountdown ? <span aria-hidden="true">00:{String(seconds).padStart(2, "0")}</span>
@@ -496,6 +506,11 @@ export function ClientSidebarContent({
   const reducedMotion = useReducedMotion();
   const viewRef = useRef<HTMLDivElement>(null);
   const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
+  const state = user?.status === "verified" ? user.availability : user?.status;
+  const { description, storageUnavailable, changeDescription, prepareSubmission } =
+    useSubmissionDraft(user?.id, sidebarOpen && state === "ready");
+  const submissionLimited = state === "cooldown" || state === "daily-limit";
+  const draftWarning = storageUnavailable && description.length > 0;
 
   useEffect(() => {
     if (
@@ -507,7 +522,6 @@ export function ClientSidebarContent({
     }
   }, [sidebarOpen, user?.status, user?.availability, inputRef]);
 
-  const [description, setDescription] = useState("");
   const [registrationNotice, setRegistrationNotice] = useState<string | null>(null);
 
   const resend = useMutation({
@@ -534,7 +548,6 @@ export function ClientSidebarContent({
     );
   }
 
-  const state = user?.status === "verified" ? user.availability : user?.status;
   const resendForCurrentUser = resend.variables?.userId === user?.id;
   const sending = resendForCurrentUser && resend.isPending;
   const resendFailed = resendForCurrentUser && resend.isError;
@@ -624,9 +637,12 @@ export function ClientSidebarContent({
                 <>
                   <SubmissionForm
                     inputRef={inputRef}
+                    userId={user.id}
                     description={description}
-                    onDescriptionChange={setDescription}
+                    onDescriptionChange={changeDescription}
+                    prepareDraft={prepareSubmission}
                   />
+                  {draftWarning && <p role="status">{t("draftStorageUnavailable")}</p>}
                   <section
                     className="clientSidebarContent-guidance"
                     aria-labelledby="guidance-title"
@@ -642,7 +658,6 @@ export function ClientSidebarContent({
               ) : (
                 <section
                   className="clientSidebarContent-auth clientSidebarContent-notice"
-                  aria-live="polite"
                 >
                   <div className="mx-auto">
                     {state === "unverified" ? (
@@ -653,8 +668,29 @@ export function ClientSidebarContent({
                       <Pause aria-hidden="true" />
                     )}
                   </div>
-                  <h1 tabIndex={-1}>{t(`${state}Title`)}</h1>
-                  <p>{t(`${state}Body`)}</p>
+                  <h1
+                    aria-live="polite"
+                    tabIndex={-1}
+                  >
+                    {t(`${state}Title`)}
+                  </h1>
+                  <p>{t(state === "cooldown" && description ? "cooldownDraftBody" : `${state}Body`)}</p>
+                  {submissionLimited && description && (
+                    <small>{t(draftWarning ? "draftStorageUnavailable" : "draftSaved")}</small>
+                  )}
+                  {state === "cooldown" && user.availableAt && (
+                    <ThoughtCountdown
+                      key={user.availableAt}
+                      deadline={Date.parse(user.availableAt)}
+                      active={sidebarOpen}
+                    />
+                  )}
+                  {(submissionLimited || state === "suspended") && !!error && (
+                    <>
+                      <p>{t("errors.unavailable")}</p>
+                      <GlassButton onClick={() => void refresh()}>{t("retry")}</GlassButton>
+                    </>
+                  )}
                   {state === "unverified" && (
                     <>
                       <small>{t("verificationDeadline")}</small>
@@ -664,6 +700,7 @@ export function ClientSidebarContent({
                         <ResendButton
                           key={resendDeadline}
                           deadline={resendDeadline}
+                          active={sidebarOpen}
                           sending={sending}
                           showCountdown={!resendFailed}
                           onResend={() => resend.mutate({ userId: user.id, locale })}

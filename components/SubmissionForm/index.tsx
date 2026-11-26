@@ -2,11 +2,10 @@
 
 import { RUNTIME_ERROR_STATUS, submissionHistoryKey } from "@/services/constant";
 import { useError } from "@/components/shared/ErrorProvider";
-import { getClientCacheKey } from "@/lib/clientSession";
 import { useClientSession } from "@/components/ClientSession";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError, type ErrorMessageKey } from "@/services/shared/errors";
-import { createSubmission } from "@/services/submissions";
+import { createSubmission, getSubmissionLimit } from "@/services/submissions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSystemStore } from "@/store/systemStore";
 import { usePinStore } from "@/store/usePinStore";
@@ -22,11 +21,15 @@ import { GlassButton } from "../ui/glass-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import SubmissionAnimation from "./SubmissionAnimation";
 import { constants } from "@/app/api/constant";
+import { CLIENT_SESSION_KEY } from "@/app/api/client/constant";
+import type { ClientSessionResponse } from "@/services/client-auth/types";
 
 interface SubmissionFormProps {
   onSuccess?: () => void;
+  userId: string;
   description: string;
   onDescriptionChange: (value: string) => void;
+  prepareDraft: () => () => void;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
@@ -41,7 +44,8 @@ interface SubmissionRun {
   animationDone: Promise<void>;
   refreshReady: boolean;
   stage: SubmissionStage;
-  identityKey: string;
+  userId: string;
+  clearDraft: () => void;
   submissionId: string | null;
 }
 
@@ -50,7 +54,6 @@ function submissionErrorKey(error: unknown, stage: SubmissionStage): ErrorMessag
   if (stage === "refresh") return "refreshFailed";
   if (stage !== "create") return "unexpected";
   if (error instanceof ApiError) {
-    if (error.status === 429) return "rateLimited";
     if (error.status === 400 || error.status === 422) return "invalidSubmission";
     if (error.status === RUNTIME_ERROR_STATUS.NETWORK) return "network";
   }
@@ -59,13 +62,15 @@ function submissionErrorKey(error: unknown, stage: SubmissionStage): ErrorMessag
 
 export default function SubmissionForm({
   onSuccess,
+  userId,
   inputRef,
   description,
   onDescriptionChange: setDescription,
+  prepareDraft,
 }: SubmissionFormProps) {
   const t = useTranslations("submission");
   const queryClient = useQueryClient();
-  const { refresh: refreshSession } = useClientSession();
+  const { user, refresh: refreshSession } = useClientSession();
   const [hasDescriptionError, setHasDescriptionError] = useState(false);
   const [isDescriptionFlashing, setIsDescriptionFlashing] = useState(false);
   const [flight, setFlight] = useState<{
@@ -144,10 +149,7 @@ export default function SubmissionForm({
           reportGlobalError: false,
           signal: run.controller.signal,
         },
-      ).then((submission) => {
-        run.identityKey = getClientCacheKey() ?? "";
-        return submission;
-      });
+      );
     },
     onMutate: ({ run }) => {
       run.controller.signal.throwIfAborted();
@@ -171,16 +173,16 @@ export default function SubmissionForm({
     onSuccess: async (submission, { run }) => {
       run.submissionId = submission.id;
       run.saved = true;
+      // Xóa đúng bản đã lưu ngay cả khi bước tải lại marker bị hủy hoặc thất bại.
+      run.clearDraft();
       // Làm mới lịch sử ngay khi đã lưu, kể cả khi refresh marker phía sau thất bại.
       void queryClient.invalidateQueries({
-        queryKey: [...submissionHistoryKey, run.identityKey],
+        queryKey: [...submissionHistoryKey, run.userId],
       });
-      setSidebarOpen(false);
       const signal = run.controller.signal;
       signal.throwIfAborted();
+      setSidebarOpen(false);
       run.stage = "refresh";
-      // Bài đã lưu thì xóa bản nháp để tránh gửi trùng nếu tải marker bị lỗi.
-      setDescription("");
       const revealMarkers = await run.map.prepareMarkerRefresh(signal);
       run.refreshReady = true;
       await run.animationDone;
@@ -201,14 +203,25 @@ export default function SubmissionForm({
         });
       }
     },
-    onSettled: (_data, _error, { run }) => {
+    onSettled: (_data, error, { run }) => {
       finishRun(run);
+      if (run.controller.signal.aborted) return;
+      const limit = getSubmissionLimit(error);
+      if (limit && run.stage === "create") {
+        // Đổi sidebar sau khi trả lại ghim và mở khóa bản đồ, rồi xác nhận lại phiên.
+        queryClient.setQueryData<ClientSessionResponse>(CLIENT_SESSION_KEY, (session) =>
+          session?.user?.id === run.userId && session.user.status === "verified"
+            ? { user: { ...session.user, ...limit } }
+            : session,
+        );
+      }
       void refreshSession();
     },
   });
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
-    if (!isPlaced || useSubmissionMapStore.getState().isSubmitting) return;
+    if (!isPlaced || user?.id !== userId || user.status !== "verified" || user.availability !== "ready" ||
+      useSubmissionMapStore.getState().isSubmitting) return;
     if (!description.trim()) {
       setHasDescriptionError(true);
       setIsDescriptionFlashing(false);
@@ -235,7 +248,8 @@ export default function SubmissionForm({
       animationDone,
       refreshReady: false,
       stage: "map",
-      identityKey: "",
+      userId,
+      clearDraft: prepareDraft(),
       submissionId: null,
     };
     activeRunRef.current = run;

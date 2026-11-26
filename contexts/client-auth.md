@@ -25,6 +25,12 @@ Both `register` and `login` require a `captchaToken` for the corresponding Turns
 
 If Resend rejects an email because its daily or monthly quota is exhausted, registration keeps the account and session and returns `201` with `emailErrorCode: "emailQuotaExceeded"`. The resend endpoint returns `503` with the same error code. The service refunds any new verification send it reserved for that request. A retry of a previously reserved send retains its original token and does not use an additional attempt. The resend cooldown still applies.
 
+## Thought submission limits
+
+`POST /api/submissions` enforces a five-minute cooldown and a maximum of three thoughts per hosting day. A rejected submission returns `429`, the `cooldown` or `daily-limit` code, an ISO `retryAt` and the `Retry-After` header. The sidebar switches from the form to the corresponding pause state and refreshes the session at the deadline. Tabs already editing may learn about a new limit on their next submission attempt.
+
+The eleventh valid submission rejected by those limits in ten minutes triggers a seven-day suspension. The third time the account crosses the threshold, the server bans it from submission. The request that triggers the restriction returns `403` with `suspended` or `banned`.
+
 ## Visibility and author actions
 
 | Thought state | Map and direct links | Author’s private history |

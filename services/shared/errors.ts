@@ -10,7 +10,6 @@ export type AppErrorSource = "api" | "runtime" | "unknown";
 
 export type ErrorMessageKey =
   | "invalidSubmission"
-  | "rateLimited"
   | "submissionFailed"
   | "refreshFailed"
   | "network"

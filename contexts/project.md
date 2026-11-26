@@ -12,7 +12,7 @@ Visitors can explore without signing in. Selecting a cluster brings the map clos
 2. Write a description in the sidebar. Sign in and verify an email address to submit.
 3. Submit the thought. A bubble moves toward the selected place while the map settles on the pin.
 
-A failed submission preserves the draft and pin for another attempt. Once saved, the words and coordinates are final. Authors can revisit or delete their own thoughts from private history in the toolbar. See [client accounts and ownership](client-auth.md) for visibility rules.
+The sidebar saves draft text in this browser after a short pause in typing and restores it when the account opens the form. A failed submission preserves the draft and pin for another attempt. Reloading the page requires placing the pin again. A successful submission clears that draft. Once saved, the words and coordinates are final. Authors can revisit or delete their own thoughts from private history in the toolbar. See [client accounts and ownership](client-auth.md) for visibility rules.
 
 ## Experience principles
 
