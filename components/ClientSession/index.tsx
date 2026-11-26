@@ -1,15 +1,16 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getClientSession, logoutClient } from "@/services/client-auth";
 import { CLIENT_SESSION_CHANNEL, CLIENT_SESSION_KEY } from "@/app/api/client/constant";
 import { submissionHistoryKey } from "@/services/constant";
 import { getClientCacheKey, publishClientIdentity } from "@/lib/clientSession";
-import type { ClientIdentity } from "@/services/client-auth/types";
+import type { ClientIdentity, ClientSessionResponse } from "@/services/client-auth/types";
 
 interface ClientSessionValue {
   user: ClientIdentity | null;
   loading: boolean;
+  refreshingOnFocus: boolean;
   error: unknown;
   refresh: () => Promise<void>;
   changed: () => Promise<void>;
@@ -24,7 +25,8 @@ export function ClientSession({ children }: { children: ReactNode }) {
     retry: false,
   });
   const user = query.data?.user ?? null;
-  const isUnverified = user?.status === "unverified";
+  const [focusRefreshUserId, setFocusRefreshUserId] = useState<string | null>(null);
+  const refreshingOnFocus = query.isFetching && user?.id === focusRefreshUserId;
   const refresh = useCallback(async () => {
     await client.invalidateQueries({ queryKey: CLIENT_SESSION_KEY });
   }, [client]);
@@ -74,24 +76,35 @@ export function ClientSession({ children }: { children: ReactNode }) {
     return () => channel?.close();
   }, [client, refresh]);
   useEffect(() => {
-    if (!isUnverified) return;
     let frame: number | null = null;
+    let refreshing = false;
+    let active = true;
     const refreshWhenVisible = () => {
-      if (document.visibilityState !== "visible" || frame !== null) return;
+      if (document.visibilityState !== "visible" || frame !== null || refreshing) return;
       // Khi trở lại tab bản đồ, focus và visibilitychange có thể đến cùng lúc.
       frame = window.requestAnimationFrame(() => {
         frame = null;
-        void refresh();
+        const currentUser = client.getQueryData<ClientSessionResponse>(CLIENT_SESSION_KEY)?.user;
+        if (document.visibilityState !== "visible" || currentUser?.status !== "unverified") return;
+
+        refreshing = true;
+        setFocusRefreshUserId(currentUser.id);
+        // Dùng chung lần đọc phiên đang chạy để không hủy yêu cầu khi tab vừa hiện lại.
+        void client.invalidateQueries({ queryKey: CLIENT_SESSION_KEY }, { cancelRefetch: false }).finally(() => {
+          refreshing = false;
+          if (active) setFocusRefreshUserId(null);
+        });
       });
     };
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
+      active = false;
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
-  }, [isUnverified, refresh]);
+  }, [client]);
   useEffect(() => {
     const deadline = user?.status === "suspended" ? user.suspendedUntil : user?.availableAt;
     if (!deadline) return;
@@ -102,8 +115,8 @@ export function ClientSession({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [user?.status, user?.suspendedUntil, user?.availableAt, refresh]);
   const value = useMemo(
-    () => ({ user, loading: query.isPending, error: query.error, refresh, changed, logout }),
-    [user, query.isPending, query.error, refresh, changed, logout],
+    () => ({ user, loading: query.isPending, refreshingOnFocus, error: query.error, refresh, changed, logout }),
+    [user, query.isPending, refreshingOnFocus, query.error, refresh, changed, logout],
   );
   return <ClientSessionContext.Provider value={value}>{children}</ClientSessionContext.Provider>;
 }

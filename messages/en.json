@@ -249,6 +249,8 @@
     "closeSidebar": "Close writing sidebar",
     "checkingEmailTitle": "We're checking your email",
     "checkingEmailBody": "Just a moment while we check your mail validity.",
+    "refreshingSessionTitle": "Refreshing your sign-in session",
+    "refreshingSessionBody": "Please wait a moment",
     "editEmail": "Edit email"
   }
 }

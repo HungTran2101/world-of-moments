@@ -249,6 +249,8 @@
     "closeSidebar": "Đóng thanh viết suy nghĩ",
     "checkingEmailTitle": "Chúng mình đang kiểm tra email",
     "checkingEmailBody": "Chờ một chút để chúng mình kiểm tra email của bạn nhé.",
+    "refreshingSessionTitle": "Đang làm mới phiên đăng nhập",
+    "refreshingSessionBody": "Bạn chờ chút nhé",
     "editEmail": "Sửa email"
   }
 }

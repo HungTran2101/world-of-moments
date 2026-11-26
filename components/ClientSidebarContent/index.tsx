@@ -492,9 +492,9 @@ export function ClientSidebarContent({
   const t = useTranslations("clientAuth");
   const guidance = useTranslations("guidance");
   const locale = useLocale() === "vi" ? "vi" : "en";
-  const { user, loading, error, refresh } = useClientSession();
+  const { user, loading, refreshingOnFocus, error, refresh } = useClientSession();
   const reducedMotion = useReducedMotion();
-  const accountHeadingRef = useRef<HTMLHeadingElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
   const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
 
   useEffect(() => {
@@ -546,6 +546,11 @@ export function ClientSidebarContent({
     confirmedResendAt ? Date.parse(confirmedResendAt) : 0,
   );
   const canResend = user?.canResend && notice !== "resendLimit";
+  const verificationView = user?.verificationEmailBlocked ? "email-blocked" : canResend ? "resend" : "resend-limit";
+  // Trạng thái tải dùng chung khóa để chỉ chuyển cảnh khi kết quả làm đổi màn hình.
+  const view = state === "unverified" ? verificationView : user?.status;
+  const showFocusRefresh = sidebarOpen && state === "unverified" && refreshingOnFocus;
+  const animateView = sidebarOpen && !reducedMotion;
   const statusNotice = state === "unverified" && notice !== "resendLimit" &&
     !(notice === "emailUndeliverable" && user?.verificationEmailBlocked) &&
     !(notice === "emailSent" && !canResend) ? notice : null;
@@ -567,131 +572,141 @@ export function ClientSidebarContent({
         initial={false}
         mode="wait"
       >
-        {!user ? (
-          <motion.div
-            key="guest"
-            exit={{ x: reducedMotion ? 0 : "-100%", opacity: 0 }}
-            transition={{ duration: reducedMotion ? 0 : AUTH_SLIDE_DURATION_SECONDS }}
-          >
+        <motion.div
+          key={user ? `${user.id}:${view}` : "guest"}
+          ref={viewRef}
+          className={user ? "clientSidebarContent" : undefined}
+          initial="enter"
+          animate="visible"
+          exit="exit"
+          variants={{
+            enter: { x: animateView ? "100%" : 0, opacity: 0 },
+            visible: { x: 0, opacity: 1 },
+            exit: { x: animateView ? "-100%" : 0, opacity: 0 },
+          }}
+          transition={{ duration: animateView ? AUTH_SLIDE_DURATION_SECONDS : 0 }}
+          onAnimationComplete={(phase) => {
+            if (phase !== "visible" || !sidebarOpen || showFocusRefresh) return;
+            const target = state === "ready" ? inputRef.current : viewRef.current?.querySelector("h1");
+            target?.focus({ preventScroll: true });
+          }}
+        >
+          {!user ? (
             <ClientLogin onEmailError={setRegistrationNotice} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key={user.id}
-            className="clientSidebarContent"
-            initial={{ x: reducedMotion ? 0 : "100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: reducedMotion ? 0 : "-100%", opacity: 0 }}
-            transition={{ duration: reducedMotion ? 0 : AUTH_SLIDE_DURATION_SECONDS }}
-            onAnimationComplete={() => accountHeadingRef.current?.focus({ preventScroll: true })}
-          >
-            {statusNotice === "emailFailed" || statusNotice === "emailQuotaExceeded" ? (
-              <Badge
-                color="error"
-                opacity
-                className="mx-auto max-w-full py-2 text-center whitespace-normal"
-                role="alert"
-              >
-                {t(`errors.${statusNotice}`)}
-              </Badge>
-            ) : statusNotice && (
-              <p role="status">
-                {t.has(`errors.${statusNotice}`)
-                  ? t(`errors.${statusNotice}`)
-                  : statusNotice === "emailSent" ? "" : t("errors.unavailable")}
-              </p>
-            )}
-            {state === "ready" ? (
-              <>
-                <SubmissionForm
-                  inputRef={inputRef}
-                  description={description}
-                  onDescriptionChange={setDescription}
-                />
+          ) : showFocusRefresh ? (
+            <section
+              className="clientSidebarContent-auth clientSidebarContent-notice clientSidebarContent-checking"
+              role="status"
+            >
+              <h1>{t("refreshingSessionTitle")}</h1>
+              <p>{t("refreshingSessionBody")}</p>
+              <LoadingDots />
+            </section>
+          ) : (
+            <>
+              {statusNotice === "emailFailed" || statusNotice === "emailQuotaExceeded" ? (
+                <Badge
+                  color="error"
+                  opacity
+                  className="mx-auto max-w-full py-2 text-center whitespace-normal"
+                  role="alert"
+                >
+                  {t(`errors.${statusNotice}`)}
+                </Badge>
+              ) : statusNotice && (
+                <p role="status">
+                  {t.has(`errors.${statusNotice}`)
+                    ? t(`errors.${statusNotice}`)
+                    : statusNotice === "emailSent" ? "" : t("errors.unavailable")}
+                </p>
+              )}
+              {state === "ready" ? (
+                <>
+                  <SubmissionForm
+                    inputRef={inputRef}
+                    description={description}
+                    onDescriptionChange={setDescription}
+                  />
+                  <section
+                    className="clientSidebarContent-guidance"
+                    aria-labelledby="guidance-title"
+                  >
+                    <h2 id="guidance-title">{guidance("title")}</h2>
+                    <p>{guidance("about")}</p>
+                    <h3>{guidance("writingTitle")}</h3>
+                    <p>{guidance("writing")}</p>
+                    <blockquote>{guidance("example")}</blockquote>
+                    <ThoughtGuidelines />
+                  </section>
+                </>
+              ) : (
                 <section
-                  className="clientSidebarContent-guidance"
-                  aria-labelledby="guidance-title"
+                  className="clientSidebarContent-auth clientSidebarContent-notice"
+                  aria-live="polite"
                 >
-                  <h2 id="guidance-title">{guidance("title")}</h2>
-                  <p>{guidance("about")}</p>
-                  <h3>{guidance("writingTitle")}</h3>
-                  <p>{guidance("writing")}</p>
-                  <blockquote>{guidance("example")}</blockquote>
-                  <ThoughtGuidelines />
-                </section>
-              </>
-            ) : (
-              <section
-                className="clientSidebarContent-auth clientSidebarContent-notice"
-                aria-live="polite"
-              >
-                <div className="mx-auto">
-                  {state === "unverified" ? (
-                    <MailCheck aria-hidden="true" />
-                  ) : state === "banned" ? (
-                    <ShieldAlert aria-hidden="true" />
-                  ) : (
-                    <Pause aria-hidden="true" />
-                  )}
-                </div>
-                <h1
-                  ref={accountHeadingRef}
-                  tabIndex={-1}
-                >
-                  {t(`${state}Title`)}
-                </h1>
-                <p>{t(`${state}Body`)}</p>
-                {state === "unverified" && (
-                  <>
-                    <small>{t("verificationDeadline")}</small>
-                    {user.verificationEmailBlocked ? (
-                      <small>{t("errors.emailUndeliverable")}</small>
-                    ) : canResend ? (
-                      <ResendButton
-                        key={resendDeadline}
-                        deadline={resendDeadline}
-                        sending={sending}
-                        showCountdown={!resendFailed}
-                        onResend={() => resend.mutate({ userId: user.id, locale })}
-                      />
+                  <div className="mx-auto">
+                    {state === "unverified" ? (
+                      <MailCheck aria-hidden="true" />
+                    ) : state === "banned" ? (
+                      <ShieldAlert aria-hidden="true" />
                     ) : (
-                      <Badge
-                        color="orange"
-                        opacity
-                        className="mx-auto max-w-full py-2 text-center whitespace-normal"
-                        role="status"
-                      >
-                        {t("sendLimit")}
-                      </Badge>
+                      <Pause aria-hidden="true" />
                     )}
-                    <button
-                      type="button"
-                      className="clientSidebarContent-link"
-                      onClick={() => void refresh()}
-                    >
-                      {t("alreadyVerified")}
-                    </button>
-                  </>
-                )}
-                {state === "suspended" && user.suspendedUntil && (
-                  <p>
-                    {t("suspensionExpiry", {
-                      date: new Intl.DateTimeFormat(locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format(new Date(user.suspendedUntil)),
-                    })}
-                  </p>
-                )}
-                {state === "banned" && contactHref && (
-                  <GlassButton asChild>
-                    <a href={contactHref}>{t("contact")}</a>
-                  </GlassButton>
-                )}
-              </section>
-            )}
-          </motion.div>
-        )}
+                  </div>
+                  <h1 tabIndex={-1}>{t(`${state}Title`)}</h1>
+                  <p>{t(`${state}Body`)}</p>
+                  {state === "unverified" && (
+                    <>
+                      <small>{t("verificationDeadline")}</small>
+                      {user.verificationEmailBlocked ? (
+                        <small>{t("errors.emailUndeliverable")}</small>
+                      ) : canResend ? (
+                        <ResendButton
+                          key={resendDeadline}
+                          deadline={resendDeadline}
+                          sending={sending}
+                          showCountdown={!resendFailed}
+                          onResend={() => resend.mutate({ userId: user.id, locale })}
+                        />
+                      ) : (
+                        <Badge
+                          color="orange"
+                          opacity
+                          className="mx-auto max-w-full py-2 text-center whitespace-normal"
+                          role="status"
+                        >
+                          {t("sendLimit")}
+                        </Badge>
+                      )}
+                      <button
+                        type="button"
+                        className="clientSidebarContent-link"
+                        onClick={() => void refresh()}
+                      >
+                        {t("alreadyVerified")}
+                      </button>
+                    </>
+                  )}
+                  {state === "suspended" && user.suspendedUntil && (
+                    <p>
+                      {t("suspensionExpiry", {
+                        date: new Intl.DateTimeFormat(locale, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(user.suspendedUntil)),
+                      })}
+                    </p>
+                  )}
+                  {state === "banned" && contactHref && (
+                    <GlassButton asChild>
+                      <a href={contactHref}>{t("contact")}</a>
+                    </GlassButton>
+                  )}
+                </section>
+              )}
+            </>
+          )}
+        </motion.div>
       </AnimatePresence>
     </div>
   );
