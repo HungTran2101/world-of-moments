@@ -3,6 +3,7 @@
 import { RUNTIME_ERROR_STATUS, submissionHistoryKey } from "@/services/constant";
 import { useError } from "@/components/shared/ErrorProvider";
 import { useClientSession } from "@/components/ClientSession";
+import type { SubmissionDraftControls } from "@/hooks/useSubmissionDraft";
 import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError, type ErrorMessageKey } from "@/services/shared/errors";
 import { createSubmission, getSubmissionLimit } from "@/services/submissions";
@@ -16,7 +17,8 @@ import {
 } from "@/store/useSubmissionMapStore";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useStore } from "zustand";
 import { GlassButton } from "../ui/glass-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import SubmissionAnimation from "./SubmissionAnimation";
@@ -27,9 +29,7 @@ import type { ClientSessionResponse } from "@/services/client-auth/types";
 interface SubmissionFormProps {
   onSuccess?: () => void;
   userId: string;
-  description: string;
-  onDescriptionChange: (value: string) => void;
-  prepareDraft: () => () => void;
+  draft: SubmissionDraftControls;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
@@ -60,19 +60,89 @@ function submissionErrorKey(error: unknown, stage: SubmissionStage): ErrorMessag
   return "submissionFailed";
 }
 
+interface SubmissionDescriptionHandle {
+  showRequiredError: () => void;
+}
+
+function SubmissionDescription({ draft, inputRef, readOnly, validationRef }: {
+  draft: SubmissionDraftControls;
+  inputRef?: SubmissionFormProps["inputRef"];
+  readOnly: boolean;
+  validationRef: React.Ref<SubmissionDescriptionHandle>;
+}) {
+  const t = useTranslations("submission");
+  const description = useStore(draft.view, (view) => view.key === draft.key ? view.text : "");
+  const [hasError, setHasError] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const localRef = useRef<HTMLTextAreaElement>(null);
+  const descriptionRef = inputRef ?? localRef;
+  const flashFrame = useRef<number | null>(null);
+
+  useImperativeHandle(validationRef, () => ({
+    showRequiredError() {
+      setHasError(true);
+      setIsFlashing(false);
+      descriptionRef.current?.focus();
+      if (flashFrame.current !== null) window.cancelAnimationFrame(flashFrame.current);
+      flashFrame.current = window.requestAnimationFrame(() => {
+        flashFrame.current = null;
+        setIsFlashing(true);
+      });
+    },
+  }), [descriptionRef]);
+
+  useEffect(() => () => {
+    if (flashFrame.current !== null) window.cancelAnimationFrame(flashFrame.current);
+  }, []);
+
+  return (
+    <label className="submissionForm-label">
+      <span id="description-label">{t("descriptionLabel")}</span>
+      <span
+        className={`submissionForm-textarea-wrapper${isFlashing ? " submissionForm-textarea--flash-error" : ""}`}
+        onAnimationEnd={() => setIsFlashing(false)}
+      >
+        <textarea
+          ref={descriptionRef}
+          className="submissionForm-textarea"
+          value={description}
+          onChange={(event) => {
+            const text = event.target.value;
+            draft.changeDescription(text);
+            if (hasError && text.trim()) setHasError(false);
+          }}
+          placeholder={t("descriptionPlaceholder")}
+          maxLength={constants.MAX_DESCRIPTION_LENGTH}
+          rows={4}
+          readOnly={readOnly}
+          aria-labelledby="description-label"
+          aria-invalid={hasError}
+          aria-describedby={`description-count${hasError ? " description-error" : ""}`}
+        />
+        <span id="description-count" className="submissionForm-character-count">
+          {description.length}
+          {" / "}
+          {constants.MAX_DESCRIPTION_LENGTH}
+        </span>
+      </span>
+      {hasError && (
+        <div id="description-error" className="submissionForm-validation-error" role="alert">
+          {t("descriptionRequired")}
+        </div>
+      )}
+    </label>
+  );
+}
+
 export default function SubmissionForm({
   onSuccess,
   userId,
   inputRef,
-  description,
-  onDescriptionChange: setDescription,
-  prepareDraft,
+  draft,
 }: SubmissionFormProps) {
   const t = useTranslations("submission");
   const queryClient = useQueryClient();
   const { user, refresh: refreshSession } = useClientSession();
-  const [hasDescriptionError, setHasDescriptionError] = useState(false);
-  const [isDescriptionFlashing, setIsDescriptionFlashing] = useState(false);
   const [flight, setFlight] = useState<{
     origin: ScreenPoint;
     getDestination: () => ScreenPoint;
@@ -81,19 +151,16 @@ export default function SubmissionForm({
   } | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-  const localDescriptionRef = useRef<HTMLTextAreaElement>(null);
-  const descriptionRef = inputRef ?? localDescriptionRef;
+  const validationRef = useRef<SubmissionDescriptionHandle>(null);
   const suffixRef = useRef<HTMLSpanElement>(null);
   const activeRunRef = useRef<SubmissionRun | null>(null);
   const setSidebarOpen = useSystemStore((state) => state.setSidebarOpen);
-  const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
   const { showError } = useError();
   const submissionMap = useSubmissionMapStore((state) => state.map);
   const isSubmitting = useSubmissionMapStore((state) => state.isSubmitting);
-  const { lat, lng } = usePinStore();
   const isPlaced = usePinStore((state) => state.isPlaced);
   const isSubmitDisabled = isSubmitting || !isPlaced || !submissionMap;
-  const canShowLocationTooltip = sidebarOpen && !isSubmitting && !isPlaced;
+  const canShowLocationTooltip = useSystemStore((state) => state.sidebarOpen && !isSubmitting && !isPlaced);
   useEffect(() => {
     // Xóa yêu cầu mở cũ để tooltip không hiện lại khi gửi xong và ghim được bỏ đi.
     if (!canShowLocationTooltip) setIsTooltipOpen(false);
@@ -220,16 +287,17 @@ export default function SubmissionForm({
   });
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
-    if (!isPlaced || user?.id !== userId || user.status !== "verified" || user.availability !== "ready" ||
-      useSubmissionMapStore.getState().isSubmitting) return;
-    if (!description.trim()) {
-      setHasDescriptionError(true);
-      setIsDescriptionFlashing(false);
-      descriptionRef.current?.focus();
-      window.requestAnimationFrame(() => setIsDescriptionFlashing(true));
+    const pin = usePinStore.getState();
+    const { map, isSubmitting, setIsSubmitting } = useSubmissionMapStore.getState();
+    if (!pin.isPlaced || user?.id !== userId || user.status !== "verified" || user.availability !== "ready" ||
+      isSubmitting) return;
+    const view = draft.view.getState();
+    const description = view.key === draft.key ? view.text.trim() : "";
+    if (!description) {
+      validationRef.current?.showRequiredError();
       return;
     }
-    if (!submissionMap) {
+    if (!map) {
       showError(new Error("Map is not ready"), {
         messageKey: "mapUnavailable",
       });
@@ -241,7 +309,7 @@ export default function SubmissionForm({
     });
     const run: SubmissionRun = {
       controller: new AbortController(),
-      map: submissionMap,
+      map,
       finish: () => {},
       saved: false,
       resolveAnimation,
@@ -249,17 +317,17 @@ export default function SubmissionForm({
       refreshReady: false,
       stage: "map",
       userId,
-      clearDraft: prepareDraft(),
+      clearDraft: draft.prepareSubmission(),
       submissionId: null,
     };
     activeRunRef.current = run;
     // Khóa đồng bộ trước khi mutation chạy để chặn hai lần gửi trong cùng một nhịp render.
-    useSubmissionMapStore.getState().setIsSubmitting(true);
+    setIsSubmitting(true);
     creation.mutate({
       run,
-      description: description.trim(),
-      lat,
-      lng,
+      description,
+      lat: pin.lat,
+      lng: pin.lng,
     });
   }
   return (
@@ -268,48 +336,7 @@ export default function SubmissionForm({
       onSubmit={handleSubmit}
       aria-busy={isSubmitting}
     >
-      <label className="submissionForm-label">
-        <span id="description-label">{t("descriptionLabel")}</span>
-        <span
-          className={`submissionForm-textarea-wrapper${isDescriptionFlashing ? " submissionForm-textarea--flash-error" : ""}`}
-          onAnimationEnd={() => setIsDescriptionFlashing(false)}
-        >
-          <textarea
-            ref={descriptionRef}
-            className="submissionForm-textarea"
-            value={description}
-            onChange={(e) => {
-              const nextDescription = e.target.value;
-              setDescription(nextDescription);
-              if (nextDescription.trim()) setHasDescriptionError(false);
-            }}
-            placeholder={t("descriptionPlaceholder")}
-            maxLength={constants.MAX_DESCRIPTION_LENGTH}
-            rows={4}
-            readOnly={isSubmitting}
-            aria-labelledby="description-label"
-            aria-invalid={hasDescriptionError}
-            aria-describedby={`description-count${hasDescriptionError ? " description-error" : ""}`}
-          />
-          <span
-            id="description-count"
-            className="submissionForm-character-count"
-          >
-            {description.length}
-            {" / "}
-            {constants.MAX_DESCRIPTION_LENGTH}
-          </span>
-        </span>
-        {hasDescriptionError && (
-          <div
-            id="description-error"
-            className="submissionForm-validation-error"
-            role="alert"
-          >
-            {t("descriptionRequired")}
-          </div>
-        )}
-      </label>
+      <SubmissionDescription draft={draft} inputRef={inputRef} readOnly={isSubmitting} validationRef={validationRef} />
       <Tooltip
         open={canShowLocationTooltip && isTooltipOpen}
         onOpenChange={(open) => setIsTooltipOpen(canShowLocationTooltip && open)}

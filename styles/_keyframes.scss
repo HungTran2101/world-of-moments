@@ -83,7 +83,7 @@
 
 @keyframes history-enter {
   from {
-    transform: translateX(calc(100% + 3rem));
+    transform: translateX(calc(100% + var(--history-panel-right)));
   }
 
   to {
@@ -97,7 +97,7 @@
   }
 
   to {
-    transform: translateX(calc(100% + 3rem));
+    transform: translateX(calc(100% + var(--history-panel-right)));
   }
 }
 

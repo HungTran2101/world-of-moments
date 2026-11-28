@@ -40,6 +40,7 @@
   --color-button-purple: #d17aff;
   --color-button-blue: #69f;
   --color-button-dark-blue: var(--primary-color);
+  --color-button-red: #972943;
 
   /* Inputs */
   --color-input-bg: #f6f5fb;
@@ -65,6 +66,12 @@
   // Spacing & layout
   --sidebar-width: 320px;
   --header-height: 56px;
+
+  // Drawer lịch sử nằm trong portal nên cả hai panel dùng biến ở :root.
+  --map-controls-inset: 0.5rem;
+  --map-toolbar-action-size: 2rem;
+  --map-toolbar-padding: 0.0625rem;
+  --map-toolbar-reserved-width: calc(var(--map-controls-inset) + var(--map-toolbar-action-size) + 2 * var(--map-toolbar-padding));
 }
 
 .dark,
@@ -104,6 +111,7 @@
   --color-button-purple: #ecd2ff;
   --color-button-blue: #d0e2ff;
   --color-button-dark-blue: var(--primary-color-dark);
+  --color-button-red: #ffd1da;
 
   /* Inputs */
   --color-input-bg: #202332;

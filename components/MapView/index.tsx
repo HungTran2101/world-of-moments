@@ -62,31 +62,41 @@ export default function MapView() {
   const setPin = usePinStore((state) => state.setPin);
   const mapReady = useSystemStore((state) => state.mapReady);
   const setMapReady = useSystemStore((state) => state.setMapReady);
+  const thoughtModalOpen = useSystemStore((state) => state.thoughtModalOpen);
+  const selectedThoughtId = useSystemStore((state) => state.selectedThoughtId);
+  const openThoughtModal = useSystemStore((state) => state.openThoughtModal);
+  const closeThoughtModal = useSystemStore((state) => state.closeThoughtModal);
 
   const [showLoader, setShowLoader] = useState(true);
   const [submissionsError, setSubmissionsError] = useState(false);
   const [submissionsRetry, setSubmissionsRetry] = useState(0);
-  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
-  const [thoughtModalOpen, setThoughtModalOpen] = useState(false);
+  useEffect(() => {
+    const unsubscribe = useSystemStore.subscribe((state, previous) => {
+      const switchedToPanel = (state.sidebarOpen && !previous.sidebarOpen)
+        || (state.historyOpen && !previous.historyOpen);
+      // Nếu đổi panel giữa lúc camera đang đi, chuyến đi cũ không được mở lại modal.
+      if (state.publicPanelsNarrow && switchedToPanel) thoughtNavigationRef.current?.abort();
 
-  const handleThoughtModalOpenChange = (open: boolean) => {
-    setThoughtModalOpen(open);
-    if (open) return;
-
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has("thought")) return;
-    url.searchParams.delete("thought");
-    url.searchParams.delete("lat");
-    url.searchParams.delete("lng");
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  };
+      if (state.thoughtModalOpen || !previous.thoughtModalOpen) return;
+      // Chỉ dọn URL khi đóng chi tiết, giữ deep link lúc bản đồ vẫn đang tải.
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has("thought")) return;
+      url.searchParams.delete("thought");
+      url.searchParams.delete("lat");
+      url.searchParams.delete("lng");
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    });
+    return () => {
+      unsubscribe();
+      closeThoughtModal();
+    };
+  }, [closeThoughtModal]);
 
   const handleSubmissionClick = useCallback((submissionId: string) => {
     // Chọn marker khác sẽ hủy chuyến đi cũ, tránh modal cũ mở lại sau khi camera dừng.
     thoughtNavigationRef.current?.abort();
-    setSelectedSubmissionId(submissionId);
-    setThoughtModalOpen(true);
-  }, []);
+    openThoughtModal(submissionId);
+  }, [openThoughtModal]);
 
   const clearPinRotationTimeout = () => {
     if (pinRotationTimeoutRef.current) {
@@ -375,7 +385,7 @@ export default function MapView() {
             thoughtNavigationRef.current?.abort();
             const controller = new AbortController();
             thoughtNavigationRef.current = controller;
-            setThoughtModalOpen(false);
+            closeThoughtModal();
             try {
               await zoomToLocation(submission, controller.signal);
               controller.signal.throwIfAborted();
@@ -464,7 +474,7 @@ export default function MapView() {
       // Dọn cả layer và listener trước khi thử lại, tránh nguồn trùng hoặc callback đã bị hủy.
       submissionLayers?.destroy();
     };
-  }, [mapReady, submissionsRetry, handleSubmissionClick]);
+  }, [mapReady, submissionsRetry, handleSubmissionClick, closeThoughtModal]);
 
   useEffect(() => {
     if (!mapReady) {
@@ -521,9 +531,13 @@ export default function MapView() {
       {showLoader && <MapLoading isExiting={mapReady} />}
       <ThoughtModal
         open={thoughtModalOpen}
-        submissionId={selectedSubmissionId}
-        onOpenChange={handleThoughtModalOpenChange}
-        onReturnFocus={() => mapRef.current?.getCanvas().focus({ preventScroll: true })}
+        submissionId={selectedThoughtId}
+        onOpenChange={(open) => { if (!open) closeThoughtModal(); }}
+        onReturnFocus={() => {
+          const { publicPanelsNarrow, sidebarOpen, historyOpen, thoughtModalOpen } = useSystemStore.getState();
+          if (thoughtModalOpen || (publicPanelsNarrow && (sidebarOpen || historyOpen))) return;
+          mapRef.current?.getCanvas().focus({ preventScroll: true });
+        }}
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
+import { useStore } from "zustand";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { MailCheck, Pause, ShieldAlert, Eye, EyeOff } from "lucide-react";
@@ -26,7 +27,7 @@ import type { ClientCredentials } from "@/services/client-auth/types";
 import { useSystemStore } from "@/store/systemStore";
 import { ApiError } from "@/services/shared/errors";
 import { useCountdown } from "@/hooks/useDeadline";
-import { useSubmissionDraft } from "@/hooks/useSubmissionDraft";
+import { useSubmissionDraft, type SubmissionDraftControls } from "@/hooks/useSubmissionDraft";
 
 const AUTH_SLIDE_DURATION_SECONDS = 0.2;
 const { MILLISECONDS_PER_SECOND } = constants;
@@ -494,6 +495,15 @@ function ResendButton({ deadline, active, sending, showCountdown, onResend }: {
   );
 }
 
+function DraftStorageWarning({ draft }: { draft: SubmissionDraftControls }) {
+  const t = useTranslations("clientAuth");
+  const showWarning = useStore(draft.view, (view) =>
+    view.key === draft.key && Boolean(view.text) && view.storageUnavailable,
+  );
+
+  return showWarning ? <p role="status">{t("draftStorageUnavailable")}</p> : null;
+}
+
 export function ClientSidebarContent({
   inputRef,
 }: {
@@ -507,10 +517,13 @@ export function ClientSidebarContent({
   const viewRef = useRef<HTMLDivElement>(null);
   const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
   const state = user?.status === "verified" ? user.availability : user?.status;
-  const { description, storageUnavailable, changeDescription, prepareSubmission } =
-    useSubmissionDraft(user?.id, sidebarOpen && state === "ready");
+  const draft = useSubmissionDraft(user?.id, sidebarOpen && state === "ready");
   const submissionLimited = state === "cooldown" || state === "daily-limit";
-  const draftWarning = storageUnavailable && description.length > 0;
+  const limitedDraftNotice = useStore(draft.view, (view) =>
+    submissionLimited && view.key === draft.key && view.text
+      ? view.storageUnavailable ? "draftStorageUnavailable" : "draftSaved"
+      : null,
+  );
 
   useEffect(() => {
     if (
@@ -638,11 +651,9 @@ export function ClientSidebarContent({
                   <SubmissionForm
                     inputRef={inputRef}
                     userId={user.id}
-                    description={description}
-                    onDescriptionChange={changeDescription}
-                    prepareDraft={prepareSubmission}
+                    draft={draft}
                   />
-                  {draftWarning && <p role="status">{t("draftStorageUnavailable")}</p>}
+                  <DraftStorageWarning draft={draft} />
                   <section
                     className="clientSidebarContent-guidance"
                     aria-labelledby="guidance-title"
@@ -674,10 +685,8 @@ export function ClientSidebarContent({
                   >
                     {t(`${state}Title`)}
                   </h1>
-                  <p>{t(state === "cooldown" && description ? "cooldownDraftBody" : `${state}Body`)}</p>
-                  {submissionLimited && description && (
-                    <small>{t(draftWarning ? "draftStorageUnavailable" : "draftSaved")}</small>
-                  )}
+                  <p>{t(state === "cooldown" && limitedDraftNotice ? "cooldownDraftBody" : `${state}Body`)}</p>
+                  {limitedDraftNotice && <small>{t(limitedDraftNotice)}</small>}
                   {state === "cooldown" && user.availableAt && (
                     <ThoughtCountdown
                       key={user.availableAt}

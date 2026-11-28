@@ -11,7 +11,7 @@ import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, History, MapPin, Search, Trash2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { LoadingDots } from "../shared/LoadingDots";
 import { Dialog } from "../ui/dialog";
 import { GlassButton } from "../ui/glass-button";
@@ -43,6 +43,7 @@ function HistoryContents({
   const identityKey = user?.id ?? null;
   const queryClient = useQueryClient();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const keepThoughtRef = useRef<HTMLButtonElement>(null);
   const deletion = useMutation({
     mutationFn: (id: string) => deleteSubmission(id),
     onSuccess: async () => {
@@ -178,13 +179,7 @@ function HistoryContents({
                 <>
                   <p className="mb-2 mt-0">{t(identityError ? "identityError" : "loginPrompt")}</p>
                   <GlassButton
-                    onClick={() => {
-                      if (identityError) void refresh();
-                      else {
-                        useSystemStore.getState().setSidebarOpen(true);
-                        onLogin();
-                      }
-                    }}
+                    onClick={identityError ? () => void refresh() : onLogin}
                   >
                     {t(identityError ? "retry" : "login")}
                   </GlassButton>
@@ -225,30 +220,29 @@ function HistoryContents({
                       {dateFormatter.format(createdAt)}
                     </time>
                   )}
-                  <GlassButton
-                    className="historyPanel-visit"
-                    primaryColor="darkBlue"
-                    disabled={!map || isSubmitting || item.status === "unpublished"}
-                    onClick={() => onVisit(item)}
-                  >
-                    <MapPin
-                      size={16}
-                      aria-hidden="true"
-                    />
-                    {t("takeMeThere")}
-                  </GlassButton>
-                  <GlassButton
-                    type="button"
-                    primaryColor="darkBlue"
-                    disabled={deletion.isPending || isSubmitting}
-                    onClick={() => {
-                      deletion.reset();
-                      setConfirmDeleteId(item.id);
-                    }}
-                  >
-                    <Trash2 aria-hidden="true" />
-                    {t("delete")}
-                  </GlassButton>
+                  <div className="historyPanel-itemActions">
+                    <GlassButton
+                      type="button"
+                      primaryColor="red"
+                      disabled={deletion.isPending || isSubmitting}
+                      onClick={() => {
+                        deletion.reset();
+                        setConfirmDeleteId(item.id);
+                      }}
+                    >
+                      <Trash2 aria-hidden="true" />
+                      {t("delete")}
+                    </GlassButton>
+                    <GlassButton
+                      type="button"
+                      primaryColor="darkBlue"
+                      disabled={!map || isSubmitting || item.status === "unpublished"}
+                      onClick={() => onVisit(item)}
+                    >
+                      <MapPin size={16} aria-hidden="true" />
+                      {t("takeMeThere")}
+                    </GlassButton>
+                  </div>
                   {item.status === "unpublished" && (
                     <sub className="historyPanel-muted">{t("unpublished")}</sub>
                   )}
@@ -323,20 +317,22 @@ function HistoryContents({
         <Dialog.Portal>
           <Dialog.Overlay className="errorModal-overlay" />
           <RefractiveGlass>
-            <Dialog.Content className="errorModal-content">
+            <Dialog.Content
+              className="errorModal-content historyPanel-deleteConfirm"
+              onOpenAutoFocus={(event) => {
+                if (!keepThoughtRef.current) return;
+                // Giữ focus mặc định ở nút giữ lại khi đổi thứ tự hai thao tác.
+                event.preventDefault();
+                keepThoughtRef.current.focus();
+              }}
+            >
               <Dialog.Title>{t("deleteTitle")}</Dialog.Title>
               <Dialog.Description>{t("deleteConfirm")}</Dialog.Description>
               {deletion.isError && <p role="alert">{t("deleteError")}</p>}
-              <div className="flex gap-3">
+              <div className="flex w-full justify-between gap-3">
                 <GlassButton
                   type="button"
-                  disabled={deletion.isPending}
-                  onClick={() => setConfirmDeleteId(null)}
-                >
-                  {t("cancel")}
-                </GlassButton>
-                <GlassButton
-                  type="button"
+                  primaryColor="red"
                   disabled={deletion.isPending}
                   onClick={() => {
                     if (confirmDeleteId) deletion.mutate(confirmDeleteId);
@@ -344,6 +340,15 @@ function HistoryContents({
                 >
                   {deletion.isPending ? <LoadingDots /> : t("delete")}
                 </GlassButton>
+                <Dialog.Close asChild ref={keepThoughtRef}>
+                  <GlassButton
+                    type="button"
+                    primaryColor="darkBlue"
+                    disabled={deletion.isPending}
+                  >
+                    {t("cancel")}
+                  </GlassButton>
+                </Dialog.Close>
               </div>
             </Dialog.Content>
           </RefractiveGlass>
@@ -362,7 +367,7 @@ function HistoryContents({
   );
 }
 
-export default function HistoryPanel({ open, onOpenChange, onReturnFocus }: HistoryPanelProps) {
+export default memo(function HistoryPanel({ open, onOpenChange, onReturnFocus }: HistoryPanelProps) {
   const skipReturnFocusRef = useRef(false);
   const { showError } = useError();
   const visitThought = (submission: SubmissionPin) => {
@@ -400,11 +405,21 @@ export default function HistoryPanel({ open, onOpenChange, onReturnFocus }: Hist
             <HistoryContents
               open={open}
               onVisit={visitThought}
-              onLogin={() => onOpenChange(false)}
+              onLogin={() => {
+                // Focus thuộc luồng mở sidebar, kể cả khi hai panel có thể mở cùng lúc.
+                skipReturnFocusRef.current = true;
+                const { sidebarOpen, setSidebarOpen } = useSystemStore.getState();
+                setSidebarOpen(true);
+                onOpenChange(false);
+                if (sidebarOpen) {
+                  const target = document.getElementById("client-email") ?? document.getElementById("submission-sidebar-toggle");
+                  target?.focus({ preventScroll: true });
+                }
+              }}
             />
           </Dialog.Content>
         </RefractiveGlass>
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
+});

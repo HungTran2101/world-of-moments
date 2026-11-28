@@ -4,32 +4,26 @@ import { useViewport } from "@/hooks/useViewport";
 import { useSystemStore } from "@/store/systemStore";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 import { RefractiveGlass } from "@/components/ui/refractive-glass";
 
-const TITLE_HIDE_BELOW_WIDTH_PX = 1000;
+const TITLE_HIDE_MAX_WIDTH_PX = 980;
+const visible = { opacity: 1 };
+const hidden = { opacity: 0 };
 
 const Title = () => {
   const t = useTranslations("meta");
-
-  const viewport = useViewport();
-  const vw = viewport?.width;
-
-  const mapReady = useSystemStore((state) => state.mapReady);
-  const sidebarOpen = useSystemStore((state) => state.sidebarOpen);
-
-  const titleAnimate = useMemo(() => {
-    if (!mapReady) return { opacity: 0 };
-    if (vw && vw <= TITLE_HIDE_BELOW_WIDTH_PX && sidebarOpen) return { opacity: 0 };
-    return { opacity: 1 };
-  }, [sidebarOpen, mapReady, vw]);
+  const viewportWidth = useViewport()?.width;
+  const hideForPanels = viewportWidth !== undefined && viewportWidth <= TITLE_HIDE_MAX_WIDTH_PX;
+  const showTitle = useSystemStore((state) =>
+    state.mapReady && !(hideForPanels && (state.sidebarOpen || state.historyOpen)),
+  );
 
   return (
     <motion.header
-      initial={{ opacity: 0 }}
-      animate={titleAnimate}
+      initial={hidden}
+      animate={showTitle ? visible : hidden}
       transition={{ duration: 0.5 }}
-      aria-hidden={titleAnimate.opacity === 0}
+      aria-hidden={!showTitle}
       className="title pointer-events-none fixed z-10 left-1/2 -translate-x-1/2 top-2"
     >
       <RefractiveGlass>

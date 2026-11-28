@@ -18,6 +18,11 @@
     color: var(--color-text);
     font-family: var(--font-mitr), sans-serif;
     overflow: hidden;
+
+    // Giữ nút sidebar và toolbar bấm được để chuyển panel khi modal chiếm màn hình.
+    &[data-narrow-panels] {
+      z-index: 19;
+    }
   }
 
   &-header {

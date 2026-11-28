@@ -1,12 +1,14 @@
 .historyPanel.dialog-content {
+  --history-panel-right: calc(var(--map-toolbar-reserved-width) + var(--map-controls-inset));
+
   position: fixed;
   z-index: 9;
   top: 0.5rem;
-  right: 3rem;
+  right: var(--history-panel-right);
   left: auto;
   display: flex;
   flex-direction: column;
-  width: min(21.25rem, calc(100vw - 3.5rem));
+  width: min(21.25rem, calc(100% - var(--history-panel-right) - var(--map-controls-inset)));
   height: calc(100dvh - 1rem);
   overflow: hidden;
   border-radius: var(--radius-xl);
@@ -28,6 +30,11 @@
       animation: none;
     }
   }
+}
+
+.historyPanel-item,
+.historyPanel-deleteConfirm.dialog-content {
+  background-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
 }
 
 .historyPanel {
@@ -138,7 +145,6 @@
     padding: 0.75rem;
     border: 1px solid rgb(var(--primary-color-var), 0.2);
     border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--color-surface) 55%, transparent);
   }
 
   &-itemThought {
@@ -206,11 +212,21 @@
     text-align: right;
   }
 
-  &-visit {
-    align-self: flex-end;
+  &-itemActions {
+    display: flex;
+    justify-content: space-between;
     gap: 0.5rem;
     margin-top: 0.5rem;
-    font-size: 0.75rem;
+
+    > button {
+      flex-shrink: 1;
+      min-width: 0;
+      height: auto;
+      min-height: 2rem;
+      padding-block: 0.25rem;
+      font-size: 0.75rem;
+      white-space: normal;
+    }
   }
 
   &-muted {

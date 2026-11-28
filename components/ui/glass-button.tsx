@@ -14,13 +14,14 @@ interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   suffix?: React.ReactNode
   className?: string
   asChild?: boolean
-  primaryColor?: 'purple' | 'blue' | 'darkBlue'
+  primaryColor?: keyof typeof glassColors
 }
 
 const glassColors = {
   purple: { tint: '209, 122, 255', text: 'var(--color-button-purple)' },
   blue: { tint: '102, 153, 255', text: 'var(--color-button-blue)' },
-  darkBlue: { tint: '124, 127, 178', text: 'var(--color-button-dark-blue)' }
+  darkBlue: { tint: '124, 127, 178', text: 'var(--color-button-dark-blue)' },
+  red: { tint: '224, 106, 122', text: 'var(--color-button-red)' }
 }
 
 function GlassButton({ children,

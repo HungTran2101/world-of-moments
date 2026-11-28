@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createStore } from "zustand/vanilla";
 import { constants } from "@/app/api/constant";
 import { useSubmissionMapStore } from "@/store/useSubmissionMapStore";
 
@@ -18,6 +19,14 @@ interface SubmissionDraft {
   dirty: boolean;
   timer?: number;
 }
+
+interface DraftView {
+  key?: string;
+  text: string;
+  storageUnavailable: boolean;
+}
+
+export type SubmissionDraftControls = ReturnType<typeof useSubmissionDraft>;
 
 function readDraft(key: string): SavedDraft | null {
   const value = window.localStorage.getItem(key);
@@ -58,7 +67,8 @@ function flushDraft(draft: SubmissionDraft) {
 export function useSubmissionDraft(userId: string | undefined, formOpen: boolean) {
   const key = userId ? `wom:submission-draft:v1:${userId}` : undefined;
   const draftRef = useRef<SubmissionDraft | null>(null);
-  const [view, setView] = useState<{ key: string; text: string; storageUnavailable: boolean }>();
+  // Giữ bản nháp theo vòng đời sidebar, chỉ cập nhật các phần UI đọc nội dung hoặc trạng thái lưu.
+  const [view] = useState(() => createStore<DraftView>(() => ({ text: "", storageUnavailable: false })));
 
   useEffect(() => {
     if (!key) return;
@@ -87,9 +97,9 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
         const saved = readDraft(key);
         draft.text = saved?.text ?? "";
         draft.revision = saved?.revision ?? null;
-        setView({ key, text: draft.text, storageUnavailable: false });
+        view.setState({ key, text: draft.text, storageUnavailable: false });
       } catch {
-        setView({ key, text: draft.text, storageUnavailable: true });
+        view.setState({ key, text: draft.text, storageUnavailable: true });
       }
     }
 
@@ -98,7 +108,7 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
         flushDraft(draft);
       } catch {
         if (draftRef.current === draft) {
-          setView({ key: draft.key, text: draft.text, storageUnavailable: true });
+          view.setState({ key: draft.key, text: draft.text, storageUnavailable: true });
         }
       }
     }
@@ -112,7 +122,7 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
       window.removeEventListener("pagehide", flushOnExit);
       flushOnExit();
     };
-  }, [formOpen, key]);
+  }, [formOpen, key, view]);
 
   function save(draft: SubmissionDraft) {
     let storageUnavailable = false;
@@ -122,7 +132,7 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
       storageUnavailable = true;
     }
     if (draftRef.current === draft) {
-      setView((previous) => previous?.key === draft.key && previous.storageUnavailable === storageUnavailable
+      view.setState((previous) => previous.key === draft.key && previous.storageUnavailable === storageUnavailable
         ? previous
         : { key: draft.key, text: draft.text, storageUnavailable });
     }
@@ -135,7 +145,7 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
     draft.dirty = true;
     window.clearTimeout(draft.timer);
     draft.timer = window.setTimeout(() => save(draft), DRAFT_DELAY_MS);
-    setView((previous) => ({ key, text, storageUnavailable: previous?.key === key && previous.storageUnavailable }));
+    view.setState((previous) => ({ key, text, storageUnavailable: previous.key === key && previous.storageUnavailable }));
   }
 
   function prepareSubmission() {
@@ -150,7 +160,7 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
         draft.dirty = false;
         draft.text = "";
         draft.revision = null;
-        if (draftRef.current === draft) setView({ key: draft.key, text: "", storageUnavailable: false });
+        if (draftRef.current === draft) view.setState({ key: draft.key, text: "", storageUnavailable: false });
       }
       try {
         removeDraft(draft.key, revision);
@@ -161,8 +171,8 @@ export function useSubmissionDraft(userId: string | undefined, formOpen: boolean
   }
 
   return {
-    description: view?.key === key ? view?.text ?? "" : "",
-    storageUnavailable: view?.key === key && Boolean(view?.storageUnavailable),
+    key,
+    view,
     changeDescription,
     prepareSubmission,
   };

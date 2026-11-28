@@ -1,21 +1,20 @@
 .toolbar {
   position: fixed;
-  z-index: 10;
-  top: 0.5rem;
-  right: 0.5rem;
+  z-index: 30;
+  top: var(--map-controls-inset);
+  right: var(--map-controls-inset);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.0625rem;
+  padding: var(--map-toolbar-padding);
   border-radius: 1.125rem;
-  transition: opacity, top 0.3s ease;
 
   &-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: var(--map-toolbar-action-size);
+    height: var(--map-toolbar-action-size);
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -71,23 +70,6 @@
     &[data-state='checked'] {
       color: var(--primary-color-dark);
       background: rgb(var(--primary-color-var), 0.22);
-    }
-  }
-
-  @media (width <=640px) {
-    // Làm dịu toolbar khi soạn bài nhưng vẫn giữ các thao tác sử dụng được.
-    &[data-sidebar-open='true'] {
-      opacity: 0;
-      pointer-events: none;
-
-      // Opacity tạo backdrop root; lọc ngay trên rail để giữ khúc xạ của nền kính.
-      &[data-refractive-glass='active'] {
-        backdrop-filter: var(--refraction-filter) saturate(1.08);
-
-        &::after {
-          backdrop-filter: none;
-        }
-      }
     }
   }
 

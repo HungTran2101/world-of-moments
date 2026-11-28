@@ -1,11 +1,20 @@
+.sidebar-frame {
+  position: absolute;
+
+  // Chừa đúng chiều rộng rail và lề phải của toolbar trước khi tính kích thước panel.
+  inset: var(--map-controls-inset) var(--map-toolbar-reserved-width) var(--map-controls-inset) 0;
+  max-width: calc(var(--sidebar-width) + var(--map-controls-inset));
+  max-height: 100dvh;
+  pointer-events: none;
+}
+
 .sidebar {
   position: absolute;
-  z-index: 1;
-  inset: 0.5rem 0.5rem 0.5rem 0;
-  padding: 0 0.5rem;
+  z-index: 20;
+  inset: 0 auto 0 0;
+  padding: 0 var(--map-controls-inset);
   width: 100%;
-  max-width: calc(var(--sidebar-width) + 0.5rem);
-  max-height: 100dvh;
+  pointer-events: auto;
 
   .sidebar-content {
     padding: 14px;
@@ -52,7 +61,7 @@
   .sidebar-button {
     position: absolute;
     top: 50%;
-    left: 0.5rem;
+    left: var(--map-controls-inset);
     cursor: pointer;
     will-change: offset-distance;
 

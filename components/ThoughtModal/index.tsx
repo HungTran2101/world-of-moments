@@ -7,6 +7,7 @@ import thoughtBubbleImg from "@/public/assets/thought-note.webp";
 import { ApiError } from "@/services/shared/errors";
 import { getSubmissionById } from "@/services/submissions";
 import type { Submission } from "@/services/submissions/types";
+import { useSystemStore } from "@/store/systemStore";
 import {
   ArrowLeft,
   Cloud,
@@ -74,6 +75,7 @@ export default function ThoughtModal({
   onReturnFocus,
 }: ThoughtModalProps) {
   const identityKey = useClientSession().user?.id ?? "guest";
+  const publicPanelsNarrow = useSystemStore((state) => state.publicPanelsNarrow);
   const t = useTranslations("popup");
   const weather = useTranslations("weather");
   const [detail, setDetail] = useState<DetailState | null>(null);
@@ -81,6 +83,10 @@ export default function ThoughtModal({
   useEffect(() => {
     if (!open || !submissionId) return;
     const controller = new AbortController();
+    const stillActive = () => {
+      const { thoughtModalOpen, selectedThoughtId } = useSystemStore.getState();
+      return !controller.signal.aborted && thoughtModalOpen && selectedThoughtId === submissionId;
+    };
     setDetail({
       id: submissionId,
       identityKey,
@@ -91,7 +97,7 @@ export default function ThoughtModal({
       signal: controller.signal,
     })
       .then((submission) => {
-        if (controller.signal.aborted) return;
+        if (!stillActive()) return;
         // Dùng tọa độ bài đã tải để URL luôn mở lại đúng nơi, kể cả khi mở từ marker hoặc bài vừa gửi.
         const url = new URL(window.location.href);
         url.searchParams.set("thought", submission.id);
@@ -110,7 +116,7 @@ export default function ThoughtModal({
         });
       })
       .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
+        if (!stillActive()) return;
         setDetail({
           id: submissionId,
           identityKey,
@@ -139,6 +145,7 @@ export default function ThoughtModal({
         <RefractiveGlass blur={2.5}>
           <Dialog.Content
             className="thoughtModal-content"
+            data-narrow-panels={publicPanelsNarrow || undefined}
             // style={{
             //   '--blur-size': '10px',
             // } as CSSProperties}
