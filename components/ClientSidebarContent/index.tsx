@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { useStore } from "zustand";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -204,6 +205,14 @@ function ClientLogin({ onEmailError }: { onEmailError: (code: string | null) => 
         >
           {checking ? (
             <>
+              <Image
+                src="/favicon/android-chrome-192x192.png"
+                width={64}
+                height={64}
+                alt=""
+                className="mx-auto"
+                loading="eager"
+              />
               <h1
                 ref={headingRef}
                 className="gradient-text"
