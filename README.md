@@ -90,7 +90,7 @@ Dear World is in early development, with map exploration, thought submission, an
 ## Development setup
 
 Copy `.env.example` to the appropriate `.env.development` configuration and set the
-database URL, independent CMS/client auth secrets, Resend sender/key, Turnstile keys
+database URL, independent CMS/client auth secrets, Resend API key and webhook signing secret, Turnstile keys
 and application origin. Apply the schema with `pnpm db:push`, then run
 `pnpm prisma:generate`. Schema files are the development source of truth; migration
 files and reset flows are not used. Run `pnpm cms:seed` only with the intended bootstrap

@@ -13,6 +13,7 @@ import {
 import { clientAuthSecret } from "@/app/api/_handlers/clientAuth";
 import { ClientHttpError } from "@/lib/clientErrors";
 import { CLIENT_LIMITS } from "@/app/api/client/constant";
+import { EMAIL_CONFIG } from "@/emails/config";
 import { verificationEmail } from "@/emails/verification";
 import { checkClientEmailDeliverability } from "@/lib/clientEmailSuppression";
 
@@ -95,8 +96,8 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
     await tx.user.update({ where: { id: userId }, data: { verificationLastSentAt: now } });
     return { record: pending, email: user.email, sentAt: now, reservedNewSend };
   });
-  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL)
-    throw new ClientHttpError(503, "emailFailed");
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new ClientHttpError(503, "emailFailed");
   const identifierParts = slot.record.identifier.split(":");
   const templateVersion = identifierParts.at(-3);
   const savedLocale = identifierParts.at(-2) === "vi" ? "vi" : "en";
@@ -114,25 +115,37 @@ export async function sendClientVerification(userId: string, locale: "en" | "vi"
     response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "Idempotency-Key": idempotencyKey,
       },
-      body: JSON.stringify({ from: process.env.RESEND_FROM_EMAIL, to: [slot.email], ...mail }),
+      body: JSON.stringify({
+        from: EMAIL_CONFIG.noReply,
+        to: [slot.email],
+        reply_to: EMAIL_CONFIG.support,
+        ...mail,
+      }),
       signal: AbortSignal.timeout(CLIENT_LIMITS.REQUEST_TIMEOUT_MS),
     });
   } catch {
     throw new ClientHttpError(503, "emailFailed");
   }
   if (!response.ok) {
-    const error: unknown = response.status === 429 ? await response.json().catch(() => null) : null;
-    if (error && typeof error === "object" && "name" in error &&
-      (error.name === "daily_quota_exceeded" || error.name === "monthly_quota_exceeded")) {
+    const error: unknown = response.status === 429 || response.status === 409
+      ? await response.json().catch(() => null)
+      : null;
+    const errorName = error && typeof error === "object" && "name" in error ? error.name : null;
+    if (response.status === 429 &&
+      (errorName === "daily_quota_exceeded" || errorName === "monthly_quota_exceeded")) {
       // Token của lượt cũ có thể đã được gửi trước khi kết nối bị gián đoạn.
       if (slot.reservedNewSend) await refundVerificationSend(userId, slot.record, slot.sentAt);
       throw new ClientHttpError(503, "emailQuotaExceeded");
     }
-    throw new ClientHttpError(503, "emailFailed");
+    // Khóa gắn với token và người nhận. Nếu Resend đã gửi trước khi đổi Reply-To,
+    // payload mới có thể xung đột với thư đã gửi. Ghi nhận lượt cũ thay vì gửi trùng.
+    if (slot.reservedNewSend || response.status !== 409 || errorName !== "invalid_idempotent_request") {
+      throw new ClientHttpError(503, "emailFailed");
+    }
   }
   await prisma.verification.updateMany({
     where: { id: slot.record.id },

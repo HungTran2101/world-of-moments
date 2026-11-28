@@ -82,7 +82,6 @@
     "retry": "Try again",
     "report": "Report",
     "reportSubject": "Dear World error report",
-    "reportUnavailable": "Set NEXT_PUBLIC_ERROR_REPORT_EMAIL to enable report.",
     "reportTooltip": "The email content will be pre-filled, you just need to send it :3",
     "reportThanks": "Thank you for sending the report! We will look into it and fix it as soon as possible."
   },

@@ -23,6 +23,7 @@ import {
 } from "@/services/client-auth";
 import { CLIENT_LIMITS } from "@/app/api/client/constant";
 import { constants } from "@/app/api/constant";
+import { EMAIL_CONFIG } from "@/emails/config";
 import type { ClientCredentials } from "@/services/client-auth/types";
 import { useSystemStore } from "@/store/systemStore";
 import { ApiError } from "@/services/shared/errors";
@@ -580,18 +581,6 @@ export function ClientSidebarContent({
   const statusNotice = state === "unverified" && notice !== "resendLimit" &&
     !(notice === "emailUndeliverable" && user?.verificationEmailBlocked) &&
     !(notice === "emailSent" && !canResend) ? notice : null;
-  const contact = process.env.NEXT_PUBLIC_ERROR_REPORT_EMAIL?.trim();
-  const contactHref = contact && user
-    ? `mailto:${encodeURIComponent(contact)}?subject=${encodeURIComponent(
-      t("appealSubject"),
-    )}&body=${encodeURIComponent(
-      t("appealBody", {
-        id: user.id,
-        email: user.email,
-      }),
-    )}`
-    : null;
-
   return (
     <div className="clientSidebarContent-authViewport">
       <AnimatePresence
@@ -724,6 +713,11 @@ export function ClientSidebarContent({
                           {t("sendLimit")}
                         </Badge>
                       )}
+                      {(user.verificationEmailBlocked || statusNotice === "emailUndeliverable") && (
+                        <GlassButton asChild>
+                          <a href={`mailto:${EMAIL_CONFIG.support}`}>{t("contact")}</a>
+                        </GlassButton>
+                      )}
                       <button
                         type="button"
                         className="clientSidebarContent-link"
@@ -743,9 +737,15 @@ export function ClientSidebarContent({
                       })}
                     </p>
                   )}
-                  {state === "banned" && contactHref && (
+                  {state === "banned" && (
                     <GlassButton asChild>
-                      <a href={contactHref}>{t("contact")}</a>
+                      <a href={`mailto:${EMAIL_CONFIG.support}?subject=${encodeURIComponent(
+                        t("appealSubject"),
+                      )}&body=${encodeURIComponent(
+                        t("appealBody", { id: user.id, email: user.email }),
+                      )}`}>
+                        {t("contact")}
+                      </a>
                     </GlassButton>
                   )}
                 </section>

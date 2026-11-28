@@ -82,7 +82,6 @@
     "retry": "Thử lại",
     "report": "Báo lỗi",
     "reportSubject": "Dear World error report",
-    "reportUnavailable": "Hãy cấu hình NEXT_PUBLIC_ERROR_REPORT_EMAIL để báo lỗi.",
     "reportTooltip": "Nội dung email sẽ được điền sẵn, bạn chỉ cần gửi đi là xong nhé :3",
     "reportThanks": "Cảm ơn bạn đã gửi báo lỗi! Chúng mình sẽ xem xét và khắc phục sớm nhất có thể."
   },

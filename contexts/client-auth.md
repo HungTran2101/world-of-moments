@@ -23,6 +23,8 @@ Both `register` and `login` require a `captchaToken` for the corresponding Turns
 | POST `verify` | Consume the submitted token and return a success or invalid result. Service failures allow a retry. |
 | POST `logout` | Revoke the current client session. |
 
+Registration and resend send verification emails from `Dear World <no-reply@dearworld.space>` with `support@dearworld.space` as the reply address. The sidebar also opens a draft to support for account appeals and undeliverable verification emails. The addresses come from `emails/config.ts`.
+
 If Resend rejects an email because its daily or monthly quota is exhausted, registration keeps the account and session and returns `201` with `emailErrorCode: "emailQuotaExceeded"`. The resend endpoint returns `503` with the same error code. The service refunds any new verification send it reserved for that request. A retry of a previously reserved send retains its original token and does not use an additional attempt. The resend cooldown still applies.
 
 ## Thought submission limits

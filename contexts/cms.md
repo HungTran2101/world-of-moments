@@ -77,3 +77,5 @@ CMS components call named functions from `services/cms/<module>/index.ts`. Servi
 Paginated APIs return `{ items, metadata: { page, pageSize, total, totalPages } }` using the shared pagination types. Pages are 1-based. Empty results have zero items and one page. CMS records expose ISO creation timestamps. Staff changes to submissions, roles and accounts record the updater and update time. Audit values are for display and traceability. Authorization uses the active session.
 
 API errors carry a localized error key and optional field errors or conflict details. Forms map field errors to their inputs. A protected 401 ends the CMS session in the UI. A 403 reports missing permission. Server permission checks apply to direct requests as well as actions initiated by the UI.
+
+The app-wide error screens open a report draft addressed to `support@dearworld.space`.

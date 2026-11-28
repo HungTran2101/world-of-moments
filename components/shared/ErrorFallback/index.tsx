@@ -11,13 +11,12 @@ import { RefractiveGlass } from "@/components/ui/refractive-glass";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components//ui/tooltip";
 import { Locale } from "@/i18n/config";
 import MapLoading from "@/components/shared/MapLoading";
+import { EMAIL_CONFIG } from "@/emails/config";
 
 interface ErrorFallbackProps {
   error: Error & { digest?: string };
   onRetry: () => void;
 }
-
-const REPORT_EMAIL = process.env.NEXT_PUBLIC_ERROR_REPORT_EMAIL ?? "";
 
 function detectLocale(): Locale {
   if (typeof document !== "undefined" && document.documentElement.lang.startsWith("en")) {
@@ -63,14 +62,10 @@ export default function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
     return messages.errorBoundary;
   }, [locale]);
 
-  const canReport = REPORT_EMAIL.length > 0;
-
   const handleReport = () => {
-    if (!canReport || typeof window === "undefined") return;
-
     const subject = encodeURIComponent(copy.reportSubject);
     const body = encodeURIComponent(buildReportBody(error));
-    window.location.href = `mailto:${REPORT_EMAIL}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${EMAIL_CONFIG.support}?subject=${subject}&body=${body}`;
     setReportClicked(true);
   };
 
@@ -151,8 +146,6 @@ export default function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
                   <TooltipTrigger asChild>
                     <GlassButton
                       onClick={handleReport}
-                      disabled={!canReport}
-                      title={!canReport ? copy.reportUnavailable : undefined}
                       className="px-8 py-5 rounded-full min-w-[170px]"
                       primaryColor="blue"
                     >
@@ -166,17 +159,6 @@ export default function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
                 </Tooltip>
               </div>
 
-              {!canReport ? (
-                <p
-                  style={{
-                    marginTop: "14px",
-                    fontSize: "0.92rem",
-                    color: "#6d7894",
-                  }}
-                >
-                  {copy.reportUnavailable}
-                </p>
-              ) : null}
               {reportClicked ? (
                 <p
                   style={{
@@ -209,14 +191,10 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
     return messages.errorBoundary;
   }, [locale]);
 
-  const canReport = REPORT_EMAIL.length > 0;
-
   const handleReport = () => {
-    if (!canReport || typeof window === "undefined") return;
-
     const subject = encodeURIComponent(copy.reportSubject);
     const body = encodeURIComponent(buildReportBody(error));
-    window.location.href = `mailto:${REPORT_EMAIL}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${EMAIL_CONFIG.support}?subject=${subject}&body=${body}`;
     setReportClicked(true);
   };
 
@@ -319,8 +297,6 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
             className="h-auto"
             type="button"
             onClick={handleReport}
-            disabled={!canReport}
-            title={!canReport ? copy.reportUnavailable : undefined}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -331,9 +307,9 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
               borderRadius: "999px",
               border: "1px solid rgba(76, 91, 138, 0.18)",
               background: "#fff",
-              color: canReport ? "#34405f" : "#9aa4bd",
+              color: "#34405f",
               fontWeight: 600,
-              cursor: canReport ? "pointer" : "not-allowed",
+              cursor: "pointer",
             }}
           >
             <Mail size={18} className="size-4.5" />
@@ -341,17 +317,6 @@ export const GlobalErrorFallback = ({ error, onRetry }: ErrorFallbackProps) => {
           </Button>
         </div>
 
-        {!canReport ? (
-          <p
-            style={{
-              marginTop: "14px",
-              fontSize: "0.92rem",
-              color: "#6d7894",
-            }}
-          >
-            {copy.reportUnavailable}
-          </p>
-        ) : null}
         {reportClicked ? (
           <p
             style={{
